@@ -30,6 +30,7 @@ def create_schema(entry, option=False):
         default_country = entry.data.get("country", "Belgium")
         default_postalcode = entry.data.get("postalcode", "")
         default_super95 = entry.data.get("super95", True)
+        default_super98 = entry.data.get("super98", True)
         default_diesel = entry.data.get("diesel", True)
         default_oilstd = entry.data.get("oilstd", True)
         default_oilextra = entry.data.get("oilextra", True)
@@ -37,6 +38,7 @@ def create_schema(entry, option=False):
         default_country = "Belgium"
         default_postalcode = ""
         default_super95 = True
+        default_super98 = True
         default_diesel = True
         default_oilstd = True
         default_oilextra = True
@@ -50,6 +52,9 @@ def create_schema(entry, option=False):
     ] = str
     data_schema[
         vol.Optional("super95", default=default_super95, description="Super 95 sensors")
+    ] = bool
+    data_schema[
+        vol.Optional("super98", default=default_super98, description="Super 98 sensors")
     ] = bool
     data_schema[
         vol.Optional("diesel", default=default_diesel, description="Diesel sensors")

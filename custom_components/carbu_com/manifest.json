@@ -6,7 +6,7 @@
   "domain": "carbu_com",
   "iot_class": "cloud_polling",
   "name": "Carbu.com",
-  "requirements": [],
+  "requirements": ["bs4", "html5lib"],
   "version": "0.0.1",
   "issue_tracker": "https://github.com/myTselection/carbu_com/issues",
   "integration_type": "hub"

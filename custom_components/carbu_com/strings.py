@@ -7,8 +7,9 @@
                 "data": {
                     "country": "Country",
                     "postalcode": "Postal code",
-					"super95": "Super 95",
-					"diesel": "Diesel",
+					"super95": "Super 95 (E10)",
+					"super98": "Super 98 (E5)",
+					"diesel": "Diesel (B7)",
 					"oilstd": "Mazout Fuel Oil standard (50S)",
 					"oilextra": "Mazout Fuel Oil extra"
                 }
@@ -18,8 +19,9 @@
                 "data": {
                     "country": "Country",
                     "postalcode": "Postal code",
-					"super95": "Super 95",
-					"diesel": "Diesel",
+					"super95": "Super 95 (E10)",
+					"super98": "Super 98 (E5)",
+					"diesel": "Diesel (B7)",
 					"oilstd": "Mazout Fuel Oil standard (50S)",
 					"oilextra": "Mazout Fuel Oil extra"
                 }
@@ -40,8 +42,9 @@
                 "data": {
                     "country": "Country",
                     "postalcode": "Postal code",
-					"super95": "Super 95",
-					"diesel": "Diesel",
+					"super95": "Super 95 (E10)",
+					"super98": "Super 98 (E5)",
+					"diesel": "Diesel (B7)",
 					"oilstd": "Mazout Fuel Oil standard (50S)",
 					"oilextra": "Mazout Fuel Oil extra"
                 }
