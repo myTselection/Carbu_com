@@ -6,6 +6,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
 from homeassistant.const import Platform
+from .utils import *
 
 manifestfile = Path(__file__).parent / 'manifest.json'
 with open(manifestfile, 'r') as json_file:
@@ -41,7 +42,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
         return True
 
     try:
-        await hass.config_entries.async_forward_entry(config, PLATFORMS)
+        await hass.config_entries.async_forward_entry_setups(config, PLATFORMS)
         _LOGGER.info("Successfully added sensor from the integration")
     except ValueError:
         pass
@@ -71,7 +72,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up component as config entry."""
     hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(config_entry, PLATFORMS)
+        hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     )
     return True
 
