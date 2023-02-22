@@ -22,7 +22,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 - [HACS](https://hacs.xyz/): add url https://github.com/myTselection/carbu_com as custom repository (HACS > Integration > option: Custom Repositories)
 - Restart Home Assistant
 - Add 'Carbu.com' integration via HA Settings > 'Devices and Services' > 'Integrations'
-- Provide Carbu.com username and password
+- Provide country (currently only tested with BE), postal code and select the desired sensors
 
 ## Integration
 - <details><summary>Sensor diesel and super <code>sensor.carbu_com_fueltype_postalcode_price</code> and fuel oil <code>sensor.carbu_com_fueltype_postalcode_quantity_price</code></summary>
