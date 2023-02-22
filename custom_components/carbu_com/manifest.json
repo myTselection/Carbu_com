@@ -9,5 +9,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/myTselection/carbu_com/issues",
   "requirements": ["bs4", "html5lib"],
-  "version": "0.1.0"
+  "version": "0.1.1"
 }
