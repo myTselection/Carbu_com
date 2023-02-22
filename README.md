@@ -25,60 +25,28 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 - Provide Carbu.com username and password
 
 ## Integration
-- <details><summary>Sensor <code>sensor.carbu_com_<phonenr>_voice_sms</code></summary>
+- <details><summary>Sensor diesel and super <code>sensor.carbu_com_<fueltype>_<postalcode>_price</code> and fuel oil <code>sensor.carbu_com_<fueltype>_<postalcode>_<quantity>_price</code></summary>
 
     | Attribute | Description |
     | --------- | ----------- |
-    | State     | Percentage of used call and sms based on total volume and used amount |
-    | `last update `   | Timestamp info last retrieved from the youfone website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
-    | `phone_number`   | Phone number of the sim card |
-    | `used_percentage` | Percentage of used call and sms based on total volume and used amount |
-    | `period_used_percentage`  | Percentage of period that has passed. Usage will be reset once period has fully passed. |
-    | `total_volume`  | Total volume of available call & sms within subscription |
-    | `includedvolume_usage`  | Used amout of call & sms |
-    | `unlimited`  | Indication if it's an unlimited subscription (not tested) |
-    | `period_start`  | Start date of the next period |
-    | `period_days_left`  | Number of days left in current period |
-    | `extra_costs`  | Amount of extra costs (eg when usage above volume within subscription) |
-    | `usage_details_json`  | Json with full details of usage as received from youfone website |
+    | State     | Price |
+    | `last update `   | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
+    | `fueltype`   | Fuel type |
+    | `fuelname` | Full name of the fuel type |
+    | `postalcode`  | Postalcode at which the price was retrieved |
+    | `supplier`  | Name of the supplier of the fuel |
+    | `url`  | Url with details of the supplier |
+    | `logourl`  | Url with the logo of the supplier |
+    | `address`  | Address of the supplier |
+    | `city`  | City of the supplier |
+    | `lat`  | Latitude of the supplier |
+    | `lon`  | Longitude of the supplier |
+    | `distance`  | Distance to the supplier |
+    | `date`  | Date for the validity of the price |
+    | `quantity`  | Quantity of fuel (only for fuel oil) |
+    | `score`  | Score of the supplier |
     </details>
   
-- <details><summary>Sensor <code>sensor.carbu_com_<phonenr>_internet</code></summary>
-
-    | Attribute | Description |
-    | --------- | ----------- |
-    | State     | Percentage of used data based on total volume and used amount |
-    | `last update `   | Timestamp info last retrieved from the youfone website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
-    | `phone_number`   | Phone number of the sim card |
-    | `used_percentage` | Percentage of used data based on total volume and used amount |
-    | `period_used_percentage`  | Percentage of period that has passed. Usage will be reset once period has fully passed. |
-    | `total_volume`  | Total volume of available data within subscription |
-    | `includedvolume_usage`  | Used amout of data |
-    | `unlimited`  | Indication if it's an unlimited subscription (not tested) |
-    | `period_start`  | Start date of the next period |
-    | `period_days_left`  | Number of days left in current period |
-    | `extra_costs`  | Amount of extra costs (eg when usage above volume within subscription) |
-    | `usage_details_json`  | Json with full details of usage as received from youfone website | 
-    </details>
-    
-- <details><summary>Sensor <code>sensor.carbu_com_<phonenr>_subscription_info</code></summary>
-
-    | Attribute | Description |
-    | --------- | ----------- |
-    | State     | Info related to the Youfone subscription |
-    | `last update `   | Timestamp info last retrieved from the youfone website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
-    | `SubscriptionType`   | Info related to the Youfone subscription |
-    | `Price` | Subscription monthly rate |
-    | `ContractStartDate`  | Contract Start Date. |
-    | `ContractDuration`  | Contract duration |
-    | `Msisdn`  | SIM unique phone number |
-    | `PUK`  | PUK code of the sim card |
-    | `ICCShort`  | SIM card unique id |
-    | `MsisdnStatus`  | Status of the SIM card |
-    | `DataSubscription`  | Details (volume indication) of the data subscription |
-    | `VoiceSmsSubscription`  | Details (volume indication) of the call & sms subscription |
-    </details>
-
 ## Status
 Still some optimisations are planned, see [Issues](https://github.com/myTselection/carbu_com/issues) section in GitHub.
 
