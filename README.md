@@ -25,7 +25,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 - Provide Carbu.com username and password
 
 ## Integration
-- <details><summary>Sensor diesel and super <code>sensor.carbu_com_<fueltype>_<postalcode>_price</code> and fuel oil <code>sensor.carbu_com_<fueltype>_<postalcode>_<quantity>_price</code></summary>
+- <details><summary>Sensor diesel and super <code>sensor.carbu_com_fueltype_postalcode_price</code> and fuel oil <code>sensor.carbu_com_fueltype_postalcode_quantity_price</code></summary>
 
     | Attribute | Description |
     | --------- | ----------- |
