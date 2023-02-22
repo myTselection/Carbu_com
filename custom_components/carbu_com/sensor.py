@@ -69,12 +69,12 @@ async def dry_setup(hass, config_entry, async_add_devices):
         sensors.append(sensorDiesel)
     
     if oilstd:
-        sensorOilstd = ComponentPriceSensor(componentData, "oilstd", postalcode, False, 0)
+        sensorOilstd = ComponentPriceSensor(componentData, "oilstd", postalcode, True, 1000)
         await sensorOilstd.async_update()
         sensors.append(sensorOilstd)
     
     if oilextra:
-        sensorOilextra = ComponentPriceSensor(componentData, "oilextra", postalcode, False, 0)
+        sensorOilextra = ComponentPriceSensor(componentData, "oilextra", postalcode, True, 1000)
         await sensorOilextra.async_update()
         sensors.append(sensorOilextra)    
     
@@ -115,7 +115,7 @@ class ComponentData:
         self._lastupdate = None
         self._country = config.get("country")
         self._postalcode = config.get("postalcode")
-        self._price_info = None
+        self._price_info = dict()
         
         self._super95 = config.get("super95")
         self._super95_fueltypecode = "E10"
@@ -144,14 +144,6 @@ class ComponentData:
             # <option value="Elec">Elektriciteit</option>
         # </optgroup>
         
-        #init location for postalcode
-        if self._session:
-            self._carbuLocationInfo = await self._hass.async_add_executor_job(lambda: self._session.convertPostalCode(self._postalcode, self._country))
-            self._town = self._carbuLocationInfo.get("n")
-            self._city = self._carbuLocationInfo.get("pn")
-            self._countryname = self._carbuLocationInfo.get("cn")
-            self._locationid = self._carbuLocationInfo.get("id")
-            
         
     # same as update, but without throttle to make sure init is always executed
     async def _forced_update(self):
@@ -160,6 +152,11 @@ class ComponentData:
             self._session = ComponentSession()
 
         if self._session:
+            self._carbuLocationInfo = await self._hass.async_add_executor_job(lambda: self._session.convertPostalCode(self._postalcode, self._country))
+            self._town = self._carbuLocationInfo.get("n")
+            self._city = self._carbuLocationInfo.get("pn")
+            self._countryname = self._carbuLocationInfo.get("cn")
+            self._locationid = self._carbuLocationInfo.get("id")
         # postalcode, country, town, locationid, fueltypecode)
             if self._super95:
                 price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrice(self._postalcode, self._country, self._town, self._locationid, self._super95_fueltypecode))
@@ -274,8 +271,8 @@ class ComponentPriceSensor(Entity):
     def unique_id(self) -> str:
         """Return the name of the sensor."""
         name = f"{NAME} {self._fueltype} {self._postalcode}"
-        if quantity != 0:
-            name += f" {quantity}"
+        if self._quantity != 0:
+            name += f" {self._quantity}l"
         name += " price"
         return (name)
 

@@ -42,7 +42,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
         return True
 
     try:
-        await hass.config_entries.async_forward_entry_setups(config, PLATFORMS)
+        await hass.config_entries.async_forward_entry(config, Platform.SENSOR)
         _LOGGER.info("Successfully added sensor from the integration")
     except ValueError:
         pass
@@ -62,9 +62,9 @@ async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry):
     await hass.config_entries.async_reload(config_entry.entry_id)
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unload_ok = await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
     if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
+        hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return unload_ok
 
@@ -72,7 +72,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up component as config entry."""
     hass.async_create_task(
-        hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
+        hass.config_entries.async_forward_entry_setup(config_entry, Platform.SENSOR)
     )
     return True
 
