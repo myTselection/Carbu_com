@@ -332,7 +332,7 @@ class ComponentPriceSensor(Entity):
     @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement this sensor expresses itself in."""
-        return "%"
+        return "€/l"
 
     @property
     def friendly_name(self) -> str:
