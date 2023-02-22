@@ -1,0 +1,13 @@
+{
+  "codeowners": ["@myTselection"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/myTselection/carbu_com",
+  "domain": "carbu_com",
+  "iot_class": "cloud_polling",
+  "name": "Carbu.com",
+  "requirements": [],
+  "version": "0.0.1",
+  "issue_tracker": "https://github.com/myTselection/carbu_com/issues",
+  "integration_type": "hub"
+}
