@@ -27,7 +27,7 @@ _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.0%z"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
-        vol.Required("country"): cv.string,
+        vol.Required("country", default="BE"): cv.string,
         vol.Required("postalcode"): cv.string,
         vol.Optional("super95", default=True): cv.boolean,
         vol.Optional("diesel", default=True): cv.boolean,

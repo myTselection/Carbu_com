@@ -27,7 +27,7 @@ def create_schema(entry, option=False):
 
     if option:
         # We use .get here incase some of the texts gets changed.
-        default_country = entry.data.get("country", "Belgium")
+        default_country = entry.data.get("country", "BE")
         default_postalcode = entry.data.get("postalcode", "")
         default_super95 = entry.data.get("super95", True)
         default_super98 = entry.data.get("super98", True)
@@ -36,7 +36,7 @@ def create_schema(entry, option=False):
         default_oilextra = entry.data.get("oilextra", True)
         default_quantity = entry.data.get("quantity", 1000)
     else:
-        default_country = "Belgium"
+        default_country = "BE"
         default_postalcode = ""
         default_super95 = True
         default_super98 = True
@@ -47,7 +47,7 @@ def create_schema(entry, option=False):
 
     data_schema = OrderedDict()
     data_schema[
-        vol.Required("country", description="Country")
+        vol.Required("country", default=default_country, description="Country")
     ] = str
     data_schema[
         vol.Required("postalcode", description="Postal Code")
