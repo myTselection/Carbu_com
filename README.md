@@ -57,7 +57,7 @@ The main logic and API connection related code can be found within source code C
 
 All other files just contain boilerplat code for the integration to work wtihin HA or to have some constants/strings/translations.
 
-## Example usage: (using [dual gauge card](https://github.com/custom-cards/dual-gauge-card))
+## Example usage:
 ### Gauge & Markdown
 <p align="center"><img src="https://raw.githubusercontent.com/myTselection/carbu_com/master/Markdown%20Gauge%20Card%20example.png"/></p>
 <details><summary>Click to show Mardown code example</summary>
