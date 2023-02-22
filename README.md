@@ -65,61 +65,53 @@ All other files just contain boilerplat code for the integration to work wtihin 
 ```
 type: vertical-stack
 cards:
-  - type: markdown
-    content: >-
-      ## <img
-      src="https://raw.githubusercontent.com/myTselection/carbu_com/master/icon.png"
-      width="30"/>&nbsp;&nbsp;Youfone
-      {{state_attr('sensor.carbu_com_<phonenr>_voice_sms','phone_number')}}
+  - type: horizontal-stack
+    cards:
+      - type: markdown
+        content: >
+          ## Diesel
 
+          <img
+          src="{{state_attr('sensor.carbu_com_diesel_1000_price','logourl')}}"
+          width="40"/>
+          [{{state_attr('sensor.carbu_com_diesel_1000_price','supplier')}}]({{state_attr('sensor.carbu_com_diesel_1000_price','url')}})
+      - type: markdown
+        content: >-
+          ## Mazout
 
-      ### Totaal bel/sms verbruikt: {{states('sensor.carbu_com_<phonenr>_voice_sms')}}%
-      ({{state_attr('sensor.carbu_com_<phonenr>_voice_sms','includedvolume_usage')}} van
-      {{state_attr('sensor.carbu_com_<phonenr>_voice_sms','total_volume')}})
-
-      ### Totaal data verbruikt: {{states('sensor.carbu_com_<phonenr>_internet')}}%
-      ({{state_attr('sensor.carbu_com_<phonenr>_internet','includedvolume_usage')}} van
-      {{state_attr('sensor.carbu_com_<phonenr>_internet','total_volume')}})
-
-      #### {{state_attr('sensor.carbu_com_<phonenr>_voice_sms','period_days_left')|int}}
-      dagen resterend
-      ({{((state_attr('sensor.carbu_com_<phonenr>_voice_sms','total_volume')|replace('
-      Min','')) or 0)|int -
-      (state_attr('sensor.carbu_com_<phonenr>_voice_sms','includedvolume_usage') or
-      0)|int}} Min)
-      laatste update: *{{state_attr('sensor.carbu_com_<phonenr>_voice_sms','last update')
-      | as_timestamp | timestamp_custom("%d-%m-%Y")}}*
-  - type: custom:dual-gauge-card
-    title: false
-    min: 0
-    max: 100
-    shadeInner: true
-    cardwidth: 350
-    outer:
-      entity: sensor.carbu_com_<phonenr>_voice_sms
-      attribute: used_percentage
-      label: used
-      min: 0
-      max: 100
-      unit: '%'
-      colors:
-        - color: var(--label-badge-green)
-          value: 0
-        - color: var(--label-badge-yellow)
-          value: 60
-        - color: var(--label-badge-red)
-          value: 80
-    inner:
-      entity: sensor.carbu_com_<phonenr>_voice_sms
-      label: period
-      attribute: period_used_percentage
-      min: 0
-      max: 100
-      unit: '%'
+          [{{state_attr('sensor.carbu_com_oilstd_1000_1000l_price','supplier')}}]({{state_attr('sensor.carbu_com_oilstd_1000_1000l_price','url')}})
+  - type: horizontal-stack
+    cards:
+      - type: gauge
+        entity: sensor.carbu_com_diesel_1000_price
+        min: 0
+        max: 5
+        needle: true
+        unit: €/l
+        name: Diesel prijs
+        severity:
+          green: 0
+          yellow: 0.8
+          red: 2
+      - type: gauge
+        entity: sensor.carbu_com_oilstd_1000_1000l_price
+        min: 0
+        max: 5
+        needle: true
+        unit: €/l
+        name: Mazout prijs
+        severity:
+          green: 0
+          yellow: 0.8
+          red: 2
   - type: history-graph
     entities:
-      - entity: sensor.carbu_com_<phonenr>_voice_sms
+      - entity: sensor.carbu_com_diesel_1000_price
+        name: Diesel
+      - entity: sensor.carbu_com_oilextra_1000_1000l_price
+        name: Oil extra (per 1000l)
     hours_to_show: 500
     refresh_interval: 60
+
 ```
 </details>
