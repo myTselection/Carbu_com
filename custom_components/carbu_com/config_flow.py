@@ -34,6 +34,7 @@ def create_schema(entry, option=False):
         default_diesel = entry.data.get("diesel", True)
         default_oilstd = entry.data.get("oilstd", True)
         default_oilextra = entry.data.get("oilextra", True)
+        default_quantity = entry.data.get("quantity", 1000)
     else:
         default_country = "Belgium"
         default_postalcode = ""
@@ -42,6 +43,7 @@ def create_schema(entry, option=False):
         default_diesel = True
         default_oilstd = True
         default_oilextra = True
+        default_quantity = 1000
 
     data_schema = OrderedDict()
     data_schema[
@@ -65,6 +67,9 @@ def create_schema(entry, option=False):
     data_schema[
         vol.Optional("oilextra", default=default_oilextra, description="Extra oil sensors")
     ] = bool
+    data_schema[
+        vol.Optional("quantity", default=default_quantity, description="Oil quantity in liters (eg 1000)")
+    ] = int
 
     return data_schema
 

@@ -33,6 +33,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional("diesel", default=True): cv.boolean,
         vol.Optional("oilstd", default=True): cv.boolean,
         vol.Optional("oilextra", default=True): cv.boolean,
+        vol.Optional("quantity", default=1000): cv.positive_int,
     }
 )
 
@@ -47,6 +48,7 @@ async def dry_setup(hass, config_entry, async_add_devices):
     diesel = config.get("diesel")
     oilstd = config.get("oilstd")
     oilextra = config.get("oilextra")
+    quantity = config.get("quantity")
 
     check_settings(config, hass)
     sensors = []
@@ -69,12 +71,12 @@ async def dry_setup(hass, config_entry, async_add_devices):
         sensors.append(sensorDiesel)
     
     if oilstd:
-        sensorOilstd = ComponentPriceSensor(componentData, "oilstd", postalcode, True, 1000)
+        sensorOilstd = ComponentPriceSensor(componentData, "oilstd", postalcode, True, quantity)
         await sensorOilstd.async_update()
         sensors.append(sensorOilstd)
     
     if oilextra:
-        sensorOilextra = ComponentPriceSensor(componentData, "oilextra", postalcode, True, 1000)
+        sensorOilextra = ComponentPriceSensor(componentData, "oilextra", postalcode, True, quantity)
         await sensorOilextra.async_update()
         sensors.append(sensorOilextra)    
     
@@ -117,6 +119,12 @@ class ComponentData:
         self._postalcode = config.get("postalcode")
         self._price_info = dict()
         
+        self._carbuLocationInfo = None
+        self._town = None
+        self._city = None
+        self._countryname = None
+        self._locationid = None
+        
         self._super95 = config.get("super95")
         self._super95_fueltypecode = "E10"
         self._super98 = config.get("super98")
@@ -127,6 +135,7 @@ class ComponentData:
         self._oilstd_oiltypecode = "7"
         self._oilextra = config.get("oilextra")
         self._oilextra_oiltypecode = "2"
+        self._quantity = config.get("quantity")
             
         # <optgroup label="Brandstof">
             # <option value="E10">Super 95 (E10)</option>
@@ -173,11 +182,11 @@ class ComponentData:
                 _LOGGER.info(f"{NAME} price_info diesel {price_info}")
                 #TODO prediction Diesel: https://carbu.com/belgie//index.php/voorspellingen?p=M&C=D
             if self._oilstd:
-                price_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrice(self._locationid, "1000", self._oilstd_oiltypecode))
+                price_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrice(self._locationid, self._quantity, self._oilstd_oiltypecode))
                 self._price_info["oilstd"] = price_info
                 _LOGGER.info(f"{NAME} price_info oilstd {price_info}")
             if self._oilextra:
-                price_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrice(self._locationid, "1000", self._oilextra_oiltypecode))
+                price_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrice(self._locationid, self._quantity, self._oilextra_oiltypecode))
                 self._price_info["oilextra"] = price_info
                 _LOGGER.info(f"{NAME} price_info oilextra {price_info}")
                 # TODO mazout expected https://mazout.com/belgie/mazoutprijs
@@ -230,7 +239,11 @@ class ComponentPriceSensor(Entity):
         if self._isOil:
             self._price = priceinfo.get("data")[0].get("unitPrice")
             self._supplier  = priceinfo.get("data")[0].get("supplier").get("name") #x.data[0].supplier.name
-            # self._url   = 
+            if self._fueltype == "oilstd":
+                oilproductid = self._data._oilstd_oiltypecode
+            else:
+                oilproductid = self._data._oilextra_oiltypecode
+            self._url   = f"https://mazout.com/belgie/offers?areaCode={self._data._locationid}&by=quantity&for={self._quantity}&productId={oilproductid}"
             self._logourl = priceinfo.get("data")[0].get("supplier").get("media").get("logo").get("src") #x.data[0].supplier.media.logo.src
             self._score = priceinfo.get("data")[0].get("supplier").get("rating").get("score") #x.data[0].supplier.rating.score
             # self._address = 

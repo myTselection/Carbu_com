@@ -11,7 +11,8 @@
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
 					"oilstd": "Mazout Fuel Oil standard (50S)",
-					"oilextra": "Mazout Fuel Oil extra"
+					"oilextra": "Mazout Fuel Oil extra",
+					"quantity": "Mazout Fuel Oil quanitity (liters)"
                 }
             },
             "edit": {
@@ -23,7 +24,8 @@
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
 					"oilstd": "Mazout Fuel Oil standard (50S)",
-					"oilextra": "Mazout Fuel Oil extra"
+					"oilextra": "Mazout Fuel Oil extra",
+					"quantity": "Mazout Fuel Oil quanitity (liters)"
                 }
             }
 
@@ -46,7 +48,8 @@
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
 					"oilstd": "Mazout Fuel Oil standard (50S)",
-					"oilextra": "Mazout Fuel Oil extra"
+					"oilextra": "Mazout Fuel Oil extra",
+					"quantity": "Mazout Fuel Oil quanitity (liters)"
                 }
             }
         },
