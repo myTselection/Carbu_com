@@ -38,22 +38,19 @@ class TestComponentSession(unittest.TestCase):
 
     def test_convertPostalCode(self):
         # Test successful login
-        # self.locationinfo = self.session.convertPostalCode("1831", "BE")
-        self.locationinfo = self.session.convertPostalCode("1652", "BE")
+        self.locationinfo = self.session.convertPostalCode("1831", "BE")
         _LOGGER.debug(f"locationinfo {self.locationinfo}")
         self.assertIsNotNone(self.locationinfo)
         
     def test_getPrice(self):
         # Test successful login
-        # priceinfo = self.session.getFuelPrice("1831", "BE","Diegem","BE_bf_279","GO")
-        priceinfo = self.session.getFuelPrice("1652", "BE","Alsemberg","BE_bf_223","GO")
+        priceinfo = self.session.getFuelPrice("1831", "BE","Diegem","BE_bf_279","GO")
         _LOGGER.debug(f"priceinfo {priceinfo}")
         self.assertIsNotNone(priceinfo)
         
     def test_getOilPrice(self):
         # Test successful login
-        # priceinfo = self.session.getOilPrice("BE_bf_279", "1000","7")
-        priceinfo = self.session.getOilPrice("BE_bf_223","1000","7")
+        priceinfo = self.session.getOilPrice("BE_bf_279", "1000","7")
         _LOGGER.debug(f"priceinfo {priceinfo}")
         self.assertIsNotNone(priceinfo)
         
