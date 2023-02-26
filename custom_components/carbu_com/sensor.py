@@ -62,54 +62,54 @@ async def dry_setup(hass, config_entry, async_add_devices):
     
     if super95:
         sensorSuper95 = ComponentPriceSensor(componentData, "super95", postalcode, False, 0)
-        await sensorSuper95.async_update()
+        # await sensorSuper95.async_update()
         sensors.append(sensorSuper95)
         
         sensorSuper95Neigh = ComponentPriceNeighbourhoodSensor(componentData, "super95", postalcode, 5)
-        await sensorSuper95Neigh.async_update()
+        # await sensorSuper95Neigh.async_update()
         sensors.append(sensorSuper95Neigh)
         
         sensorSuper95Neigh = ComponentPriceNeighbourhoodSensor(componentData, "super95", postalcode, 10)
-        await sensorSuper95Neigh.async_update()
+        # await sensorSuper95Neigh.async_update()
         sensors.append(sensorSuper95Neigh)
         
         sensorSuper95Prediction = ComponentFuelPredictionSensor(componentData, "super95")
-        await sensorSuper95Prediction.async_update()
+        # await sensorSuper95Prediction.async_update()
         sensors.append(sensorSuper95Prediction)
     
     if diesel:
         sensorDiesel = ComponentPriceSensor(componentData, "diesel", postalcode, False, 0)
-        await sensorDiesel.async_update()
+        # await sensorDiesel.async_update()
         sensors.append(sensorDiesel)
         
         sensorDieselNeigh = ComponentPriceNeighbourhoodSensor(componentData, "diesel", postalcode, 5)
-        await sensorDieselNeigh.async_update()
+        # await sensorDieselNeigh.async_update()
         sensors.append(sensorDieselNeigh)
         
         sensorDieselNeigh = ComponentPriceNeighbourhoodSensor(componentData, "diesel", postalcode, 10)
-        await sensorDieselNeigh.async_update()
+        # await sensorDieselNeigh.async_update()
         sensors.append(sensorDieselNeigh)
         
         sensorDieselPrediction = ComponentFuelPredictionSensor(componentData, "diesel")
-        await sensorDieselPrediction.async_update()
+        # await sensorDieselPrediction.async_update()
         sensors.append(sensorDieselPrediction)
     
     if oilstd:
         sensorOilstd = ComponentPriceSensor(componentData, "oilstd", postalcode, True, quantity)
-        await sensorOilstd.async_update()
+        # await sensorOilstd.async_update()
         sensors.append(sensorOilstd)
         
         sensorOilstdPrediction = ComponentOilPredictionSensor(componentData, "oilstd", quantity)
-        await sensorOilstdPrediction.async_update()
+        # await sensorOilstdPrediction.async_update()
         sensors.append(sensorOilstdPrediction)
     
     if oilextra:
         sensorOilextra = ComponentPriceSensor(componentData, "oilextra", postalcode, True, quantity)
-        await sensorOilextra.async_update()
+        # await sensorOilextra.async_update()
         sensors.append(sensorOilextra)    
         
         sensorOilextraPrediction = ComponentOilPredictionSensor(componentData, "oilextra", quantity)
-        await sensorOilextraPrediction.async_update()
+        # await sensorOilextraPrediction.async_update()
         sensors.append(sensorOilextraPrediction)
     
     async_add_devices(sensors)
@@ -360,8 +360,8 @@ class ComponentPriceSensor(Entity):
             "distance": f"{self._distance}km",
             "date": self._date,
             "quantity": self._quantity,
-            "score": self._score,
-            "suppliers": self._priceinfo
+            "score": self._score
+            # "suppliers": self._priceinfo
         }
 
     @property
