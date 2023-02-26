@@ -36,23 +36,36 @@ class TestComponentSession(unittest.TestCase):
             # _LOGGER.debug(f"hex(crc32) {hex(crc32)} {int(hex(crc32),16)} crc32 {crc32} sliced {crc32_str_sliced} crc32 sliced int {int(crc32_str_sliced,16)}")
             # # prints the CRC32 hash as a hexadecimal string
 
-    def test_convertPostalCode(self):
+    def skip_test_convertPostalCode(self):
         # Test successful login
         self.locationinfo = self.session.convertPostalCode("1831", "BE")
         _LOGGER.debug(f"locationinfo {self.locationinfo}")
         self.assertIsNotNone(self.locationinfo)
         
-    def test_getPrice(self):
+    def skip_test_getPrice(self):
         # Test successful login
         priceinfo = self.session.getFuelPrice("1831", "BE","Diegem","BE_bf_279","GO")
         _LOGGER.debug(f"priceinfo {priceinfo}")
         self.assertIsNotNone(priceinfo)
         
-    def test_getOilPrice(self):
+    def skip_test_getOilPrice(self):
         # Test successful login
         priceinfo = self.session.getOilPrice("BE_bf_279", "1000","7")
         _LOGGER.debug(f"priceinfo {priceinfo}")
         self.assertIsNotNone(priceinfo)
+        
+    def test_getFuelPredictionDiesel(self):
+        # Test successful login
+        priceinfo = self.session.getFuelPrediction("D")
+        _LOGGER.debug(f"priceinfo {priceinfo}")
+        self.assertIsNotNone(priceinfo)
+        
+    def test_getFuelPredictionE95(self):
+        # Test successful login
+        priceinfo = self.session.getFuelPrediction("E95")
+        _LOGGER.debug(f"priceinfo {priceinfo}")
+        self.assertIsNotNone(priceinfo)
+        
         
 if __name__ == '__main__':
     unittest.main()

@@ -46,11 +46,11 @@ class ComponentSession(object):
         for info_dict in locationinfo:
             _LOGGER.debug(f"loop location info found: {info_dict}")
             if info_dict["c"] == country and info_dict["pc"] == postalcode:
-                _LOGGER.info(f"location info found: {info_dict}")
+                _LOGGER.debug(f"location info found: {info_dict}")
                 return info_dict
         return False        
         
-    def getFuelPrice(self, postalcode, country, town, locationid, fueltypecode):
+    def getFuelPrice(self, postalcode, country, town, locationid, fueltypecode, single):
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # https://carbu.com/belgie//liste-stations-service/GO/Diegem/1831/BE_bf_279
 
@@ -113,7 +113,57 @@ class ComponentSession(object):
                 stationdetails.append({"id":stationid,"name":name,"url":url,"logo_url":logo_url,"address":address,"locality":locality,"price":price,"lat":lat,"lon":lng,"fuelname":fuelname,"distance":distance,"date":date})
                 
                 # _LOGGER.debug(f"stationdetails: {stationdetails}")
+                if single:
+                    break
+            if single:
+                break
         return stationdetails
+        
+    def getFuelPrediction(self, fueltype_prediction_code):
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+        # Super 95: https://carbu.com/belgie//index.php/voorspellingen?p=M&C=E95
+        # Diesel: https://carbu.com/belgie//index.php/voorspellingen?p=M&C=D
+
+        response = self.s.get(f"https://carbu.com/belgie//index.php/voorspellingen?p=M&C={fueltype_prediction_code}",headers=header,timeout=10)
+        assert response.status_code == 200
+        
+        last_category = None
+        last_data = None
+        soup = BeautifulSoup(response.text, 'html.parser')
+        # Find the Highchart series data
+        highchart_series = soup.find_all('script')
+        for series in highchart_series:
+            # _LOGGER.debug(f"chart loop: {series.text}")
+            if "chart'" in series.text:
+                # Extract the categories and data points
+                categories = series.text.split('categories: [')[1].split(']')[0].strip()
+                categories = categories.replace("'", '"').rstrip(',')
+                # _LOGGER.debug(f"categories found: {categories}")
+                categories = f"[{categories}]"
+                categories = json.loads(categories, strict=False)
+                # _LOGGER.debug(f"categories found: {categories.index('+1')}")
+                
+                categoriesIndex = categories.index('+1')
+                
+                dataseries = "[" + series.text.split('series: [')[1].split('});')[0].strip().rstrip(',')
+                dataseries = dataseries.replace("'", '"').rstrip(',')
+                dataseries = dataseries.replace("series:", '"series":').replace("name:", '"name":').replace("type :", '"type":').replace("color:", '"color":').replace("data:", '"data":').replace("dashStyle:", '"dashStyle":').replace("step:", '"step":').replace(", ]","]").replace('null','"null"').replace("]],","]]")
+                # dataseries = re.sub(r'([a-zA-Z0-9_]+):', r'"\1":', dataseries)
+                dataseries = dataseries[:-1] + ',{"test":"test"}]'
+                # _LOGGER.debug(f"series found: {dataseries}")
+                dataseries = json.loads(dataseries, strict=False)
+                # _LOGGER.debug(f"series found: {dataseries}")
+
+                value = 0
+                for elem in dataseries:
+                    if elem.get("name") == "Maximum prijs  (Voorspellingen)":
+                        # _LOGGER.debug(f"+4 found: {elem.get('data')[categoriesIndex +4]}")
+                        # _LOGGER.debug(f"-1 found: {elem.get('data')[categoriesIndex -1]}")
+                        value = 100 * (elem.get('data')[categoriesIndex +4] - elem.get('data')[categoriesIndex -1]) / elem.get('data')[categoriesIndex -1]
+                
+                # _LOGGER.debug(f"value: {value}")  
+                
+        return value
         
     def getOilPrice(self, locationid, volume, oiltypecode):
         header = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -137,54 +187,27 @@ class ComponentSession(object):
         oildetails = response.json()
         
         return oildetails
-
-
-    def login(self, username, password):
-    # https://my.youfone.be/prov/MyYoufone/MyYOufone.Wcf/v2.0/Service.svc/json/login, POST
-    # example payload
-    # {
-      # "request": {
-        # "Login": "sdlkfjsldkfj@gmail.com",
-        # "Password": "SDFSDFSDFSDFSDF"
-      # }
-    # }
-    # example response: 
-    # {"Message":"Authorization succes","ResultCode":0,"Object":{"Customer":{"CustomerNumber":9223283432,"Email":"eslkdjflksd@gmail.com","FirstName":"slfjs","Gender":null,"Id":3434,"Initials":"I","IsBusinessCustomer":false,"Language":"nl","LastName":"DSFSDF","PhoneNumber":"0412345678","Prefix":null,"RoleId":2},"Customers":[{"CustomerId":12345,"CustomerNumber":1234567890,"IsDefaultCustomer":true,"Msisdn":32412345678,"ProvisioningTypeId":1,"RoleId":2}],"CustomersCount":1}}
-        # Get OAuth2 state / nonce
-        header = {"Content-Type": "application/json"}
-        response = self.s.post("https://my.youfone.be/prov/MyYoufone/MyYOufone.Wcf/v2.0/Service.svc/json/login",data='{"request": {"Login": "'+username+'", "Password": "'+password+'"}}',headers=header,timeout=10)
-        _LOGGER.debug("youfone.be login post result status code: " + str(response.status_code) + ", response: " + response.text)
-        _LOGGER.debug("youfone.be login header: " + str(response.headers))
-        assert response.status_code == 200
-        self.userdetails = response.json()
-        self.msisdn = self.userdetails.get('Object').get('Customers')[0].get('Msisdn')
-        self.s.headers["securitykey"] = response.headers.get('securitykey')
-        return self.userdetails
-
-    def usage_details(self):
-    # https://my.youfone.be/prov/MyYoufone/MyYOufone.Wcf/v2.0/Service.svc/json/GetOverviewMsisdnInfo
-    # request.Msisdn - phonenr 
-    # {"Message":null,"ResultCode":0,"Object":[{"Properties":[{"Key":"UsedAmount","Value":"0"},{"Key":"BundleDurationWithUnits","Value":"250 MB"},{"Key":"Percentage","Value":"0.00"},{"Key":"_isUnlimited","Value":"0"},{"Key":"_isExtraMbsAvailable","Value":"1"}],"SectionId":1},{"Properties":[{"Key":"UsedAmount","Value":"24"},{"Key":"BundleDurationWithUnits","Value":"200 Min"},{"Key":"Percentage","Value":"12.00"},{"Key":"_isUnlimited","Value":"0"}],"SectionId":2},{"Properties":[{"Key":"StartDate","Value":"1 februari 2023"},{"Key":"NumberOfRemainingDays","Value":"16"}],"SectionId":3},{"Properties":[{"Key":"UsedAmount","Value":"0.00"}],"SectionId":4}]}
-        header = {"Content-Type": "application/json"}
-        response = self.s.get("https://my.youfone.be/prov/MyYoufone/MyYOufone.Wcf/v2.0/Service.svc/json/GetOverviewMsisdnInfo",data='{"request": {"Msisdn": '+str(self.msisdn)+'}}',headers=header,timeout=10)
-        self.s.headers["securitykey"] = response.headers.get('securitykey')
-        _LOGGER.debug("youfone.be  result status code: " + str(response.status_code) + ", msisdn" + str(self.msisdn))
-        _LOGGER.debug("youfone.be  result " + response.text)
-        assert response.status_code == 200
-        return response.json()
         
-    def subscription_details(self):
-        header = {"Content-Type": "application/json"}
-        response = self.s.get("https://my.youfone.be/prov/MyYoufone/MyYOufone.Wcf/v2.0/Service.svc/json/GetAbonnementMsisdnInfo",data='{"request": {"Msisdn": '+str(self.msisdn)+'}}',headers=header,timeout=10)
-        self.s.headers["securitykey"] = response.headers.get('securitykey')
-        _LOGGER.debug("youfone.be  result status code: " + str(response.status_code) + ", msisdn" + str(self.msisdn))
-        _LOGGER.debug("youfone.be  result " + response.text)
+    def getOilPrediction(self):
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+        header = {"Accept-Language": "nl-BE"}
+        # https://mazout.com/belgie/offers?areaCode=BE_bf_279&by=quantity&for=2000&productId=7
+        # https://mazout.com/config.378173423.json
+        # https://api.carbu.com/mazout/v1/price-summary?api_key=elPb39PWhWJj9K2t73tlxyRL0cxEcTCr0cgceQ8q&sk=T211ck5hWEtySXFMRTlXRys5KzVydz09
+
+        response = self.s.get(f"https://mazout.com/config.378173423.json",headers=header,timeout=10)
         assert response.status_code == 200
-        jresponse = response.json()
-        assert jresponse["ResultCode"] == 0
-        obj = {}
-        for section in jresponse["Object"]:
-            obj[section["SectionId"]] = {}
-            for prop in section["Properties"]:
-                obj[section["SectionId"]][prop["Key"]] = prop["Value"]
-        return obj
+        api_details = response.json()
+        api_key = api_details.get("api").get("accessToken").get("val")
+        sk = api_details.get("api").get("appId").get("val") #x.api.appId.val
+        url = api_details.get("api").get("url")
+        namespace = api_details.get("api").get("namespace")
+        oildetails_url = f"{url}{namespace}/price-summary?api_key={api_key}&sk={sk}"
+        
+        response = self.s.get(oildetails_url,headers=header,timeout=10, verify=False)
+        assert response.status_code == 200
+        oildetails = response.json()
+        
+        return oildetails
+
+
