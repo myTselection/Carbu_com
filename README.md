@@ -45,8 +45,62 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `date`  | Date for the validity of the price |
     | `quantity`  | Quantity of fuel (only for fuel oil) |
     | `score`  | Score of the supplier |
+    | `suppliers`  | Full json list of all suppliers with prices and detials found in neighbourhood around the postal code |
+    
+    </details>
+    
+- <details><summary>Sensor diesel and super price in neighbourhood: <code>sensor.carbu_com_fueltype_postalcode_*km</code></summary>
+
+    | Attribute | Description |
+    | --------- | ----------- |
+    | State     | Price |
+    | `last update `   | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
+    | `fueltype`   | Fuel type |
+    | `fuelname` | Full name of the fuel type |
+    | `postalcode`  | Postalcode at which the price was retrieved |
+    | `supplier`  | Name of the supplier of the fuel |
+    | `url`  | Url with details of the supplier |
+    | `logourl`  | Url with the logo of the supplier |
+    | `address`  | Address of the supplier |
+    | `city`  | City of the supplier |
+    | `lat`  | Latitude of the supplier |
+    | `lon`  | Longitude of the supplier |
+    | `region`  | Distand 5km or 10km around postal code in which cheapest prices is found |
+    | `distance`  | Distance to the supplier |
+    | `price diff`  | Price difference between the cheapest found in region versus the local price |
+    | `price diff %`  | Price difference in % between the cheapest found in region versus the local price |
+    | `price diff 30l`  | Price difference for 30 liters between the cheapest found in region versus the local price |
+    | `date`  | Date for the validity of the price |
+    | `quantity`  | Quantity of fuel (only for fuel oil) |
+    | `score`  | Score of the supplier |
+    </details>
+    
+- <details><summary>Sensor diesel and super prediction: <code>sensor.carbu_com_fueltype_prediction/code></summary>
+
+    | Attribute | Description |
+    | --------- | ----------- |
+    | State     | Price |
+    | `last update `   | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
+    | `fueltype`   | Fuel type |
+    | `trend` | Percentage of increase or decrease predictef for coming days |
+    | `date`  | Date for the validity of the price |
     </details>
   
+    
+- <details><summary>Sensor fuel oil prediction: <code>sensor.carbu_com_oiltype_quanityl_prediction/code></summary>
+
+    | Attribute | Description |
+    | --------- | ----------- |
+    | State     | Price |
+    | `last update `   | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
+    | `fueltype`   | Fuel type |
+    | `fuelname` | Full name of the fuel type |
+    | `trend` | Percentage of increase or decrease predictef for coming days |
+    | `price` | Predicted maximum price for type and quantity |
+    | `date`  | Date for the validity of the price |
+    | `quantity`  | Quantity for which the price is expected. Main difference between below or above 2000l |
+    </details>
+    
 ## Status
 Still some optimisations are planned, see [Issues](https://github.com/myTselection/carbu_com/issues) section in GitHub.
 
