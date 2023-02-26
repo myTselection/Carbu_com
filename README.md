@@ -25,7 +25,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 - Provide country (currently only tested with BE), postal code and select the desired sensors
 
 ## Integration
-- <details><summary>Sensor diesel and super <code>sensor.carbu_com_fueltype_postalcode_price</code> and fuel oil <code>sensor.carbu_com_fueltype_postalcode_quantity_price</code></summary>
+- <details><summary>Sensor diesel and super <code>sensor.carbu_com_[fueltype]_[postalcode]_price</code> and fuel oil <code>sensor.carbu_com_[fueltype]_[postalcode]_[quantity]l_price</code></summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -49,7 +49,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     
     </details>
     
-- <details><summary>Sensor diesel and super price in neighbourhood: <code>sensor.carbu_com_fueltype_postalcode_*km</code></summary>
+- <details><summary>Sensor diesel and super price in neighbourhood: <code>sensor.carbu_com_[fueltype]_[postalcode]_[*]km</code> for 5km and 10km</summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -75,7 +75,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `score`  | Score of the supplier |
     </details>
     
-- <details><summary>Sensor diesel and super prediction: <code>sensor.carbu_com_fueltype_prediction</code></summary>
+- <details><summary>Sensor diesel and super prediction: <code>sensor.carbu_com_[fueltype]_prediction</code></summary>
     
     | Attribute | Description |
     | --------- | ----------- |
@@ -86,7 +86,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `date`  | Date for the validity of the price |
     </details>
     
-- <details><summary>Sensor fuel oil prediction: <code>sensor.carbu_com_oiltype_quanityl_prediction</code></summary>
+- <details><summary>Sensor fuel oil prediction: <code>sensor.carbu_com_[oiltype]_[quantity]l_prediction</code></summary>
 
     | Attribute | Description |
     | --------- | ----------- |
