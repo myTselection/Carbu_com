@@ -75,19 +75,18 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `score`  | Score of the supplier |
     </details>
     
-- <details><summary>Sensor diesel and super prediction: <code>sensor.carbu_com_fueltype_prediction/code></summary>
-
+- <details><summary>Sensor diesel and super prediction: <code>sensor.carbu_com_fueltype_prediction</code></summary>
+    
     | Attribute | Description |
     | --------- | ----------- |
     | State     | Price |
-    | `last update `   | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
+    | `last update` | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
     | `fueltype`   | Fuel type |
     | `trend` | Percentage of increase or decrease predictef for coming days |
     | `date`  | Date for the validity of the price |
     </details>
-  
     
-- <details><summary>Sensor fuel oil prediction: <code>sensor.carbu_com_oiltype_quanityl_prediction/code></summary>
+- <details><summary>Sensor fuel oil prediction: <code>sensor.carbu_com_oiltype_quanityl_prediction</code></summary>
 
     | Attribute | Description |
     | --------- | ----------- |
