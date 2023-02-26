@@ -74,7 +74,13 @@ cards:
           <img
           src="{{state_attr('sensor.carbu_com_diesel_1000_price','logourl')}}"
           width="40"/>
-          [{{state_attr('sensor.carbu_com_diesel_1000_price','supplier')}}]({{state_attr('sensor.carbu_com_diesel_1000_price','url')}})
+          [{{state_attr('sensor.carbu_com_diesel_1000_5km','supplier')}}]({{state_attr('sensor.carbu_com_diesel_1000_5km','url')}})
+          
+          #### Coming days: {% if states('sensor.carbu_com_diesel_prediction')|float < 0 %}<font color=green>{{states('sensor.carbu_com_diesel_prediction')}}%</font>{% else %}<font color=red>{{states('sensor.carbu_com_diesel_prediction')}}%</font>{% endif %}
+          
+          Region {{states('sensor.carbu_com_diesel_1000_10km')}}, {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}}
+{{state_attr('sensor.carbu_com_diesel_1000_10km','price diff %')}} ({{state_attr('sensor.carbu_com_diesel_1000_10km','price diff 30l')}} on30l) 
+
       - type: markdown
         content: >-
           ## Mazout
@@ -83,7 +89,7 @@ cards:
   - type: horizontal-stack
     cards:
       - type: gauge
-        entity: sensor.carbu_com_diesel_1000_price
+        entity: sensor.carbu_com_diesel_1000_5km
         min: 0
         max: 5
         needle: true
@@ -106,7 +112,7 @@ cards:
           red: 2
   - type: history-graph
     entities:
-      - entity: sensor.carbu_com_diesel_1000_price
+      - entity: sensor.carbu_com_diesel_1000_5km
         name: Diesel
       - entity: sensor.carbu_com_oilextra_1000_1000l_price
         name: Oil extra (per 1000l)
