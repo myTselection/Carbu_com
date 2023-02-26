@@ -176,3 +176,84 @@ cards:
 
 ```
 </details>
+
+
+### Markdown example card with prices for local, 5 & 10 km (by @bavala3010)
+<p align="center"><img src="https://raw.githubusercontent.com/myTselection/carbu_com/master/Markdown%20Gauge%20Card%20example2.png"/></p>
+<details><summary>Click to show Mardown code example</summary>
+
+```
+type: vertical-stack
+cards:
+  - type: markdown
+    content: >
+      ## Super95 benzine
+
+      #### Komende dagen: {% if
+      states('sensor.carbu_com_super95_prediction')|float < 0 %}<font
+      color=green>{{states('sensor.carbu_com_super95_prediction')}}%</font>{%
+      else %}<font
+      color=red>{{states('sensor.carbu_com_super95_prediction')}}%</font>{%
+      endif %}
+  - type: horizontal-stack
+    cards:
+      - type: markdown
+        content: >
+          #### <center>lokaal </center>
+
+
+          <center><img
+          src="{{state_attr('sensor.carbu_com_super95_3010_price','logourl')}}"
+          width="45"/> </center>
+
+
+          <center>
+
+
+          [{{state_attr('sensor.carbu_com_super95_3010_price','supplier')}}]({{state_attr('sensor.carbu_com_super95_3010_5km','url')}})
+
+          ### <center>{{states('sensor.carbu_com_super95_3010_price')}} €/l
+      - type: markdown
+        content: >
+          #### <center>5 km</center>
+
+          <center><img
+          src="{{state_attr('sensor.carbu_com_super95_3010_5km','logourl')}}"
+          width="45"/></center>
+
+
+          <center>
+
+
+          [{{state_attr('sensor.carbu_com_super95_3010_5km','supplier')}}]({{state_attr('sensor.carbu_com_super95_3010_5km','url')}})
+
+          ### <center>{{states('sensor.carbu_com_super95_3010_5km')}} €/l
+
+          Besparing tov lokaal = 
+          {{state_attr('sensor.carbu_com_super95_3010_5km','price diff %')}} of
+          **{{state_attr('sensor.carbu_com_super95_3010_5km','price diff
+          30l')}}** op 30l
+      - type: markdown
+        content: >
+          #### <center>10 km
+
+          <center><img
+          src="{{state_attr('sensor.carbu_com_super95_3010_10km','logourl')}}"
+          width="45"/></center>
+
+
+          <center>
+
+
+          [{{state_attr('sensor.carbu_com_super95_3010_10km','supplier')}}]({{state_attr('sensor.carbu_com_super95_3010_5km','url')}})
+
+          ### <center>{{states('sensor.carbu_com_super95_3010_10km')}} €/l
+
+          Besparing tov lokaal = 
+          {{state_attr('sensor.carbu_com_super95_3010_10km','price diff %')}} of
+          **{{state_attr('sensor.carbu_com_super95_3010_10km','price diff
+          30l')}}** op 30l
+
+
+```
+</details>
