@@ -651,12 +651,13 @@ class ComponentOilPredictionSensor(Entity):
         elif self._fueltype == "oilextra":
             code = "extra"
         
-        if self._quantity < 2000:
+        if int(self._quantity) < 2000:
             code += "Inf2000"
         else:
             code += "Sup2000"
         
         table = priceinfo.get("data").get("table")
+        # _LOGGER.debug(f"{NAME} code {code} table: {table}")
         
         todayPrice = 0
         tomorrowPrice = 0
@@ -668,6 +669,8 @@ class ComponentOilPredictionSensor(Entity):
                     todayPrice = element.get("data")[1].get("price")
                 if element.get("data")[2]:
                     tomorrowPrice = element.get("data")[2].get("price")
+                elif element.get("data")[1]:
+                    tomorrowPrice = element.get("data")[1].get("price")
                 break
         
         self._price = tomorrowPrice
