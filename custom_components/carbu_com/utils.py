@@ -132,6 +132,7 @@ class ComponentSession(object):
         soup = BeautifulSoup(response.text, 'html.parser')
         # Find the Highchart series data
         highchart_series = soup.find_all('script')
+        value = 0
         for series in highchart_series:
             # _LOGGER.debug(f"chart loop: {series.text}")
             if "chart'" in series.text:
