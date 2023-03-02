@@ -29,19 +29,19 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 
     | Attribute | Description |
     | --------- | ----------- |
-    | State     | Price |
+    | State     | **Price** |
     | `last update `   | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
     | `fueltype`   | Fuel type |
     | `fuelname` | Full name of the fuel type |
     | `postalcode`  | Postalcode at which the price was retrieved |
-    | `supplier`  | Name of the supplier of the fuel |
+    | **`supplier`**  | **Name of the supplier of the fuel** |
     | `url`  | Url with details of the supplier |
     | `logourl`  | Url with the logo of the supplier |
     | `address`  | Address of the supplier |
     | `city`  | City of the supplier |
     | `lat`  | Latitude of the supplier |
     | `lon`  | Longitude of the supplier |
-    | `distance`  | Distance to the supplier |
+    | **`distance`**  | **Distance to the supplier vs postal code** |
     | `date`  | Date for the validity of the price |
     | `quantity`  | Quantity of fuel (only for fuel oil) |
     | `score`  | Score of the supplier |
@@ -66,8 +66,8 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `lat`  | Latitude of the supplier |
     | `lon`  | Longitude of the supplier |
     | `region`  | Distand 5km or 10km around postal code in which cheapest prices is found |
-    | `distance`  | Distance to the supplier |
-    | `price diff`  | Price difference between the cheapest found in region versus the local price |
+    | **`distance`**  | **Distance to the supplier vs postal code** |
+    | **`price diff`**  | **Price difference between the cheapest found in region versus the local price** |
     | `price diff %`  | Price difference in % between the cheapest found in region versus the local price |
     | `price diff 30l`  | Price difference for 30 liters between the cheapest found in region versus the local price |
     | `date`  | Date for the validity of the price |
@@ -82,7 +82,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | State     | Price |
     | `last update` | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
     | `fueltype`   | Fuel type |
-    | `trend` | Percentage of increase or decrease predictef for coming days |
+    | **`trend`** | **Percentage of increase or decrease predicted for coming days** |
     | `date`  | Date for the validity of the price |
     </details>
     
@@ -94,7 +94,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `last update `   | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
     | `fueltype`   | Fuel type |
     | `fuelname` | Full name of the fuel type |
-    | `trend` | Percentage of increase or decrease predictef for coming days |
+    | **`trend`** | **Percentage of increase or decrease predicted for coming days** |
     | `price` | Predicted maximum price for type and quantity |
     | `date`  | Date for the validity of the price |
     | `quantity`  | Quantity for which the price is expected. Main difference between below or above 2000l |
