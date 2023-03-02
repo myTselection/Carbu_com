@@ -1,9 +1,5 @@
 import json
 import logging
-import pprint
-from collections import defaultdict
-from datetime import date, datetime, timedelta
-from typing import List
 import requests
 import re
 from bs4 import BeautifulSoup
