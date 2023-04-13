@@ -139,10 +139,11 @@ cards:
           
           #### Coming days: {% if states('sensor.carbu_com_diesel_prediction')|float < 0 %}<font color=green>{{states('sensor.carbu_com_diesel_prediction')}}%</font>{% else %}<font color=red>{{states('sensor.carbu_com_diesel_prediction')}}%</font>{% endif %}
           
-          Best price in region (10km vs local): {{states('sensor.carbu_com_diesel_1000_10km')}}, {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}}
-{{state_attr('sensor.carbu_com_diesel_1000_10km','price diff %')}} ({{state_attr('sensor.carbu_com_diesel_1000_10km','price diff 30l')}} on 30l) 
-          Best price in region (10km vs 5km): {{states('sensor.carbu_com_diesel_1000_10km')}}€/l: {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}}
-{{(states('sensor.carbu_com_diesel_1000_5km')|float - states('sensor.carbu_com_diesel_1000_10km')|float)|round(2)}}€ ({{(states('sensor.carbu_com_diesel_1000_5km')|float - states('sensor.carbu_com_diesel_1000_10km')|float)|round(2)*30}}€ on 30l) 
+          Best price in region (10km vs local): {{states('sensor.carbu_com_diesel_1000_10km')}}, {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}} 
+          {{state_attr('sensor.carbu_com_diesel_1000_10km','price diff %')}} ({{state_attr('sensor.carbu_com_diesel_1000_10km','price diff 30l')}} on 30l) 
+          
+          Best price in region (10km vs 5km): {{states('sensor.carbu_com_diesel_1000_10km')}}€/l: {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}} 
+          {{(states('sensor.carbu_com_diesel_1000_5km')|float - states('sensor.carbu_com_diesel_1000_10km')|float)|round(2)}}€ ({{(states('sensor.carbu_com_diesel_1000_5km')|float - states('sensor.carbu_com_diesel_1000_10km')|float)|round(2)*30}}€ on 30l)
 
       - type: markdown
         content: >-
