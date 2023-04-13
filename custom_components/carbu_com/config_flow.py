@@ -52,7 +52,7 @@ def create_schema(entry, option=False):
         vol.Required("country", default=default_country, description="Country")
     ] = str
     data_schema[
-        vol.Required("postalcode", description="Postal Code")
+        vol.Required("postalcode", default=default_postalcode, description="Postal Code")
     ] = str
     data_schema[
         vol.Optional("town", default=default_town, description="Town (leave empty if postal code is unique)")
@@ -140,14 +140,15 @@ class ComponentFlowHandler(Mixin, config_entries.ConfigFlow, domain=DOMAIN):
         """
         return self.async_create_entry(title="configuration.yaml", data={})
 
-    # @staticmethod
+    # Disabled 'CONFIGURE' edit option, as it would require sensor full re-init
     # @callback
-    # def async_get_options_flow(config_entry):  # TODO
+    # @staticmethod
+    # def async_get_options_flow(config_entry): 
     #     """Get the options flow for this handler."""
     #     return ComponentOptionsHandler(config_entry)
 
 
-class ComponentOptionsHandler(config_entries.OptionsFlow, Mixin):
+class ComponentOptionsHandler(Mixin, config_entries.ConfigFlow):
     """Now this class isnt like any normal option handlers.. as ha devs option seems think options is
     #  supposed to be EXTRA options, i disagree, a user should be able to edit anything.."""
 
@@ -157,7 +158,6 @@ class ComponentOptionsHandler(config_entries.OptionsFlow, Mixin):
         self._errors = {}
 
     async def async_step_init(self, user_input=None):
-
         return self.async_show_form(
             step_id="edit",
             data_schema=vol.Schema(create_schema(self.config_entry, option=True)),
