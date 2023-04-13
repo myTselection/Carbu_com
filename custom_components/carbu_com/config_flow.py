@@ -29,6 +29,7 @@ def create_schema(entry, option=False):
         # We use .get here incase some of the texts gets changed.
         default_country = entry.data.get("country", "BE")
         default_postalcode = entry.data.get("postalcode", "")
+        default_town = entry.data.get("town","")
         default_super95 = entry.data.get("super95", True)
         default_super98 = entry.data.get("super98", True)
         default_diesel = entry.data.get("diesel", True)
@@ -38,6 +39,7 @@ def create_schema(entry, option=False):
     else:
         default_country = "BE"
         default_postalcode = ""
+        default_town = ""
         default_super95 = True
         default_super98 = True
         default_diesel = True
@@ -51,6 +53,9 @@ def create_schema(entry, option=False):
     ] = str
     data_schema[
         vol.Required("postalcode", description="Postal Code")
+    ] = str
+    data_schema[
+        vol.Optional("town", default=default_town, description="Town (leave empty if postal code is unique)")
     ] = str
     data_schema[
         vol.Optional("super95", default=default_super95, description="Super 95 sensors")
@@ -162,7 +167,7 @@ class ComponentOptionsHandler(config_entries.OptionsFlow, Mixin):
     async def async_step_edit(self, user_input):
         # edit does not work.
         if user_input is not None:
-            await self.test_setup(user_input)
+            ok = await self.test_setup(user_input)
             if ok:
                 self.hass.config_entries.async_update_entry(
                     self.config_entry, data=user_input

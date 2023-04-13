@@ -44,6 +44,7 @@ async def dry_setup(hass, config_entry, async_add_devices):
     config = config_entry
     country = config.get("country")
     postalcode = config.get("postalcode")
+    town = config.get("town")
     super95 = config.get("super95")
     diesel = config.get("diesel")
     oilstd = config.get("oilstd")
@@ -149,10 +150,10 @@ class ComponentData:
         self._lastupdate = None
         self._country = config.get("country")
         self._postalcode = config.get("postalcode")
+        self._town = config.get("town")
         self._price_info = dict()
         
         self._carbuLocationInfo = None
-        self._town = None
         self._city = None
         self._countryname = None
         self._locationid = None
@@ -195,12 +196,12 @@ class ComponentData:
             self._session = ComponentSession()
 
         if self._session:
-            self._carbuLocationInfo = await self._hass.async_add_executor_job(lambda: self._session.convertPostalCode(self._postalcode, self._country))
+            self._carbuLocationInfo = await self._hass.async_add_executor_job(lambda: self._session.convertPostalCode(self._postalcode, self._country, self._town))
             self._town = self._carbuLocationInfo.get("n")
             self._city = self._carbuLocationInfo.get("pn")
             self._countryname = self._carbuLocationInfo.get("cn")
             self._locationid = self._carbuLocationInfo.get("id")
-        # postalcode, country, town, locationid, fueltypecode)
+            # postalcode, country, town, locationid, fueltypecode)
             if self._super95:
                 price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrice(self._postalcode, self._country, self._town, self._locationid, self._super95_fueltypecode, False))
                 self._price_info["super95"] = price_info
@@ -303,7 +304,7 @@ class ComponentPriceSensor(Entity):
             self._date = self._priceinfo.get("data")[0].get("available").get("visible")# x.data[0].available.visible
             # self._quantity = self._priceinfo.get("data")[0].get("quantity")
         else:
-            self._price = float(self._priceinfo[0].get("price"))
+            self._price = 0 if self._priceinfo[0].get("price") == '' else float(self._priceinfo[0].get("price"))
             self._supplier  = self._priceinfo[0].get("name")
             self._url   = self._priceinfo[0].get("url")
             self._logourl = self._priceinfo[0].get("logo_url")
@@ -437,7 +438,7 @@ class ComponentPriceNeighbourhoodSensor(Entity):
             if currDistance <= self._region and (self._price == None or currPrice < self._price):
                 self._distance = float(station.get("distance"))
                 self._price = float(station.get("price"))
-                localPrice = float(self._priceinfo[0].get("price"))
+                localPrice = 0 if self._priceinfo[0].get("price") == '' else float(self._priceinfo[0].get("price"))
                 self._diff = round(self._price - localPrice,3)
                 self._diff30 = round(self._diff * 30,3)
                 self._diffPct = round(100*((self._price - localPrice)/self._price),3)

@@ -23,6 +23,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 - Restart Home Assistant
 - Add 'Carbu.com' integration via HA Settings > 'Devices and Services' > 'Integrations'
 - Provide country (currently only tested with BE), postal code and select the desired sensors
+   - If your postal code is not unique, the name of the town can be added. If provided, it will be used to find the matching location. See [carbu.com](https://carbu.com) website for known towns and postal codes.
 
 ## Integration
 - <details><summary>Sensor diesel and super <code>sensor.carbu_com_[fueltype]_[postalcode]_price</code> and fuel oil <code>sensor.carbu_com_[fueltype]_[postalcode]_[quantity]l_price</code></summary>

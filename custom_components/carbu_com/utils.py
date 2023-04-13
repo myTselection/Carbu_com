@@ -30,27 +30,33 @@ class ComponentSession(object):
         self.s.headers["User-Agent"] = "Python/3"
         
     # Country = country code: BE/FR/LU
-    def convertPostalCode(self, postalcode, country):
+    def convertPostalCode(self, postalcode, country, town = ''):
+        _LOGGER.debug(f"convertPostalCode: postalcode: {postalcode}, country: {country}, town: {town}")
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # https://carbu.com//commonFunctions/getlocation/controller.getlocation_JSON.php?location=1831&SHRT=1
         # {"id":"FR_24_18_183_1813_18085","area_code":"FR_24_18_183_1813_18085","name":"Dampierre-en-GraÃ§ay","parent_name":"Centre","area_level":"","area_levelName":"","country":"FR","country_name":"France","lat":"47.18111","lng":"1.9425","postcode":"18310","region_name":""},{"id":"FR_24_18_183_1813_18100","area_code":"FR_24_18_183_1813_18100","name":"Genouilly","parent_name":"Centre","area_level":"","area_levelName":"","country":"FR","country_name":"France","lat":"47.19194","lng":"1.88417","postcode":"18310","region_name":""},{"id":"FR_24_18_183_1813_18103","area_code":"FR_24_18_183_1813_18103","name":"GraÃ§ay","parent_name":"Centre","area_level":"","area_levelName":"","country":"FR","country_name":"France","lat":"47.14389","lng":"1.84694","postcode":"18310","region_name":""},{"id":"FR_24_18_183_1813_18167","area_code":"FR_24_18_183_1813_18167","name":"Nohant-en-GraÃ§ay","parent_name":"Centre","area_level":"","area_levelName":"","country":"FR","country_name":"France","lat":"47.13667","lng":"1.89361","postcode":"18310","region_name":""},{"id":"FR_24_18_183_1813_18228","area_code":"FR_24_18_183_1813_18228","name":"Saint-Outrille","parent_name":"Centre","area_level":"","area_levelName":"","country":"FR","country_name":"France","lat":"47.14361","lng":"1.84","postcode":"18310","region_name":""},{"id":"BE_bf_279","area_code":"BE_bf_279","name":"Diegem","parent_name":"Machelen","area_level":"","area_levelName":"","country":"BE","country_name":"Belgique","lat":"50.892365","lng":"4.446127","postcode":"1831","region_name":""},{"id":"LU_lx_3287","area_code":"LU_lx_3287","name":"Luxembourg","parent_name":"Luxembourg","area_level":"","area_levelName":"","country":"LU","country_name":"Luxembourg","lat":"49.610004","lng":"6.129596","postcode":"1831","region_name":""}
         data ={"location":postalcode,"SHRT":1}
-        response = self.s.get(f"https://carbu.com//commonFunctions/getlocation/controller.getlocation_JSON.php?location={postalcode}&SHRT=1",headers=header,timeout=10)
+        response = self.s.get(f"https://carbu.com//commonFunctions/getlocation/controller.getlocation_JSON.php?location={postalcode}&SHRT=1",headers=header,timeout=30)
         assert response.status_code == 200
         locationinfo = json.loads(response.text)
         _LOGGER.debug(f"location info : {locationinfo}")
         for info_dict in locationinfo:
             _LOGGER.debug(f"loop location info found: {info_dict}")
-            if info_dict["c"] == country and info_dict["pc"] == postalcode:
-                _LOGGER.debug(f"location info found: {info_dict}")
-                return info_dict
+            if town != '':
+                if info_dict["n"].lower() == town.lower() and info_dict["c"].lower() == country.lower() and info_dict["pc"] == postalcode:
+                    _LOGGER.debug(f"location info found: {info_dict}, matching town {town}, postal {postalcode} and country {country}")
+                    return info_dict
+            else:
+                if info_dict["c"].lower() == country.lower() and info_dict["pc"] == postalcode:
+                    _LOGGER.debug(f"location info found: {info_dict}, matching postal {postalcode} and country {country}")
+                    return info_dict
         return False        
         
     def getFuelPrice(self, postalcode, country, town, locationid, fueltypecode, single):
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # https://carbu.com/belgie//liste-stations-service/GO/Diegem/1831/BE_bf_279
 
-        response = self.s.get(f"https://carbu.com/belgie//liste-stations-service/{fueltypecode}/{town}/{postalcode}/{locationid}",headers=header,timeout=10)
+        response = self.s.get(f"https://carbu.com/belgie//liste-stations-service/{fueltypecode}/{town}/{postalcode}/{locationid}",headers=header,timeout=30)
         assert response.status_code == 200
         
         
@@ -120,7 +126,7 @@ class ComponentSession(object):
         # Super 95: https://carbu.com/belgie//index.php/voorspellingen?p=M&C=E95
         # Diesel: https://carbu.com/belgie//index.php/voorspellingen?p=M&C=D
 
-        response = self.s.get(f"https://carbu.com/belgie//index.php/voorspellingen?p=M&C={fueltype_prediction_code}",headers=header,timeout=10)
+        response = self.s.get(f"https://carbu.com/belgie//index.php/voorspellingen?p=M&C={fueltype_prediction_code}",headers=header,timeout=30)
         assert response.status_code == 200
         
         last_category = None
@@ -169,7 +175,7 @@ class ComponentSession(object):
         # https://mazout.com/config.378173423.json
         # https://api.carbu.com/mazout/v1/offers?api_key=elPb39PWhWJj9K2t73tlxyRL0cxEcTCr0cgceQ8q&areaCode=BE_bf_223&productId=7&quantity=1000&sk=T211ck5hWEtySXFMRTlXRys5KzVydz09
 
-        response = self.s.get(f"https://mazout.com/config.378173423.json",headers=header,timeout=10)
+        response = self.s.get(f"https://mazout.com/config.378173423.json",headers=header,timeout=30)
         assert response.status_code == 200
         api_details = response.json()
         api_key = api_details.get("api").get("accessToken").get("val")
@@ -179,7 +185,7 @@ class ComponentSession(object):
         offers = api_details.get("api").get("routes").get("offers") #x.api.routes.offers
         oildetails_url = f"{url}{namespace}{offers}?api_key={api_key}&sk={sk}&areaCode={locationid}&productId={oiltypecode}&quantity={volume}&locale=nl-BE"
         
-        response = self.s.get(oildetails_url,headers=header,timeout=10, verify=False)
+        response = self.s.get(oildetails_url,headers=header,timeout=30, verify=False)
         assert response.status_code == 200
         oildetails = response.json()
         
@@ -192,7 +198,7 @@ class ComponentSession(object):
         # https://mazout.com/config.378173423.json
         # https://api.carbu.com/mazout/v1/price-summary?api_key=elPb39PWhWJj9K2t73tlxyRL0cxEcTCr0cgceQ8q&sk=T211ck5hWEtySXFMRTlXRys5KzVydz09
 
-        response = self.s.get(f"https://mazout.com/config.378173423.json",headers=header,timeout=10)
+        response = self.s.get(f"https://mazout.com/config.378173423.json",headers=header,timeout=30)
         assert response.status_code == 200
         api_details = response.json()
         api_key = api_details.get("api").get("accessToken").get("val")
@@ -201,7 +207,7 @@ class ComponentSession(object):
         namespace = api_details.get("api").get("namespace")
         oildetails_url = f"{url}{namespace}/price-summary?api_key={api_key}&sk={sk}"
         
-        response = self.s.get(oildetails_url,headers=header,timeout=10, verify=False)
+        response = self.s.get(oildetails_url,headers=header,timeout=30, verify=False)
         assert response.status_code == 200
         oildetails = response.json()
         

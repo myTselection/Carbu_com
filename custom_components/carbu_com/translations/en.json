@@ -3,10 +3,11 @@
         "title": "Carbu.com",
         "step": {
             "user": {
-                "description": "Setup a Carbu.com and Mazout.com sensors.",
+                "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
-                    "country": "Country",
+                    "country": "Country (BE/FR/LU)",
                     "postalcode": "Postal code",
+                    "town": "Town (leave empty if postal code is unique)",
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
@@ -16,10 +17,11 @@
                 }
             },
             "edit": {
-                "description": "Setup a Carbu.com and Mazout.com sensors.",
+                "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
-                    "country": "Country",
+                    "country": "Country (BE/FR/LU)",
                     "postalcode": "Postal code",
+                    "town": "Town (leave empty if postal code is unique)",
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
@@ -40,10 +42,11 @@
     "options": {
         "step": {
             "edit": {
-                "description": "Setup a Carbu.com and Mazout.com sensors.",
+                "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
-                    "country": "Country",
+                    "country": "Country (BE/FR/LU)",
                     "postalcode": "Postal code",
+                    "town": "Town (leave empty if postal code is unique)",
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
@@ -54,7 +57,7 @@
             }
         },
         "error": {
-            "missing country": "Please provide a valid country",
+            "missing country": "Please provide a valid country: BE/FR/LU",
             "missing postal code": "Please provide a valid postal code",
             "missing data options handler": "Option handler failed",
             "no_valid_settings": "No valid settings check in ha config."
