@@ -136,20 +136,42 @@ cards:
           src="{{state_attr('sensor.carbu_com_diesel_1000_price','logourl')}}"
           width="40"/>
           [{{state_attr('sensor.carbu_com_diesel_1000_5km','supplier')}}]({{state_attr('sensor.carbu_com_diesel_1000_5km','url')}})
-          
-          #### Coming days: {% if states('sensor.carbu_com_diesel_prediction')|float < 0 %}<font color=green>{{states('sensor.carbu_com_diesel_prediction')}}%</font>{% else %}<font color=red>{{states('sensor.carbu_com_diesel_prediction')}}%</font>{% endif %}
-          
-          Best price in region (10km vs local): {{states('sensor.carbu_com_diesel_1000_10km')}}, {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}} 
-          {{state_attr('sensor.carbu_com_diesel_1000_10km','price diff %')}} ({{state_attr('sensor.carbu_com_diesel_1000_10km','price diff 30l')}} on 30l) 
-          
-          Best price in region (10km vs 5km): {{states('sensor.carbu_com_diesel_1000_10km')}}€/l: {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}} 
-          {{(states('sensor.carbu_com_diesel_1000_5km')|float - states('sensor.carbu_com_diesel_1000_10km')|float)|round(2)}}€ ({{(states('sensor.carbu_com_diesel_1000_5km')|float - states('sensor.carbu_com_diesel_1000_10km')|float)|round(2)*30}}€ on 30l)
 
+          #### Coming days: {% if
+          states('sensor.carbu_com_diesel_prediction')|float < 0 %}<font
+          color=green>{{states('sensor.carbu_com_diesel_prediction')}}%</font>{%
+          else %}<font
+          color=red>{{states('sensor.carbu_com_diesel_prediction')}}%</font>{%
+          endif %}
+
+          Best price in region (10km vs local):
+          {{states('sensor.carbu_com_diesel_1000_10km')}},
+          {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}} 
+          {{state_attr('sensor.carbu_com_diesel_1000_10km','price diff %')}}
+          ({{state_attr('sensor.carbu_com_diesel_1000_10km','price diff 30l')}}
+          on 30l) 
+
+          Best price in region (10km vs 5km):
+          {{states('sensor.carbu_com_diesel_1000_10km')}}€/l:
+          {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}} 
+          {{(states('sensor.carbu_com_diesel_1000_5km')|float -
+          states('sensor.carbu_com_diesel_1000_10km')|float)|round(2)}}€
+          ({{(states('sensor.carbu_com_diesel_1000_5km')|float -
+          states('sensor.carbu_com_diesel_1000_10km')|float)|round(2)*30}}€ on
+          30l) 
       - type: markdown
         content: >-
           ## Mazout
 
           [{{state_attr('sensor.carbu_com_oilstd_1000_1000l_price','supplier')}}]({{state_attr('sensor.carbu_com_oilstd_1000_1000l_price','url')}})
+
+
+          #### Coming days: {% if
+          states('sensor.carbu_com_oilextra_1000l_prediction')|float < 0 %}<font
+          color=green>{{states('sensor.carbu_com_oilextra_1000l_prediction')}}%</font>{%
+          else %}<font
+          color=red>{{states('sensor.carbu_com_oilextra_1000l_prediction')}}%</font>{%
+          endif %}
   - type: horizontal-stack
     cards:
       - type: gauge
@@ -182,7 +204,7 @@ cards:
         name: Oil extra (per 1000l)
     hours_to_show: 500
     refresh_interval: 60
-
+    
 ```
 </details>
 
