@@ -37,11 +37,11 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `postalcode`  | Postalcode at which the price was retrieved |
     | **`supplier`**  | **Name of the supplier of the fuel** |
     | `url`  | Url with details of the supplier |
-    | `logourl`  | Url with the logo of the supplier |
+    | `entity_picture`  | Url with the logo of the supplier |
     | `address`  | Address of the supplier |
     | `city`  | City of the supplier |
-    | `lat`  | Latitude of the supplier |
-    | `lon`  | Longitude of the supplier |
+    | `latitude`  | Latitude of the supplier |
+    | `longitude`  | Longitude of the supplier |
     | **`distance`**  | **Distance to the supplier vs postal code** |
     | `date`  | Date for the validity of the price |
     | `quantity`  | Quantity of fuel (only for fuel oil) |
@@ -61,11 +61,11 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `postalcode`  | Postalcode at which the price was retrieved |
     | `supplier`  | Name of the supplier of the fuel |
     | `url`  | Url with details of the supplier |
-    | `logourl`  | Url with the logo of the supplier |
+    | `entity_picture`  | Url with the logo of the supplier |
     | `address`  | Address of the supplier |
     | `city`  | City of the supplier |
-    | `lat`  | Latitude of the supplier |
-    | `lon`  | Longitude of the supplier |
+    | `latitude`  | Latitude of the supplier |
+    | `longitude`  | Longitude of the supplier |
     | `region`  | Distand 5km or 10km around postal code in which cheapest prices is found |
     | **`distance`**  | **Distance to the supplier vs postal code** |
     | **`price diff`**  | **Price difference between the cheapest found in region versus the local price** |
@@ -134,7 +134,7 @@ cards:
           ## Diesel
 
           <img
-          src="{{state_attr('sensor.carbu_com_diesel_1000_price','logourl')}}"
+          src="{{state_attr('sensor.carbu_com_diesel_1000_price','entity_picture')}}"
           width="40"/>
           [{{state_attr('sensor.carbu_com_diesel_1000_5km','supplier')}}]({{state_attr('sensor.carbu_com_diesel_1000_5km','url')}})
 
@@ -147,19 +147,19 @@ cards:
 
           Best price in region (10km vs local):
           {{states('sensor.carbu_com_diesel_1000_10km')}},
-          {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}} 
+          {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}}
           {{state_attr('sensor.carbu_com_diesel_1000_10km','price diff %')}}
           ({{state_attr('sensor.carbu_com_diesel_1000_10km','price diff 30l')}}
-          on 30l) 
+          on 30l)
 
           Best price in region (10km vs 5km):
           {{states('sensor.carbu_com_diesel_1000_10km')}}€/l:
-          {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}} 
+          {{state_attr('sensor.carbu_com_diesel_1000_10km','supplier')}}
           {{(states('sensor.carbu_com_diesel_1000_5km')|float -
           states('sensor.carbu_com_diesel_1000_10km')|float)|round(2)}}€
           ({{(states('sensor.carbu_com_diesel_1000_5km')|float -
           states('sensor.carbu_com_diesel_1000_10km')|float)|round(2)*30}}€ on
-          30l) 
+          30l)
       - type: markdown
         content: >-
           ## Mazout
@@ -235,7 +235,7 @@ cards:
 
 
           <center><img
-          src="{{state_attr('sensor.carbu_com_super95_3010_price','logourl')}}"
+          src="{{state_attr('sensor.carbu_com_super95_3010_price','entity_picture')}}"
           width="45"/> </center>
 
 
@@ -250,7 +250,7 @@ cards:
           #### <center>5 km</center>
 
           <center><img
-          src="{{state_attr('sensor.carbu_com_super95_3010_5km','logourl')}}"
+          src="{{state_attr('sensor.carbu_com_super95_3010_5km','entity_picture')}}"
           width="45"/></center>
 
 
@@ -261,7 +261,7 @@ cards:
 
           ### <center>{{states('sensor.carbu_com_super95_3010_5km')}} €/l
 
-          Besparing tov lokaal = 
+          Besparing tov lokaal =
           {{state_attr('sensor.carbu_com_super95_3010_5km','price diff %')}} of
           **{{state_attr('sensor.carbu_com_super95_3010_5km','price diff
           30l')}}** op 30l
@@ -270,7 +270,7 @@ cards:
           #### <center>10 km
 
           <center><img
-          src="{{state_attr('sensor.carbu_com_super95_3010_10km','logourl')}}"
+          src="{{state_attr('sensor.carbu_com_super95_3010_10km','entity_picture')}}"
           width="45"/></center>
 
 
@@ -281,7 +281,7 @@ cards:
 
           ### <center>{{states('sensor.carbu_com_super95_3010_10km')}} €/l
 
-          Besparing tov lokaal = 
+          Besparing tov lokaal =
           {{state_attr('sensor.carbu_com_super95_3010_10km','price diff %')}} of
           **{{state_attr('sensor.carbu_com_super95_3010_10km','price diff
           30l')}}** op 30l
