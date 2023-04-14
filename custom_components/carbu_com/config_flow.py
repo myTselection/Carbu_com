@@ -79,7 +79,7 @@ def create_schema(entry, option=False):
     return data_schema
 
 
-class Mixin:
+class Validator:
     async def test_setup(self, user_input):
         client = async_get_clientsession(self.hass)
 
@@ -107,7 +107,7 @@ class Mixin:
             
 
 
-class ComponentFlowHandler(Mixin, config_entries.ConfigFlow, domain=DOMAIN):
+class ComponentFlowHandler(Validator, config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for component."""
 
     VERSION = 1
@@ -148,7 +148,7 @@ class ComponentFlowHandler(Mixin, config_entries.ConfigFlow, domain=DOMAIN):
     #     return ComponentOptionsHandler(config_entry)
 
 
-class ComponentOptionsHandler(Mixin, config_entries.ConfigFlow):
+class ComponentOptionsHandler(Validator, config_entries.ConfigFlow):
     """Now this class isnt like any normal option handlers.. as ha devs option seems think options is
     #  supposed to be EXTRA options, i disagree, a user should be able to edit anything.."""
 
