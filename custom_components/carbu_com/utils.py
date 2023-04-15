@@ -42,14 +42,15 @@ class ComponentSession(object):
         _LOGGER.debug(f"location info : {locationinfo}")
         for info_dict in locationinfo:
             _LOGGER.debug(f"loop location info found: {info_dict}")
-            if town != '':
-                if info_dict["n"].lower() == town.lower() and info_dict["c"].lower() == country.lower() and info_dict["pc"] == postalcode:
-                    _LOGGER.debug(f"location info found: {info_dict}, matching town {town}, postal {postalcode} and country {country}")
-                    return info_dict
-            else:
-                if info_dict["c"].lower() == country.lower() and info_dict["pc"] == postalcode:
-                    _LOGGER.debug(f"location info found: {info_dict}, matching postal {postalcode} and country {country}")
-                    return info_dict
+            if info_dict["c"] is not None and info_dict["pc"] is not None:
+                if town is not None and town.strip() != '' and info_dict["n"] is not None:
+                    if info_dict["n"].lower() == town.lower() and info_dict["c"].lower() == country.lower() and info_dict["pc"] == postalcode:
+                        _LOGGER.debug(f"location info found: {info_dict}, matching town {town}, postal {postalcode} and country {country}")
+                        return info_dict
+                else:
+                    if info_dict["c"].lower() == country.lower() and info_dict["pc"] == postalcode:
+                        _LOGGER.debug(f"location info found: {info_dict}, matching postal {postalcode} and country {country}")
+                        return info_dict
         return False        
         
     def getFuelPrice(self, postalcode, country, town, locationid, fueltypecode, single):
