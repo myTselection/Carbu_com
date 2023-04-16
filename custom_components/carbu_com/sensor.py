@@ -29,6 +29,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required("country", default="BE"): cv.string,
         vol.Required("postalcode"): cv.string,
+        vol.Optional("town"): cv.string,
+        vol.Optional("filter"): cv.string,
         vol.Optional("super95", default=True): cv.boolean,
         vol.Optional("diesel", default=True): cv.boolean,
         vol.Optional("oilstd", default=True): cv.boolean,
@@ -45,6 +47,7 @@ async def dry_setup(hass, config_entry, async_add_devices):
     country = config.get("country")
     postalcode = config.get("postalcode")
     town = config.get("town")
+    filter = config.get("filter")
     super95 = config.get("super95")
     diesel = config.get("diesel")
     oilstd = config.get("oilstd")
@@ -151,6 +154,7 @@ class ComponentData:
         self._country = config.get("country")
         self._postalcode = config.get("postalcode")
         self._town = config.get("town")
+        self._filter = config.get("filter")
         self._price_info = dict()
         
         self._carbuLocationInfo = None
@@ -196,11 +200,13 @@ class ComponentData:
             self._session = ComponentSession()
 
         if self._session:
-            self._carbuLocationInfo = await self._hass.async_add_executor_job(lambda: self._session.convertPostalCode(self._postalcode, self._country, self._town))
-            self._town = self._carbuLocationInfo.get("n")
-            self._city = self._carbuLocationInfo.get("pn")
-            self._countryname = self._carbuLocationInfo.get("cn")
-            self._locationid = self._carbuLocationInfo.get("id")
+            _LOGGER.debug("Starting with session for " + NAME)
+            if self._locationid is None:
+                self._carbuLocationInfo = await self._hass.async_add_executor_job(lambda: self._session.convertPostalCode(self._postalcode, self._country, self._town))
+                self._town = self._carbuLocationInfo.get("n")
+                self._city = self._carbuLocationInfo.get("pn")
+                self._countryname = self._carbuLocationInfo.get("cn")
+                self._locationid = self._carbuLocationInfo.get("id")
             # postalcode, country, town, locationid, fueltypecode)
             if self._super95:
                 price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrice(self._postalcode, self._country, self._town, self._locationid, self._super95_fueltypecode, False))
@@ -240,13 +246,25 @@ class ComponentData:
                 self._price_info["oilPrediction"] = prediction_info
                 _LOGGER.debug(f"{NAME} prediction_info oilPrediction {prediction_info}")
             self._lastupdate = datetime.now()
+        else:
+            _LOGGER.debug(f"{NAME} no session available")
+
                 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def _update(self):
         await self._forced_update()
 
     async def update(self):
-        await self._update()
+        # force update if (some) values are still unknown
+        if ((self._super95 and self._price_info.get("super95") is None) 
+            or (self._diesel and self._price_info.get("diesel") is None) 
+            or (self._oilstd and self._price_info.get("oilstd") is None) 
+            or (self._oilextra and self._price_info.get("oilextra") is None) 
+            or (self._oilstd and self._price_info.get("oilPrediction") is None)
+            or (self._oilextra and self._price_info.get("oilPrediction") is None)):
+            await self._forced_update()
+        else:
+            await self._update()
     
     def clear_session(self):
         self._session : None
@@ -264,6 +282,7 @@ class ComponentPriceSensor(Entity):
         self._last_update = None
         self._price = None
         self._supplier = None
+        self._supplier_brand = None
         self._url = None
         self._logourl = None
         self._address = None
@@ -304,17 +323,30 @@ class ComponentPriceSensor(Entity):
             self._date = self._priceinfo.get("data")[0].get("available").get("visible")# x.data[0].available.visible
             # self._quantity = self._priceinfo.get("data")[0].get("quantity")
         else:
-            self._price = 0 if self._priceinfo[0].get("price") == '' else float(self._priceinfo[0].get("price"))
-            self._supplier  = self._priceinfo[0].get("name")
-            self._url   = self._priceinfo[0].get("url")
-            self._logourl = self._priceinfo[0].get("logo_url")
-            self._address = self._priceinfo[0].get("address")
-            self._city = self._priceinfo[0].get("locality")
-            self._lat = self._priceinfo[0].get("lat")
-            self._lon = self._priceinfo[0].get("lon")
-            self._fuelname = self._priceinfo[0].get("fuelname")
-            self._distance = float(self._priceinfo[0].get("distance"))
-            self._date = self._priceinfo[0].get("date")
+            
+            filter = False
+            if self._data._filter is not None and self._data._filter.strip() != "":
+                filter = self._data._filter.strip().lower()
+            for station in self._priceinfo:
+                if filter:
+                    match = re.search(filter, station.get("brand").lower())
+                    if not match:
+                        continue
+                self._price = 0 if station.get("price") == '' else float(station.get("price"))
+                self._supplier  = station.get("name")
+                self._supplier_brand  = station.get("brand")
+                self._url   = station.get("url")
+                self._logourl = station.get("logo_url")
+                self._address = station.get("address")
+                self._city = station.get("locality")
+                self._lat = station.get("lat")
+                self._lon = station.get("lon")
+                self._fuelname = station.get("fuelname")
+                self._distance = float(station.get("distance"))
+                self._date = station.get("date")
+                break
+            if self._supplier is None and filter:
+                _LOGGER.warning(f"{NAME} {self._postalcode} the station filter '{self._data._filter}' may result in no results found, if needed, please remove integration and review filter")
                        
             
         
@@ -352,6 +384,7 @@ class ComponentPriceSensor(Entity):
             "fuelname": self._fuelname,
             "postalcode": self._postalcode,
             "supplier": self._supplier,
+            "supplier_brand": self._supplier_brand,
             "url": self._url,
             "logourl": self._logourl,
             "address": self._address,
@@ -403,6 +436,7 @@ class ComponentPriceNeighbourhoodSensor(Entity):
         self._price = None
         self._priceinfo = None
         self._supplier = None
+        self._supplier_brand = None
         self._url = None
         self._logourl = None
         self._address = None
@@ -429,7 +463,15 @@ class ComponentPriceNeighbourhoodSensor(Entity):
         self._price = None
         self._priceinfo = self._data._price_info.get(self._fueltype)
         
+        filter = False
+        if self._data._filter is not None and self._data._filter.strip() != "":
+            filter = self._data._filter.strip().lower()
+
         for station in self._priceinfo:
+            if filter:
+                match = re.search(filter, station.get("brand").lower())
+                if not match:
+                    continue
             try:
                 currDistance = float(station.get("distance"))
                 currPrice = float(station.get("price"))
@@ -443,6 +485,7 @@ class ComponentPriceNeighbourhoodSensor(Entity):
                 self._diff30 = round(self._diff * 30,3)
                 self._diffPct = round(100*((self._price - localPrice)/self._price),3)
                 self._supplier  = station.get("name")
+                self._supplier_brand  = station.get("brand")
                 self._url   = station.get("url")
                 self._logourl = station.get("logo_url")
                 self._address = station.get("address")
@@ -451,6 +494,8 @@ class ComponentPriceNeighbourhoodSensor(Entity):
                 self._lon = station.get("lon")
                 self._fuelname = station.get("fuelname")
                 self._date = station.get("date")
+        if self._supplier is None and filter:
+            _LOGGER.warning(f"{NAME} {self._postalcode} the station filter '{self._data._filter}' may result in no results found, if needed, please remove integration and review filter")
                        
             
         
@@ -485,6 +530,7 @@ class ComponentPriceNeighbourhoodSensor(Entity):
             "fuelname": self._fuelname,
             "postalcode": self._postalcode,
             "supplier": self._supplier,
+            "supplier_brand": self._supplier_brand,
             "url": self._url,
             "logourl": self._logourl,
             "address": self._address,
