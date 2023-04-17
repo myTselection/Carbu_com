@@ -32,6 +32,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional("town"): cv.string,
         vol.Optional("filter"): cv.string,
         vol.Optional("super95", default=True): cv.boolean,
+        vol.Optional("super98", default=True): cv.boolean,
         vol.Optional("diesel", default=True): cv.boolean,
         vol.Optional("oilstd", default=True): cv.boolean,
         vol.Optional("oilextra", default=True): cv.boolean,
@@ -49,6 +50,7 @@ async def dry_setup(hass, config_entry, async_add_devices):
     town = config.get("town")
     filter = config.get("filter")
     super95 = config.get("super95")
+    super98 = config.get("super98")
     diesel = config.get("diesel")
     oilstd = config.get("oilstd")
     oilextra = config.get("oilextra")
@@ -81,6 +83,20 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorSuper95Prediction.async_update()
         sensors.append(sensorSuper95Prediction)
     
+    
+    if super98:
+        sensorSuper98 = ComponentPriceSensor(componentData, "super98", postalcode, False, 0)
+        # await sensorSuper95.async_update()
+        sensors.append(sensorSuper98)
+        
+        sensorSuper98Neigh = ComponentPriceNeighbourhoodSensor(componentData, "super98", postalcode, 5)
+        # await sensorSuper95Neigh.async_update()
+        sensors.append(sensorSuper98Neigh)
+        
+        sensorSuper98Neigh = ComponentPriceNeighbourhoodSensor(componentData, "super98", postalcode, 10)
+        # await sensorSuper95Neigh.async_update()
+        sensors.append(sensorSuper98Neigh)
+
     if diesel:
         sensorDiesel = ComponentPriceSensor(componentData, "diesel", postalcode, False, 0)
         # await sensorDiesel.async_update()
@@ -217,10 +233,10 @@ class ComponentData:
                 self._price_info["super95Prediction"] = prediction_info
                 _LOGGER.debug(f"{NAME} prediction_info dieselPrediction {prediction_info}")
                 
-            # if self._super98:
-                # price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrice(self._postalcode, self._country, self._town, self._locationid, self._super98_fueltypecode, False))
-                # self._price_info["super98"] = price_info
-                # _LOGGER.debug(f"{NAME} price_info super98 {price_info}")
+            if self._super98:
+                price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrice(self._postalcode, self._country, self._town, self._locationid, self._super98_fueltypecode, False))
+                self._price_info["super98"] = price_info
+                _LOGGER.debug(f"{NAME} price_info super98 {price_info}")
                 
             if self._diesel:
                 price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrice(self._postalcode, self._country, self._town, self._locationid, self._diesel_fueltypecode, False))
@@ -257,6 +273,7 @@ class ComponentData:
     async def update(self):
         # force update if (some) values are still unknown
         if ((self._super95 and self._price_info.get("super95") is None) 
+            or (self._super98 and self._price_info.get("super98") is None) 
             or (self._diesel and self._price_info.get("diesel") is None) 
             or (self._oilstd and self._price_info.get("oilstd") is None) 
             or (self._oilextra and self._price_info.get("oilextra") is None) 
