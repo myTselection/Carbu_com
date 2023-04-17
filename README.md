@@ -292,3 +292,20 @@ cards:
 
 ```
 </details>
+
+
+
+### Markdown example card on map
+The sensors contain latitude and longitude attributes and entity_picture attributes to allow the sensors to be shown nicely on a map
+<p align="center"><img src="https://raw.githubusercontent.com/myTselection/carbu_com/master/Markdown%20Map%20Card%20example.png"/></p>
+<details><summary>Click to show Mardown code example</summary>
+
+```
+type: map
+entities:
+  - entity: sensor.carbu_com_diesel_1000_price
+  - entity: sensor.carbu_com_diesel_1000_5km
+  - entity: sensor.carbu_com_diesel_1000_10km
+title: carbu
+```
+</details>
