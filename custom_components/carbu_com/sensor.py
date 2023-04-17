@@ -71,11 +71,11 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorSuper95.async_update()
         sensors.append(sensorSuper95)
         
-        sensorSuper95Neigh = ComponentPriceNeighbourhoodSensor(componentData, "super95", postalcode, 5)
+        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, "super95", postalcode, 5)
         # await sensorSuper95Neigh.async_update()
         sensors.append(sensorSuper95Neigh)
         
-        sensorSuper95Neigh = ComponentPriceNeighbourhoodSensor(componentData, "super95", postalcode, 10)
+        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, "super95", postalcode, 10)
         # await sensorSuper95Neigh.async_update()
         sensors.append(sensorSuper95Neigh)
         
@@ -89,11 +89,11 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorSuper95.async_update()
         sensors.append(sensorSuper98)
         
-        sensorSuper98Neigh = ComponentPriceNeighbourhoodSensor(componentData, "super98", postalcode, 5)
+        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, "super98", postalcode, 5)
         # await sensorSuper95Neigh.async_update()
         sensors.append(sensorSuper98Neigh)
         
-        sensorSuper98Neigh = ComponentPriceNeighbourhoodSensor(componentData, "super98", postalcode, 10)
+        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, "super98", postalcode, 10)
         # await sensorSuper95Neigh.async_update()
         sensors.append(sensorSuper98Neigh)
 
@@ -102,11 +102,11 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorDiesel.async_update()
         sensors.append(sensorDiesel)
         
-        sensorDieselNeigh = ComponentPriceNeighbourhoodSensor(componentData, "diesel", postalcode, 5)
+        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, "diesel", postalcode, 5)
         # await sensorDieselNeigh.async_update()
         sensors.append(sensorDieselNeigh)
         
-        sensorDieselNeigh = ComponentPriceNeighbourhoodSensor(componentData, "diesel", postalcode, 10)
+        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, "diesel", postalcode, 10)
         # await sensorDieselNeigh.async_update()
         sensors.append(sensorDieselNeigh)
         
@@ -178,6 +178,7 @@ class ComponentData:
         self._countryname = None
         self._locationid = None
         
+        # TODO convert into enum
         self._super95 = config.get("super95")
         self._super95_fueltypecode = "E10"
         self._super95_fueltype_prediction_code = "E95"
@@ -442,12 +443,12 @@ class ComponentPriceSensor(Entity):
     def friendly_name(self) -> str:
         return self.unique_id
 
-class ComponentPriceNeighbourhoodSensor(Entity):
-    def __init__(self, data, fueltype, postalcode, region):
+class ComponentPriceNeighborhoodSensor(Entity):
+    def __init__(self, data, fueltype, postalcode, max_distance):
         self._data = data
         self._fueltype = fueltype
         self._postalcode = postalcode
-        self._region = region
+        self._max_distance = max_distance
         
         self._last_update = None
         self._price = None
@@ -494,7 +495,7 @@ class ComponentPriceNeighbourhoodSensor(Entity):
                 currPrice = float(station.get("price"))
             except ValueError:
                 continue
-            if currDistance <= self._region and (self._price == None or currPrice < self._price):
+            if currDistance <= self._max_distance and (self._price == None or currPrice < self._price):
                 self._distance = float(station.get("distance"))
                 self._price = float(station.get("price"))
                 localPrice = 0 if self._priceinfo[0].get("price") == '' else float(self._priceinfo[0].get("price"))
@@ -530,7 +531,7 @@ class ComponentPriceNeighbourhoodSensor(Entity):
     @property
     def unique_id(self) -> str:
         """Return the name of the sensor."""
-        name = f"{NAME} {self._fueltype} {self._postalcode} {self._region}km"
+        name = f"{NAME} {self._fueltype} {self._postalcode} {self._max_distance}km"
         return (name)
 
     @property
@@ -554,7 +555,7 @@ class ComponentPriceNeighbourhoodSensor(Entity):
             "city": self._city,
             "latitude": self._lat,
             "longitude": self._lon,
-            "region": f"{self._region}km",
+            "region": f"{self._max_distance}km",
             "distance": f"{self._distance}km",
             "price diff": f"{self._diff}€",
             "price diff %": f"{self._diffPct}%",

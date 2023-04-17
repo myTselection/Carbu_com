@@ -103,6 +103,69 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `date`  | Date for the validity of the price |
     | `quantity`  | Quantity for which the price is expected. Main difference between below or above 2000l |
     </details>
+
+A service to get the lowest fuel price in the area of a postalcode is available. For a given fuel type and a distance in km, the lowest fuel price will be fetched and an event will be triggered with all the details found.
+
+- <details><summary>Even data returned</summary>
+
+    | Attribute | Description |
+    | --------- | ----------- |
+    | State     | Price |
+    | `fueltype`   | Fuel type |
+    | `fuelname` | Full name of the fuel type |
+    | `postalcode`  | Postalcode at which the price was retrieved |
+    | `supplier`  | Name of the supplier of the fuel |
+    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) |
+    | `url`  | Url with details of the supplier |
+    | `entity_picture`  | Url with the logo of the supplier |
+    | `address`  | Address of the supplier |
+    | `city`  | City of the supplier |
+    | `latitude`  | Latitude of the supplier |
+    | `longitude`  | Longitude of the supplier |
+    | `region`  | Distand 5km or 10km around postal code in which cheapest prices is found |
+    | **`distance`**  | **Distance to the supplier vs postal code** |
+    | **`price diff`**  | **Price difference between the cheapest found in region versus the local price** |
+    | `price diff %`  | Price difference in % between the cheapest found in region versus the local price |
+    | `price diff 30l`  | Price difference for 30 liters between the cheapest found in region versus the local price |
+    | `date`  | Date for the validity of the price |
+    </details>
+
+- <details><summary>Example service call</summary>
+
+```
+service: carbu_com.get_lowest_fuel_price
+data:
+  fuel_type: diesel
+  country: BE
+  postalcode: 3620
+  town: Lanaken
+  max_distance: 20
+  filter: Shell
+
+```
+
+    </details>
+    
+- <details><summary>Example automation triggered by event</summary>
+
+```
+alias: Carbu event
+description: ""
+trigger:
+  - platform: event
+    event_type: carbu_com_lowest_fuel_price
+condition: []
+action:
+  - service: notify.persistent_notification
+    data:
+      message: >-
+        {{ trigger.event.data.supplier_brand }}: {{ trigger.event.data.price }}€
+        at {{ trigger.event.data.distance }}km, {{ trigger.event.data.address }}
+mode: single
+  
+```
+
+    </details>
     
 ## Status
 Still some optimisations are planned, see [Issues](https://github.com/myTselection/carbu_com/issues) section in GitHub.

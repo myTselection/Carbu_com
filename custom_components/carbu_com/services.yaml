@@ -1,0 +1,31 @@
+# Describes the format for available services for bibliotheek_be
+
+get_lowest_fuel_price:
+  description: >
+    Get the lowest fuel price in the neighbourhood of a specific location.
+  fields:
+    fuel_type:
+      description: >
+        The type of fuel to look for, supported options: super95, super98 or diesel
+      example: diesel
+    country:
+      description: >
+        The country to look for, supported options: BE / FR / LU
+      example: BE
+    postalcode:
+      description: >
+        The postalcode to look for
+      example: 3620
+    town:
+      description: >
+        (Optonal) The town to look for
+      example: Lanaken
+    max_distance:
+      description: >
+        Max distance in km around postal code to look for lowest fuel price, eg search 5km around postal code
+      example: 5
+    filter:
+      description: >
+        (Optional) Filter out only specific supplier brands, leave empty if any supplier brand is allowed
+      example: Shell
+    
