@@ -79,7 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
 async def async_remove_entry(hass, config_entry):
     try:
-        await hass.config_entries.async_forward_entry_unload(config_entry, PLATFORMS)
+        await hass.config_entries.async_forward_entry_unload(config_entry, Platform.SENSOR)
         _LOGGER.info("Successfully removed sensor from the integration")
     except ValueError:
         pass

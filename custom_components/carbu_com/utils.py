@@ -3,6 +3,7 @@ import logging
 import requests
 import re
 from bs4 import BeautifulSoup
+import urllib.parse
 
 import voluptuous as vol
 
@@ -11,17 +12,20 @@ _LOGGER = logging.getLogger(__name__)
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.0%z"
 
 def check_settings(config, hass):
+    errors_found = False
     if not any(config.get(i) for i in ["country"]):
         _LOGGER.error("country was not set")
+        errors_found = True
+    
+    if not any(config.get(i) for i in ["postalcode"]):
+        _LOGGER.error("postalcode was not set")
+        errors_found = True
+
+    if errors_found:
+        raise vol.Invalid("Missing settings to setup the sensor.")
     else:
         return True
         
-    if not config.get("postalcode"):
-        _LOGGER.error("postalcode was not set")
-    else:
-        return True
-
-    raise vol.Invalid("Missing settings to setup the sensor.")
 
 
 class ComponentSession(object):
@@ -42,14 +46,15 @@ class ComponentSession(object):
         _LOGGER.debug(f"location info : {locationinfo}")
         for info_dict in locationinfo:
             _LOGGER.debug(f"loop location info found: {info_dict}")
-            if town != '':
-                if info_dict["n"].lower() == town.lower() and info_dict["c"].lower() == country.lower() and info_dict["pc"] == postalcode:
-                    _LOGGER.debug(f"location info found: {info_dict}, matching town {town}, postal {postalcode} and country {country}")
-                    return info_dict
-            else:
-                if info_dict["c"].lower() == country.lower() and info_dict["pc"] == postalcode:
-                    _LOGGER.debug(f"location info found: {info_dict}, matching postal {postalcode} and country {country}")
-                    return info_dict
+            if info_dict["c"] is not None and info_dict["pc"] is not None:
+                if town is not None and town.strip() != '' and info_dict["n"] is not None:
+                    if info_dict["n"].lower() == town.lower() and info_dict["c"].lower() == country.lower() and info_dict["pc"] == postalcode:
+                        _LOGGER.debug(f"location info found: {info_dict}, matching town {town}, postal {postalcode} and country {country}")
+                        return info_dict
+                else:
+                    if info_dict["c"].lower() == country.lower() and info_dict["pc"] == postalcode:
+                        _LOGGER.debug(f"location info found: {info_dict}, matching postal {postalcode} and country {country}")
+                        return info_dict
         return False        
         
     def getFuelPrice(self, postalcode, country, town, locationid, fueltypecode, single):
@@ -93,8 +98,19 @@ class ComponentSession(object):
                 stationid = station_elem.get('data-id')
                 lat = station_elem.get('data-lat')
                 lng = station_elem.get('data-lng')
-                logo_url = f"https://carbucomstatic-5141.kxcdn.com//brandLogo/{station_elem.get('data-logo')}"
+                # logo_url = "https://carbucomstatic-5141.kxcdn.com//brandLogo/326_Capture%20d%E2%80%99%C3%A9cran%202021-09-27%20%C3%A0%2011.11.24.png"
+                # logo_url = "https://carbucomstatic-5141.kxcdn.com/brandLogo/"+ station_elem.get('data-logo').replace('’','%E2%80%99')
+                # logo_url = r"https://carbucomstatic-5141.kxcdn.com/brandLogo/"+ station_elem.get('data-logo').replace("’", "\\’")
+                # logo_url = r"https://carbucomstatic-5141.kxcdn.com/brandLogo/"+ urllib.parse.quote(station_elem.get('data-logo'))
+                logo_url = "https://carbucomstatic-5141.kxcdn.com/brandLogo/"+ station_elem.get('data-logo')
                 url = station_elem.get('data-link')
+                brand = url.split("https://carbu.com/belgie/index.php/station/")[1]
+                brand = brand.split("/")[0].title()
+                if brand.lower() == "tinq":
+                    # no url encoding worked correctl for this specific case, so hard coded for now
+                    logo_url = "https://carbucomstatic-5141.kxcdn.com//brandLogo/326_Capture%20d%E2%80%99%C3%A9cran%202021-09-27%20%C3%A0%2011.11.24.png"
+                # else:
+                #     _LOGGER.debug(f"Tinq brand not found: {brand}")
                 name = station_elem.get('data-name')
                 fuelname = station_elem.get('data-fuelname')
                 address = station_elem.get('data-address').replace('<br/>',', ')
@@ -112,7 +128,7 @@ class ComponentSession(object):
                 except AttributeError:
                     date = ""
                 
-                stationdetails.append({"id":stationid,"name":name,"url":url,"logo_url":logo_url,"address":address,"locality":locality,"price":price,"lat":lat,"lon":lng,"fuelname":fuelname,"distance":distance,"date":date})
+                stationdetails.append({"id":stationid,"name":name,"url":url,"logo_url":logo_url,"brand":brand,"address":address,"locality":locality,"price":price,"lat":lat,"lon":lng,"fuelname":fuelname,"distance":distance,"date":date})
                 
                 # _LOGGER.debug(f"stationdetails: {stationdetails}")
                 if single:

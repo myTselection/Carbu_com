@@ -24,6 +24,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 - Add 'Carbu.com' integration via HA Settings > 'Devices and Services' > 'Integrations'
 - Provide country (currently only tested with BE), postal code and select the desired sensors
    - If your postal code is not unique, the name of the town can be added. If provided, it will be used to find the matching location. See [carbu.com](https://carbu.com) website for known towns and postal codes.
+   - A filter on supplier brand name can be set (optional). If the filter match, the fuel station will be considered, else next will be searched. A python regex filter value be set
 
 ## Integration
 - <details><summary>Sensor diesel and super <code>sensor.carbu_com_[fueltype]_[postalcode]_price</code> and fuel oil <code>sensor.carbu_com_[fueltype]_[postalcode]_[quantity]l_price</code></summary>
@@ -36,6 +37,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `fuelname` | Full name of the fuel type |
     | `postalcode`  | Postalcode at which the price was retrieved |
     | **`supplier`**  | **Name of the supplier of the fuel** |
+    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) |
     | `url`  | Url with details of the supplier |
     | `entity_picture`  | Url with the logo of the supplier |
     | `address`  | Address of the supplier |
@@ -60,6 +62,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `fuelname` | Full name of the fuel type |
     | `postalcode`  | Postalcode at which the price was retrieved |
     | `supplier`  | Name of the supplier of the fuel |
+    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) |
     | `url`  | Url with details of the supplier |
     | `entity_picture`  | Url with the logo of the supplier |
     | `address`  | Address of the supplier |
@@ -134,7 +137,7 @@ cards:
           ## Diesel
 
           <img
-          src="{{state_attr('sensor.carbu_com_diesel_1000_price','entity_picture')}}"
+          src="{{state_attr('sensor.carbu_com_diesel_1000_5km','entity_picture')}}"
           width="40"/>
           [{{state_attr('sensor.carbu_com_diesel_1000_5km','supplier')}}]({{state_attr('sensor.carbu_com_diesel_1000_5km','url')}})
 

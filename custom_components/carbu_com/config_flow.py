@@ -30,6 +30,7 @@ def create_schema(entry, option=False):
         default_country = entry.data.get("country", "BE")
         default_postalcode = entry.data.get("postalcode", "")
         default_town = entry.data.get("town","")
+        default_filter = entry.data.get("filter","")
         default_super95 = entry.data.get("super95", True)
         default_super98 = entry.data.get("super98", True)
         default_diesel = entry.data.get("diesel", True)
@@ -40,6 +41,7 @@ def create_schema(entry, option=False):
         default_country = "BE"
         default_postalcode = ""
         default_town = ""
+        default_filter = ""
         default_super95 = True
         default_super98 = True
         default_diesel = True
@@ -56,6 +58,9 @@ def create_schema(entry, option=False):
     ] = str
     data_schema[
         vol.Optional("town", default=default_town, description="Town (leave empty if postal code is unique)")
+    ] = str
+    data_schema[
+        vol.Optional("filter", default=default_filter, description="Fuel supplier brand filter (optional)")
     ] = str
     data_schema[
         vol.Optional("super95", default=default_super95, description="Super 95 sensors")
@@ -79,35 +84,7 @@ def create_schema(entry, option=False):
     return data_schema
 
 
-class Mixin:
-    async def test_setup(self, user_input):
-        client = async_get_clientsession(self.hass)
-
-        try:
-            check_settings(user_input, self.hass)
-        except ValueError:
-            self._errors["base"] = "no_valid_settings"
-            return False
-
-        # This is what we really need.
-        country = None
-
-        if user_input.get("country"):
-            country = user_input.get("country")
-        else:
-            self._errors["base"] = "missing country"
-            
-            
-        postalcode = None
-
-        if user_input.get("postalcode"):
-            postalcode = user_input.get("postalcode")
-        else:
-            self._errors["base"] = "missing postalcode"
-            
-
-
-class ComponentFlowHandler(Mixin, config_entries.ConfigFlow, domain=DOMAIN):
+class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for component."""
 
     VERSION = 1
@@ -121,7 +98,6 @@ class ComponentFlowHandler(Mixin, config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
 
         if user_input is not None:
-            await self.test_setup(user_input)
             return self.async_create_entry(title=NAME, data=user_input)
 
         return await self._show_config_form(user_input)
@@ -148,7 +124,7 @@ class ComponentFlowHandler(Mixin, config_entries.ConfigFlow, domain=DOMAIN):
     #     return ComponentOptionsHandler(config_entry)
 
 
-class ComponentOptionsHandler(Mixin, config_entries.ConfigFlow):
+class ComponentOptionsHandler(config_entries.ConfigFlow):
     """Now this class isnt like any normal option handlers.. as ha devs option seems think options is
     #  supposed to be EXTRA options, i disagree, a user should be able to edit anything.."""
 
@@ -165,21 +141,9 @@ class ComponentOptionsHandler(Mixin, config_entries.ConfigFlow):
         )
 
     async def async_step_edit(self, user_input):
-        # edit does not work.
+        _LOGGER.debug(f"{NAME} async_step_edit user_input: {user_input}")
         if user_input is not None:
-            ok = await self.test_setup(user_input)
-            if ok:
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry, data=user_input
-                )
-                return self.async_create_entry(title="", data={})
-            else:
-                self._errors["base"] = "missing data options handler"
-                # not suere this should be config_entry or user_input.
-                return self.async_show_form(
-                    step_id="edit",
-                    data_schema=vol.Schema(
-                        create_schema(self.config_entry, option=True)
-                    ),
-                    errors=self._errors,
-                )
+            self.hass.config_entries.async_update_entry(
+                self.config_entry, data=user_input
+            )
+            return self.async_create_entry(title="", data={})
