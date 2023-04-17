@@ -104,7 +104,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `quantity`  | Quantity for which the price is expected. Main difference between below or above 2000l |
     </details>
 
-A service to get the lowest fuel price in the area of a postalcode is available. For a given fuel type and a distance in km, the lowest fuel price will be fetched and an event will be triggered with all the details found.
+A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in the area of a postalcode is available. For a given fuel type and a distance in km, the lowest fuel price will be fetched and an event will be triggered with all the details found.
 
 - <details><summary>Even data returned</summary>
 
@@ -132,38 +132,38 @@ A service to get the lowest fuel price in the area of a postalcode is available.
 
 - <details><summary>Example service call</summary>
 
-```
-service: carbu_com.get_lowest_fuel_price
-data:
-  fuel_type: diesel
-  country: BE
-  postalcode: 3620
-  town: Lanaken
-  max_distance: 20
-  filter: Shell
+   ```
+   service: carbu_com.get_lowest_fuel_price
+   data:
+     fuel_type: diesel
+     country: BE
+     postalcode: 3620
+     town: Lanaken
+     max_distance: 20
+     filter: Shell
 
-```
+   ```
 
     </details>
     
 - <details><summary>Example automation triggered by event</summary>
 
-```
-alias: Carbu event
-description: ""
-trigger:
-  - platform: event
-    event_type: carbu_com_lowest_fuel_price
-condition: []
-action:
-  - service: notify.persistent_notification
-    data:
-      message: >-
-        {{ trigger.event.data.supplier_brand }}: {{ trigger.event.data.price }}€
-        at {{ trigger.event.data.distance }}km, {{ trigger.event.data.address }}
-mode: single
-  
-```
+   ```
+   alias: Carbu event
+   description: ""
+   trigger:
+     - platform: event
+       event_type: carbu_com_lowest_fuel_price
+   condition: []
+   action:
+     - service: notify.persistent_notification
+       data:
+         message: >-
+           {{ trigger.event.data.supplier_brand }}: {{ trigger.event.data.price }}€
+           at {{ trigger.event.data.distance }}km, {{ trigger.event.data.address }}
+   mode: single
+
+   ```
 
     </details>
     
