@@ -2,6 +2,7 @@ import logging
 import asyncio
 from datetime import date, datetime, timedelta
 import calendar
+from .utils import *
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -19,7 +20,6 @@ from homeassistant.const import (
 )
 
 from . import DOMAIN, NAME
-from .utils import *
 
 _LOGGER = logging.getLogger(__name__)
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.0%z"
@@ -31,11 +31,11 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Required("postalcode"): cv.string,
         vol.Optional("town"): cv.string,
         vol.Optional("filter"): cv.string,
-        vol.Optional("super95", default=True): cv.boolean,
-        vol.Optional("super98", default=True): cv.boolean,
-        vol.Optional("diesel", default=True): cv.boolean,
-        vol.Optional("oilstd", default=True): cv.boolean,
-        vol.Optional("oilextra", default=True): cv.boolean,
+        vol.Optional(FuelType.SUPER95.name_lowercase, default=True): cv.boolean,
+        vol.Optional(FuelType.SUPER98.name_lowercase, default=True): cv.boolean,
+        vol.Optional(FuelType.DIESEL.name_lowercase, default=True): cv.boolean,
+        vol.Optional(FuelType.OILSTD.name_lowercase, default=True): cv.boolean,
+        vol.Optional(FuelType.OILEXTRA.name_lowercase, default=True): cv.boolean,
         vol.Optional("quantity", default=1000): cv.positive_int,
     }
 )
@@ -49,11 +49,11 @@ async def dry_setup(hass, config_entry, async_add_devices):
     postalcode = config.get("postalcode")
     town = config.get("town")
     filter = config.get("filter")
-    super95 = config.get("super95")
-    super98 = config.get("super98")
-    diesel = config.get("diesel")
-    oilstd = config.get("oilstd")
-    oilextra = config.get("oilextra")
+    super95 = config.get(FuelType.SUPER95.name_lowercase)
+    super98 = config.get(FuelType.SUPER98.name_lowercase)
+    diesel = config.get(FuelType.DIESEL.name_lowercase)
+    oilstd = config.get(FuelType.OILSTD.name_lowercase)
+    oilextra = config.get(FuelType.OILEXTRA.name_lowercase)
     quantity = config.get("quantity")
 
     check_settings(config, hass)
@@ -67,68 +67,68 @@ async def dry_setup(hass, config_entry, async_add_devices):
     assert componentData._price_info is not None
     
     if super95:
-        sensorSuper95 = ComponentPriceSensor(componentData, "super95", postalcode, False, 0)
+        sensorSuper95 = ComponentPriceSensor(componentData, FuelType.SUPER95, postalcode, False, 0)
         # await sensorSuper95.async_update()
         sensors.append(sensorSuper95)
         
-        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, "super95", postalcode, 5)
+        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 5)
         # await sensorSuper95Neigh.async_update()
         sensors.append(sensorSuper95Neigh)
         
-        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, "super95", postalcode, 10)
+        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 10)
         # await sensorSuper95Neigh.async_update()
         sensors.append(sensorSuper95Neigh)
         
-        sensorSuper95Prediction = ComponentFuelPredictionSensor(componentData, "super95")
+        sensorSuper95Prediction = ComponentFuelPredictionSensor(componentData, FuelType.SUPER95_Prediction)
         # await sensorSuper95Prediction.async_update()
         sensors.append(sensorSuper95Prediction)
     
     
     if super98:
-        sensorSuper98 = ComponentPriceSensor(componentData, "super98", postalcode, False, 0)
+        sensorSuper98 = ComponentPriceSensor(componentData, FuelType.SUPER98, postalcode, False, 0)
         # await sensorSuper95.async_update()
         sensors.append(sensorSuper98)
         
-        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, "super98", postalcode, 5)
+        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 5)
         # await sensorSuper95Neigh.async_update()
         sensors.append(sensorSuper98Neigh)
         
-        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, "super98", postalcode, 10)
+        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 10)
         # await sensorSuper95Neigh.async_update()
         sensors.append(sensorSuper98Neigh)
 
     if diesel:
-        sensorDiesel = ComponentPriceSensor(componentData, "diesel", postalcode, False, 0)
+        sensorDiesel = ComponentPriceSensor(componentData, FuelType.DIESEL, postalcode, False, 0)
         # await sensorDiesel.async_update()
         sensors.append(sensorDiesel)
         
-        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, "diesel", postalcode, 5)
+        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 5)
         # await sensorDieselNeigh.async_update()
         sensors.append(sensorDieselNeigh)
         
-        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, "diesel", postalcode, 10)
+        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 10)
         # await sensorDieselNeigh.async_update()
         sensors.append(sensorDieselNeigh)
         
-        sensorDieselPrediction = ComponentFuelPredictionSensor(componentData, "diesel")
+        sensorDieselPrediction = ComponentFuelPredictionSensor(componentData, FuelType.DIESEL_Prediction)
         # await sensorDieselPrediction.async_update()
         sensors.append(sensorDieselPrediction)
     
     if oilstd:
-        sensorOilstd = ComponentPriceSensor(componentData, "oilstd", postalcode, True, quantity)
+        sensorOilstd = ComponentPriceSensor(componentData, FuelType.OILSTD, postalcode, True, quantity)
         # await sensorOilstd.async_update()
         sensors.append(sensorOilstd)
         
-        sensorOilstdPrediction = ComponentOilPredictionSensor(componentData, "oilstd", quantity)
+        sensorOilstdPrediction = ComponentOilPredictionSensor(componentData, FuelType.OILSTD_Prediction, quantity)
         # await sensorOilstdPrediction.async_update()
         sensors.append(sensorOilstdPrediction)
     
     if oilextra:
-        sensorOilextra = ComponentPriceSensor(componentData, "oilextra", postalcode, True, quantity)
+        sensorOilextra = ComponentPriceSensor(componentData, FuelType.OILEXTRA, postalcode, True, quantity)
         # await sensorOilextra.async_update()
         sensors.append(sensorOilextra)    
         
-        sensorOilextraPrediction = ComponentOilPredictionSensor(componentData, "oilextra", quantity)
+        sensorOilextraPrediction = ComponentOilPredictionSensor(componentData, FuelType.OILEXTRA_Prediction, quantity)
         # await sensorOilextraPrediction.async_update()
         sensors.append(sensorOilextraPrediction)
     
@@ -178,20 +178,12 @@ class ComponentData:
         self._countryname = None
         self._locationid = None
         
-        # TODO convert into enum
-        self._super95 = config.get("super95")
-        self._super95_fueltypecode = "E10"
-        self._super95_fueltype_prediction_code = "E95"
-        self._super98 = config.get("super98")
-        self._super98_fueltypecode = "SP98"
-        self._diesel = config.get("diesel")
-        self._diesel_fueltypecode = "GO"
-        self._diesel_fueltype_prediction_code = "D"
-        self._oilstd = config.get("oilstd")
-        self._oilstd_oiltypecode = "7"
-        self._oilextra = config.get("oilextra")
-        self._oilextra_oiltypecode = "2"
         self._quantity = config.get("quantity")
+        self._super95 = config.get(FuelType.SUPER95.name_lowercase)
+        self._super98 = config.get(FuelType.SUPER98.name_lowercase)
+        self._diesel = config.get(FuelType.DIESEL.name_lowercase)
+        self._oilstd = config.get(FuelType.OILSTD.name_lowercase)
+        self._oilextra = config.get(FuelType.OILEXTRA.name_lowercase)
             
         # <optgroup label="Brandstof">
             # <option value="E10">Super 95 (E10)</option>
@@ -209,6 +201,30 @@ class ComponentData:
             # <option value="Elec">Elektriciteit</option>
         # </optgroup>
         
+    async def get_fuel_price_info(self, fuel_type: FuelType):
+        _LOGGER.debug(f"{NAME} getting fuel price_info {fuel_type.name_lowercase}") 
+        price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrice(self._postalcode, self._country, self._town, self._locationid, fuel_type.code, False))
+        self._price_info[fuel_type] = price_info
+        _LOGGER.debug(f"{NAME} price_info {fuel_type.name_lowercase} {price_info}")  
+
+    async def get_oil_price_info(self, fuel_type: FuelType):
+        _LOGGER.debug(f"{NAME} getting oil price_info {fuel_type.name_lowercase}") 
+        price_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrice(self._locationid, self._quantity, fuel_type.code))
+        self._price_info[fuel_type] = price_info
+        _LOGGER.debug(f"{NAME} price_info {fuel_type.name_lowercase} {price_info}")   
+    
+    async def get_fuel_price_prediction_info(self, fuel_type: FuelType):
+        _LOGGER.debug(f"{NAME} getting prediction price_info {fuel_type.name_lowercase}") 
+        prediction_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrediction(fuel_type.code))
+        self._price_info[fuel_type] = prediction_info
+        _LOGGER.debug(f"{NAME} prediction_info {fuel_type.name_lowercase}Prediction {prediction_info}")
+    
+    async def get_oil_price_prediction_info(self):
+        _LOGGER.debug(f"{NAME} getting price_info oil prediction") 
+        prediction_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrediction())
+        self._price_info[FuelType.OILSTD_Prediction] = prediction_info
+        self._price_info[FuelType.OILEXTRA_Prediction] = prediction_info
+        _LOGGER.debug(f"{NAME} prediction_info oilPrediction {prediction_info}")
         
     # same as update, but without throttle to make sure init is always executed
     async def _forced_update(self):
@@ -226,42 +242,27 @@ class ComponentData:
                 self._locationid = self._carbuLocationInfo.get("id")
             # postalcode, country, town, locationid, fueltypecode)
             if self._super95:
-                price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrice(self._postalcode, self._country, self._town, self._locationid, self._super95_fueltypecode, False))
-                self._price_info["super95"] = price_info
-                _LOGGER.debug(f"{NAME} price_info super95 {price_info}")   
-                
-                prediction_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrediction(self._super95_fueltype_prediction_code))
-                self._price_info["super95Prediction"] = prediction_info
-                _LOGGER.debug(f"{NAME} prediction_info dieselPrediction {prediction_info}")
+                await self.get_fuel_price_info(FuelType.SUPER95)  
+                await self.get_fuel_price_prediction_info(FuelType.SUPER95_Prediction) 
+            else:
+                _LOGGER.debug(f"{NAME} not getting fuel price_info {self._super95} FueltType.SUPER95.name_lowercase {FuelType.SUPER95.name_lowercase}")  
                 
             if self._super98:
-                price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrice(self._postalcode, self._country, self._town, self._locationid, self._super98_fueltypecode, False))
-                self._price_info["super98"] = price_info
-                _LOGGER.debug(f"{NAME} price_info super98 {price_info}")
+                await self.get_fuel_price_info(FuelType.SUPER98)  
                 
             if self._diesel:
-                price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrice(self._postalcode, self._country, self._town, self._locationid, self._diesel_fueltypecode, False))
-                self._price_info["diesel"] = price_info
-                _LOGGER.debug(f"{NAME} price_info diesel {price_info}")
-                
-                prediction_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrediction(self._diesel_fueltype_prediction_code))
-                self._price_info["dieselPrediction"] = prediction_info
-                _LOGGER.debug(f"{NAME} prediction_info dieselPrediction {prediction_info}")
+                await self.get_fuel_price_info(FuelType.DIESEL)  
+                await self.get_fuel_price_prediction_info(FuelType.DIESEL_Prediction)
                 
             if self._oilstd:
-                price_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrice(self._locationid, self._quantity, self._oilstd_oiltypecode))
-                self._price_info["oilstd"] = price_info
-                _LOGGER.debug(f"{NAME} price_info oilstd {price_info}")
+                await self.get_oil_price_info(FuelType.OILSTD)  
                 
             if self._oilextra:
-                price_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrice(self._locationid, self._quantity, self._oilextra_oiltypecode))
-                self._price_info["oilextra"] = price_info
-                _LOGGER.debug(f"{NAME} price_info oilextra {price_info}")
+                await self.get_oil_price_info(FuelType.OILEXTRA)
                 
             if self._oilstd or self._oilextra:
-                prediction_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrediction())
-                self._price_info["oilPrediction"] = prediction_info
-                _LOGGER.debug(f"{NAME} prediction_info oilPrediction {prediction_info}")
+                await self.get_oil_price_prediction_info()
+                
             self._lastupdate = datetime.now()
         else:
             _LOGGER.debug(f"{NAME} no session available")
@@ -273,13 +274,15 @@ class ComponentData:
 
     async def update(self):
         # force update if (some) values are still unknown
-        if ((self._super95 and self._price_info.get("super95") is None) 
-            or (self._super98 and self._price_info.get("super98") is None) 
-            or (self._diesel and self._price_info.get("diesel") is None) 
-            or (self._oilstd and self._price_info.get("oilstd") is None) 
-            or (self._oilextra and self._price_info.get("oilextra") is None) 
-            or (self._oilstd and self._price_info.get("oilPrediction") is None)
-            or (self._oilextra and self._price_info.get("oilPrediction") is None)):
+        if ((self._super95 and self._price_info.get(FuelType.SUPER95) is None) 
+            or (self._super95 and self._price_info.get(FuelType.SUPER95_Prediction) is None)
+            or (self._super98 and self._price_info.get(FuelType.SUPER98) is None) 
+            or (self._diesel and self._price_info.get(FuelType.DIESEL) is None) 
+            or (self._diesel and self._price_info.get(FuelType.DIESEL_Prediction) is None)
+            or (self._oilstd and self._price_info.get(FuelType.OILSTD) is None) 
+            or (self._oilextra and self._price_info.get(FuelType.OILEXTRA) is None) 
+            or (self._oilstd and self._price_info.get(FuelType.OILSTD_Prediction) is None)
+            or (self._oilextra and self._price_info.get(FuelType.OILEXTRA_Prediction) is None)):
             await self._forced_update()
         else:
             await self._update()
@@ -290,7 +293,7 @@ class ComponentData:
 
 
 class ComponentPriceSensor(Entity):
-    def __init__(self, data, fueltype, postalcode, isOil, quantity):
+    def __init__(self, data, fueltype: FuelType, postalcode, isOil, quantity):
         self._data = data
         self._fueltype = fueltype
         self._postalcode = postalcode
@@ -325,10 +328,7 @@ class ComponentPriceSensor(Entity):
         if self._isOil:
             self._price = float(self._priceinfo.get("data")[0].get("unitPrice"))
             self._supplier  = self._priceinfo.get("data")[0].get("supplier").get("name") #x.data[0].supplier.name
-            if self._fueltype == "oilstd":
-                oilproductid = self._data._oilstd_oiltypecode
-            else:
-                oilproductid = self._data._oilextra_oiltypecode
+            oilproductid = self._fueltype.code
             self._url   = f"https://mazout.com/belgie/offers?areaCode={self._data._locationid}&by=quantity&for={self._quantity}&productId={oilproductid}"
             self._logourl = self._priceinfo.get("data")[0].get("supplier").get("media").get("logo").get("src") #x.data[0].supplier.media.logo.src
             self._score = self._priceinfo.get("data")[0].get("supplier").get("rating").get("score") #x.data[0].supplier.rating.score
@@ -382,7 +382,7 @@ class ComponentPriceSensor(Entity):
     @property
     def unique_id(self) -> str:
         """Return the name of the sensor."""
-        name = f"{NAME} {self._fueltype} {self._postalcode}"
+        name = f"{NAME} {self._fueltype.name_lowercase} {self._postalcode}"
         if self._quantity != 0:
             name += f" {self._quantity}l"
         name += " price"
@@ -398,7 +398,7 @@ class ComponentPriceSensor(Entity):
         return {
             ATTR_ATTRIBUTION: NAME,
             "last update": self._last_update,
-            "fueltype": self._fueltype,
+            "fueltype": self._fueltype.name_lowercase,
             "fuelname": self._fuelname,
             "postalcode": self._postalcode,
             "supplier": self._supplier,
@@ -444,7 +444,7 @@ class ComponentPriceSensor(Entity):
         return self.unique_id
 
 class ComponentPriceNeighborhoodSensor(Entity):
-    def __init__(self, data, fueltype, postalcode, max_distance):
+    def __init__(self, data, fueltype: FuelType, postalcode, max_distance):
         self._data = data
         self._fueltype = fueltype
         self._postalcode = postalcode
@@ -531,7 +531,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
     @property
     def unique_id(self) -> str:
         """Return the name of the sensor."""
-        name = f"{NAME} {self._fueltype} {self._postalcode} {self._max_distance}km"
+        name = f"{NAME} {self._fueltype.name_lowercase} {self._postalcode} {self._max_distance}km"
         return (name)
 
     @property
@@ -544,7 +544,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
         return {
             ATTR_ATTRIBUTION: NAME,
             "last update": self._last_update,
-            "fueltype": self._fueltype,
+            "fueltype": self._fueltype.name_lowercase,
             "fuelname": self._fuelname,
             "postalcode": self._postalcode,
             "supplier": self._supplier,
@@ -613,11 +613,7 @@ class ComponentFuelPredictionSensor(Entity):
         await self._data.update()
         self._last_update =  self._data._lastupdate
         
-        
-        if self._fueltype == "super95":
-            priceinfo = self._data._price_info.get("super95Prediction")
-        elif self._fueltype == "diesel":
-            priceinfo = self._data._price_info.get("dieselPrediction")
+        priceinfo = self._data._price_info.get(self._fueltype)
         
         
         self._trend = round(priceinfo,3)
@@ -640,7 +636,7 @@ class ComponentFuelPredictionSensor(Entity):
     @property
     def unique_id(self) -> str:
         """Return the name of the sensor."""
-        name = f"{NAME} {self._fueltype} prediction"
+        name = f"{NAME} {self._fueltype.name_lowercase.replace('_',' ')}"
         return (name)
 
     @property
@@ -653,7 +649,7 @@ class ComponentFuelPredictionSensor(Entity):
         return {
             ATTR_ATTRIBUTION: NAME,
             "last update": self._last_update,
-            "fueltype": self._fueltype,
+            "fueltype": self._fueltype.name_lowercase.split('_')[0],
             "trend": f"{self._trend}%",
             "date": self._date
         }
@@ -687,7 +683,7 @@ class ComponentFuelPredictionSensor(Entity):
            
 
 class ComponentOilPredictionSensor(Entity):
-    def __init__(self, data, fueltype, quantity):
+    def __init__(self, data, fueltype: FuelType, quantity):
         self._data = data
         self._fueltype = fueltype
         self._quantity = quantity
@@ -709,12 +705,9 @@ class ComponentOilPredictionSensor(Entity):
         await self._data.update()
         self._last_update =  self._data._lastupdate
         
-        priceinfo = self._data._price_info.get("oilPrediction")
+        priceinfo = self._data._price_info.get(self._fueltype)
         
-        if self._fueltype == "oilstd":
-            code = "mazout50s"
-        elif self._fueltype == "oilextra":
-            code = "extra"
+        code = self._fueltype.code
         
         if int(self._quantity) < 2000:
             code += "Inf2000"
@@ -760,7 +753,7 @@ class ComponentOilPredictionSensor(Entity):
     @property
     def unique_id(self) -> str:
         """Return the name of the sensor."""
-        name = f"{NAME} {self._fueltype}"
+        name = f"{NAME} {self._fueltype.name_lowercase.split('_')[0]}"
         if self._quantity != 0:
             name += f" {self._quantity}l"
         name += " prediction"
@@ -776,7 +769,7 @@ class ComponentOilPredictionSensor(Entity):
         return {
             ATTR_ATTRIBUTION: NAME,
             "last update": self._last_update,
-            "fueltype": self._fueltype,
+            "fueltype": self._fueltype.name_lowercase.split('_')[0],
             "fuelname": self._fuelname,
             "price": f"{self._price}€",
             "date": self._date,

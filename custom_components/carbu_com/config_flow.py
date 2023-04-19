@@ -15,7 +15,7 @@ from homeassistant.const import (
 )
 
 from . import DOMAIN, NAME
-from .utils import (check_settings)
+from .utils import *
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,19 +63,19 @@ def create_schema(entry, option=False):
         vol.Optional("filter", default=default_filter, description="Fuel supplier brand filter (optional)")
     ] = str
     data_schema[
-        vol.Optional("super95", default=default_super95, description="Super 95 sensors")
+        vol.Optional(FuelType.SUPER95.name_lowercase, default=default_super95, description="Super 95 sensors")
     ] = bool
     data_schema[
-        vol.Optional("super98", default=default_super98, description="Super 98 sensors")
+        vol.Optional(FuelType.SUPER98.name_lowercase, default=default_super98, description="Super 98 sensors")
     ] = bool
     data_schema[
-        vol.Optional("diesel", default=default_diesel, description="Diesel sensors")
+        vol.Optional(FuelType.DIESEL.name_lowercase, default=default_diesel, description="Diesel sensors")
     ] = bool
     data_schema[
-        vol.Optional("oilstd", default=default_oilstd, description="Standard oil sensors")
+        vol.Optional(FuelType.OILSTD.name_lowercase, default=default_oilstd, description="Standard oil sensors")
     ] = bool
     data_schema[
-        vol.Optional("oilextra", default=default_oilextra, description="Extra oil sensors")
+        vol.Optional(FuelType.OILEXTRA.name_lowercase, default=default_oilextra, description="Extra oil sensors")
     ] = bool
     data_schema[
         vol.Optional("quantity", default=default_quantity, description="Oil quantity in liters (eg 1000)")

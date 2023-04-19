@@ -4,6 +4,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 import urllib.parse
+from enum import Enum
 
 import voluptuous as vol
 
@@ -27,6 +28,23 @@ def check_settings(config, hass):
         return True
         
 
+class FuelType(Enum):
+    SUPER95 = ("E10")
+    SUPER95_Prediction = ("E95")
+    SUPER98 = ("SP98")
+    DIESEL = ("GO")
+    DIESEL_Prediction = ("D")
+    OILSTD = ("7")
+    OILSTD_Prediction = ("mazout50s")
+    OILEXTRA = ("2")
+    OILEXTRA_Prediction = ("extra")
+    
+    def __init__(self, code):
+        self.code = code
+
+    @property
+    def name_lowercase(self):
+        return self.name.lower()
 
 class ComponentSession(object):
     def __init__(self):
@@ -154,36 +172,39 @@ class ComponentSession(object):
         # Find the Highchart series data
         highchart_series = soup.find_all('script')
         value = 0
-        for series in highchart_series:
-            # _LOGGER.debug(f"chart loop: {series.text}")
-            if "chart'" in series.text:
-                # Extract the categories and data points
-                categories = series.text.split('categories: [')[1].split(']')[0].strip()
-                categories = categories.replace("'", '"').rstrip(',')
-                # _LOGGER.debug(f"categories found: {categories}")
-                categories = f"[{categories}]"
-                categories = json.loads(categories, strict=False)
-                # _LOGGER.debug(f"categories found: {categories.index('+1')}")
-                
-                categoriesIndex = categories.index('+1')
-                
-                dataseries = "[" + series.text.split('series: [')[1].split('});')[0].strip().rstrip(',')
-                dataseries = dataseries.replace("'", '"').rstrip(',')
-                dataseries = dataseries.replace("series:", '"series":').replace("name:", '"name":').replace("type :", '"type":').replace("color:", '"color":').replace("data:", '"data":').replace("dashStyle:", '"dashStyle":').replace("step:", '"step":').replace(", ]","]").replace('null','"null"').replace("]],","]]")
-                # dataseries = re.sub(r'([a-zA-Z0-9_]+):', r'"\1":', dataseries)
-                dataseries = dataseries[:-1] + ',{"test":"test"}]'
-                # _LOGGER.debug(f"series found: {dataseries}")
-                dataseries = json.loads(dataseries, strict=False)
-                # _LOGGER.debug(f"series found: {dataseries}")
+        try:
+            for series in highchart_series:
+                # _LOGGER.debug(f"chart loop: {series.text}")
+                if "chart'" in series.text:
+                    # Extract the categories and data points
+                    categories = series.text.split('categories: [')[1].split(']')[0].strip()
+                    categories = categories.replace("'", '"').rstrip(',')
+                    # _LOGGER.debug(f"categories found: {categories}")
+                    categories = f"[{categories}]"
+                    categories = json.loads(categories, strict=False)
+                    # _LOGGER.debug(f"categories found: {categories.index('+1')}")
+                    
+                    categoriesIndex = categories.index('+1')
+                    
+                    dataseries = "[" + series.text.split('series: [')[1].split('});')[0].strip().rstrip(',')
+                    dataseries = dataseries.replace("'", '"').rstrip(',')
+                    dataseries = dataseries.replace("series:", '"series":').replace("name:", '"name":').replace("type :", '"type":').replace("color:", '"color":').replace("data:", '"data":').replace("dashStyle:", '"dashStyle":').replace("step:", '"step":').replace(", ]","]").replace('null','"null"').replace("]],","]]")
+                    # dataseries = re.sub(r'([a-zA-Z0-9_]+):', r'"\1":', dataseries)
+                    dataseries = dataseries[:-1] + ',{"test":"test"}]'
+                    # _LOGGER.debug(f"series found: {dataseries}")
+                    dataseries = json.loads(dataseries, strict=False)
+                    # _LOGGER.debug(f"series found: {dataseries}")
 
-                value = 0
-                for elem in dataseries:
-                    if elem.get("name") == "Maximum prijs  (Voorspellingen)":
-                        # _LOGGER.debug(f"+4 found: {elem.get('data')[categoriesIndex +4]}")
-                        # _LOGGER.debug(f"-1 found: {elem.get('data')[categoriesIndex -1]}")
-                        value = 100 * (elem.get('data')[categoriesIndex +4] - elem.get('data')[categoriesIndex -1]) / elem.get('data')[categoriesIndex -1]
-                
-                # _LOGGER.debug(f"value: {value}")  
+                    value = 0
+                    for elem in dataseries:
+                        if elem.get("name") == "Maximum prijs  (Voorspellingen)":
+                            # _LOGGER.debug(f"+4 found: {elem.get('data')[categoriesIndex +4]}")
+                            # _LOGGER.debug(f"-1 found: {elem.get('data')[categoriesIndex -1]}")
+                            value = 100 * (elem.get('data')[categoriesIndex +4] - elem.get('data')[categoriesIndex -1]) / elem.get('data')[categoriesIndex -1]
+                    
+                    # _LOGGER.debug(f"value: {value}")  
+        except:
+            _LOGGER.error(f"Carbu_com Prediction code {fueltype_prediction_code} could not be retrieved")
                 
         return value
         
