@@ -203,7 +203,7 @@ class ComponentData:
         
     async def get_fuel_price_info(self, fuel_type: FuelType):
         _LOGGER.debug(f"{NAME} getting fuel price_info {fuel_type.name_lowercase}") 
-        price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrice(self._postalcode, self._country, self._town, self._locationid, fuel_type.code, False))
+        price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrices(self._postalcode, self._country, self._town, self._locationid, fuel_type.code, False))
         self._price_info[fuel_type] = price_info
         _LOGGER.debug(f"{NAME} price_info {fuel_type.name_lowercase} {price_info}")  
 
@@ -225,6 +225,11 @@ class ComponentData:
         self._price_info[FuelType.OILSTD_Prediction] = prediction_info
         self._price_info[FuelType.OILEXTRA_Prediction] = prediction_info
         _LOGGER.debug(f"{NAME} prediction_info oilPrediction {prediction_info}")
+
+    async def getStationInfoFromPriceInfo(self, priceinfo, postalcode, fueltype, max_distance, filter):
+        stationInfo =  await self._hass.async_add_executor_job(lambda: self._session.getStationInfoFromPriceInfo(priceinfo, postalcode, fueltype, max_distance, filter))
+        return stationInfo
+    
         
     # same as update, but without throttle to make sure init is always executed
     async def _forced_update(self):
@@ -341,31 +346,21 @@ class ComponentPriceSensor(Entity):
             self._date = self._priceinfo.get("data")[0].get("available").get("visible")# x.data[0].available.visible
             # self._quantity = self._priceinfo.get("data")[0].get("quantity")
         else:
-            
-            filter = False
-            if self._data._filter is not None and self._data._filter.strip() != "":
-                filter = self._data._filter.strip().lower()
-            for station in self._priceinfo:
-                if filter:
-                    match = re.search(filter, station.get("brand").lower())
-                    if not match:
-                        continue
-                self._price = 0 if station.get("price") == '' else float(station.get("price"))
-                self._supplier  = station.get("name")
-                self._supplier_brand  = station.get("brand")
-                self._url   = station.get("url")
-                self._logourl = station.get("logo_url")
-                self._address = station.get("address")
-                self._city = station.get("locality")
-                self._lat = station.get("lat")
-                self._lon = station.get("lon")
-                self._fuelname = station.get("fuelname")
-                self._distance = float(station.get("distance"))
-                self._date = station.get("date")
-                break
-            if self._supplier is None and filter:
-                _LOGGER.warning(f"{NAME} {self._postalcode} the station filter '{self._data._filter}' may result in no results found, if needed, please remove integration and review filter")
-                       
+            stationInfo = await self._data.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter)
+            # stationInfo = await self._data._hass.async_add_executor_job(lambda: self._data._session.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter))
+            self._price = stationInfo.get("price") 
+            self._supplier  = stationInfo.get("supplier")
+            self._supplier_brand  = stationInfo.get("supplier_brand")
+            self._url   = stationInfo.get("url")
+            self._logourl = stationInfo.get("entity_picture")
+            self._address = stationInfo.get("address")
+            self._postalcode = stationInfo.get("postalcode")
+            self._city = stationInfo.get("city")
+            self._lat = stationInfo.get("latitude")
+            self._lon = stationInfo.get("longitude")
+            self._fuelname = stationInfo.get("fuelname")
+            self._distance = stationInfo.get("distance")
+            self._date = stationInfo.get("date")
             
         
     async def async_will_remove_from_hass(self):
@@ -412,7 +407,8 @@ class ComponentPriceSensor(Entity):
             "distance": f"{self._distance}km",
             "date": self._date,
             "quantity": self._quantity,
-            "score": self._score
+            "score": self._score,
+            "filter": self._data._filter
             # "suppliers": self._priceinfo
         }
 
@@ -480,42 +476,25 @@ class ComponentPriceNeighborhoodSensor(Entity):
         
         self._price = None
         self._priceinfo = self._data._price_info.get(self._fueltype)
-        
-        filter = False
-        if self._data._filter is not None and self._data._filter.strip() != "":
-            filter = self._data._filter.strip().lower()
-
-        for station in self._priceinfo:
-            if filter:
-                match = re.search(filter, station.get("brand").lower())
-                if not match:
-                    continue
-            try:
-                currDistance = float(station.get("distance"))
-                currPrice = float(station.get("price"))
-            except ValueError:
-                continue
-            if currDistance <= self._max_distance and (self._price == None or currPrice < self._price):
-                self._distance = float(station.get("distance"))
-                self._price = float(station.get("price"))
-                localPrice = 0 if self._priceinfo[0].get("price") == '' else float(self._priceinfo[0].get("price"))
-                self._diff = round(self._price - localPrice,3)
-                self._diff30 = round(self._diff * 30,3)
-                self._diffPct = round(100*((self._price - localPrice)/self._price),3)
-                self._supplier  = station.get("name")
-                self._supplier_brand  = station.get("brand")
-                self._url   = station.get("url")
-                self._logourl = station.get("logo_url")
-                self._address = station.get("address")
-                self._city = station.get("locality")
-                self._lat = station.get("lat")
-                self._lon = station.get("lon")
-                self._fuelname = station.get("fuelname")
-                self._date = station.get("date")
-        if self._supplier is None and filter:
-            _LOGGER.warning(f"{NAME} {self._postalcode} the station filter '{self._data._filter}' may result in no results found, if needed, please remove integration and review filter")
-                       
-            
+        stationInfo = await self._data.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, self._max_distance, self._data._filter)
+        # stationInfo = await self._data._hass.async_add_executor_job(lambda: self._data._session.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter))
+        # stationInfo = await self._data._hass.async_add_executor_job(lambda: self._data._session.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter))
+        self._price = stationInfo.get("price") 
+        self._diff = stationInfo.get("diff") 
+        self._diff30 = stationInfo.get("diff30") 
+        self._diffPct = stationInfo.get("diffPct") 
+        self._supplier  = stationInfo.get("supplier")
+        self._supplier_brand  = stationInfo.get("supplier_brand")
+        self._url   = stationInfo.get("url")
+        self._logourl = stationInfo.get("entity_picture")
+        self._address = stationInfo.get("address")
+        self._postalcode = stationInfo.get("postalcode")
+        self._city = stationInfo.get("city")
+        self._lat = stationInfo.get("latitude")
+        self._lon = stationInfo.get("longitude")
+        self._fuelname = stationInfo.get("fuelname")
+        self._distance = stationInfo.get("distance")
+        self._date = stationInfo.get("date")
         
     async def async_will_remove_from_hass(self):
         """Clean up after entity before removal."""
@@ -561,7 +540,8 @@ class ComponentPriceNeighborhoodSensor(Entity):
             "price diff %": f"{self._diffPct}%",
             "price diff 30l": f"{self._diff30}€",
             "date": self._date,
-            "score": self._score
+            "score": self._score,
+            "filter": self._data._filter
         }
 
     @property

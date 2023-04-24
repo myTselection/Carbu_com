@@ -8,6 +8,6 @@
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/myTselection/carbu_com/issues",
-  "requirements": ["bs4","requests"],
-  "version": "3.0.1"
+  "requirements": ["bs4","requests","ratelimit"],
+  "version": "4.0.0"
 }
