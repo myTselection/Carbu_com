@@ -9,10 +9,13 @@ from_postalcode = 1650
 from_town = ""
 to_postalcode = 1830
 to_town = ""
-# here_api_key = call.data.get('here_api_key','')
+here_api_key = "dezq5DCXDrBjhuCp8J2sTZ_-RZJCHX4XHDWAr7qIkSQ"
+here_api_key = "vO84r7Bo2M2O3PFzsv7DtlJMg-zmQK24OCJiTnt5GMc"
 ors_api_key = "5b3ce3597851110001cf6248e01585276b794475a75aa2bd85499743"
 
 session = ComponentSession()
+
+from_location = session.geocodeHere(country, from_postalcode, here_api_key)
 
 session.getStationInfo('1640','BE', FuelType.DIESEL,'',5,'')
 from_location = session.geocodeORS(country, from_postalcode, ors_api_key)

@@ -380,7 +380,7 @@ class ComponentSession(object):
         else:
             raise Exception(f"Country {country} not supported, only BE/FR/LU is currently supported")
         
-        response = self.s.get(f"https://geocode.search.hereapi.com/v1/geocode?q={postalcode},{country_fullname}&apiKey={here_api_key}",headers=header,timeout=30)
+        response = self.s.get(f"https://geocode.search.hereapi.com/v1/geocode?q={postalcode}+{country_fullname}&apiKey={here_api_key}",headers=header,timeout=30)
         if response.status_code != 200:
             _LOGGER.error(f"ERROR: {response.text}")
         assert response.status_code == 200
