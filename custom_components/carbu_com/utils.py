@@ -86,6 +86,36 @@ class ComponentSession(object):
         
     @sleep_and_retry
     @limits(calls=1, period=1)
+    def convertPostalCodeMultiMatch(self, postalcode, country, town = ''):
+        _LOGGER.debug(f"convertPostalCode: postalcode: {postalcode}, country: {country}, town: {town}")
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+        # https://carbu.com//commonFunctions/getlocation/controller.getlocation_JSON.php?location=1831&SHRT=1
+        # {"id":"FR_24_18_183_1813_18085","area_code":"FR_24_18_183_1813_18085","name":"Dampierre-en-GraÃ§ay","parent_name":"Centre","area_level":"","area_levelName":"","country":"FR","country_name":"France","lat":"47.18111","lng":"1.9425","postcode":"18310","region_name":""},{"id":"FR_24_18_183_1813_18100","area_code":"FR_24_18_183_1813_18100","name":"Genouilly","parent_name":"Centre","area_level":"","area_levelName":"","country":"FR","country_name":"France","lat":"47.19194","lng":"1.88417","postcode":"18310","region_name":""},{"id":"FR_24_18_183_1813_18103","area_code":"FR_24_18_183_1813_18103","name":"GraÃ§ay","parent_name":"Centre","area_level":"","area_levelName":"","country":"FR","country_name":"France","lat":"47.14389","lng":"1.84694","postcode":"18310","region_name":""},{"id":"FR_24_18_183_1813_18167","area_code":"FR_24_18_183_1813_18167","name":"Nohant-en-GraÃ§ay","parent_name":"Centre","area_level":"","area_levelName":"","country":"FR","country_name":"France","lat":"47.13667","lng":"1.89361","postcode":"18310","region_name":""},{"id":"FR_24_18_183_1813_18228","area_code":"FR_24_18_183_1813_18228","name":"Saint-Outrille","parent_name":"Centre","area_level":"","area_levelName":"","country":"FR","country_name":"France","lat":"47.14361","lng":"1.84","postcode":"18310","region_name":""},{"id":"BE_bf_279","area_code":"BE_bf_279","name":"Diegem","parent_name":"Machelen","area_level":"","area_levelName":"","country":"BE","country_name":"Belgique","lat":"50.892365","lng":"4.446127","postcode":"1831","region_name":""},{"id":"LU_lx_3287","area_code":"LU_lx_3287","name":"Luxembourg","parent_name":"Luxembourg","area_level":"","area_levelName":"","country":"LU","country_name":"Luxembourg","lat":"49.610004","lng":"6.129596","postcode":"1831","region_name":""}
+        data ={"location":str(postalcode),"SHRT":1}
+        response = self.s.get(f"https://carbu.com//commonFunctions/getlocation/controller.getlocation_JSON.php?location={postalcode}&SHRT=1",headers=header,timeout=30)
+        if response.status_code != 200:
+            _LOGGER.error(f"ERROR: {response.text}")
+        assert response.status_code == 200
+        locationinfo = json.loads(response.text)
+        _LOGGER.debug(f"location info : {locationinfo}")
+        results = []
+        for info_dict in locationinfo:
+            _LOGGER.debug(f"loop location info found: {info_dict}")
+            if info_dict.get('c') is not None and info_dict.get('pc') is not None:
+                if town is not None and town.strip() != '' and info_dict.get("n") is not None:
+                    if info_dict.get("n",'').lower() == town.lower() and info_dict.get("c",'').lower() == country.lower() and info_dict.get("pc",'') == str(postalcode):
+                        _LOGGER.debug(f"location info found: {info_dict}, matching town {town}, postal {postalcode} and country {country}")
+                        results.append(info_dict)
+                else:
+                    if info_dict.get("c",'').lower() == country.lower() and info_dict.get("pc",'') == str(postalcode):
+                        _LOGGER.debug(f"location info found: {info_dict}, matching postal {postalcode} and country {country}")
+                        results.append(info_dict)
+            else:
+                _LOGGER.warning(f"locationinfo missing info to process: {info_dict}")
+        return results        
+        
+    @sleep_and_retry
+    @limits(calls=1, period=1)
     def getFuelPrices(self, postalcode, country, town, locationid, fueltypecode, single):
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # https://carbu.com/belgie//liste-stations-service/GO/Diegem/1831/BE_bf_279
@@ -106,7 +136,7 @@ class ComponentSession(object):
                 # <div class="stations-grid row">
                     # <div class="station-content col-xs-12">
         stationgrids = soup.find_all('div', class_='stations-grid')
-        # _LOGGER.debug(f"stationgrids: {stationgrids}")
+        _LOGGER.debug(f"stationgrids: {len(stationgrids)}, postalcode: {postalcode}, {stationgrids}")
         for div in stationgrids:
             stationcontents = div.find_all('div', class_='station-content')
             for stationcontent in stationcontents:

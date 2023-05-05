@@ -29,7 +29,6 @@ def create_schema(entry, option=False):
         # We use .get here incase some of the texts gets changed.
         default_country = entry.data.get("country", "BE")
         default_postalcode = entry.data.get("postalcode", "")
-        default_town = entry.data.get("town","")
         default_filter = entry.data.get("filter","")
         default_super95 = entry.data.get("super95", True)
         default_super98 = entry.data.get("super98", True)
@@ -40,7 +39,6 @@ def create_schema(entry, option=False):
     else:
         default_country = "BE"
         default_postalcode = ""
-        default_town = ""
         default_filter = ""
         default_super95 = True
         default_super98 = True
@@ -55,9 +53,6 @@ def create_schema(entry, option=False):
     ] = str
     data_schema[
         vol.Required("postalcode", default=default_postalcode, description="Postal Code")
-    ] = str
-    data_schema[
-        vol.Optional("town", default=default_town, description="Town (leave empty if postal code is unique)")
     ] = str
     data_schema[
         vol.Optional("filter", default=default_filter, description="Fuel supplier brand filter (optional)")
@@ -84,11 +79,33 @@ def create_schema(entry, option=False):
     return data_schema
 
 
+def create_town_schema(entry, option=False):
+    """Create a default schema based on if a option or if settings
+    is already filled out.
+    """
+
+    if option:
+        # We use .get here incase some of the texts gets changed.
+        default_town = entry.data.get("town","")
+    else:
+        default_town = ""
+
+    data_schema = OrderedDict()
+    data_schema[
+        vol.Optional("town", default=default_town, description="Town (leave empty if postal code is unique)")
+    ] = str
+
+    return data_schema
+
+
 class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for component."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+    _init_info = {}
+    _carbuLocationInfo = {}
+    _session = None
 
     def __init__(self):
         """Initialize."""
@@ -98,15 +115,37 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
 
         if user_input is not None:
+            _LOGGER.debug(f"user_input step user: {user_input}")
+            self._init_info = user_input
+            if not(self._session):
+                self._session = ComponentSession()
+            self._carbuLocationInfo = await self.hass.async_add_executor_job(lambda: self._session.convertPostalCodeMultiMatch(user_input.get('postalcode'), user_input.get('country')))
+            _LOGGER.debug(f"_carbuLocationInfo: {self._carbuLocationInfo}")
+            return await self.async_step_town()
+        
+        return await self._show_config_form(user_input)
+
+    async def async_step_town(self, user_input=None):  # pylint: disable=dangerous-default-value
+        """Handle a flow initialized by the user."""
+
+        _LOGGER.debug(f"step town _carbuLocationInfo: {self._carbuLocationInfo}")
+        if user_input is not None:
             return self.async_create_entry(title=NAME, data=user_input)
 
-        return await self._show_config_form(user_input)
+        return await self._show_town_config_form(user_input)
 
     async def _show_config_form(self, user_input):
         """Show the configuration form to edit location data."""
         data_schema = create_schema(user_input)
         return self.async_show_form(
             step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors
+        )
+
+    async def _show_town_config_form(self, user_input):
+        """Show the configuration form to edit location data."""
+        data_schema = create_town_schema(user_input)
+        return self.async_show_form(
+            step_id="town", data_schema=vol.Schema(data_schema), errors=self._errors
         )
 
     async def async_step_import(self, user_input):  # pylint: disable=unused-argument
