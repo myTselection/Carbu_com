@@ -431,12 +431,11 @@ class ComponentSession(object):
         bestPriceOnRoute = None
         bestStationOnRoute = None
 
-        for i in range(1, len(route), 5):
-            # response = requests.get(f"https://revgeocode.search.hereapi.com/v1/revgeocode?at={point[1]},{point[0]}&lang=en-US&apiKey={here_api_key}")
+        for i in range(1, len(route), 20):
             _LOGGER.debug(f"point: {route[i]}")
             postal_code = self.reverseGeocodeORS({"latitude":route[i][1], "longitude": route[i][0]}, ors_api_key)
-            if postal_code not in processedPostalCodes:
-                bestAroundPostalCode = self.getStationInfo(postal_code, country, fuel_type, '', 5, filter)
+            if postal_code is not None and postal_code not in processedPostalCodes:
+                bestAroundPostalCode = self.getStationInfo(postal_code, country, fuel_type, '', 3, filter)
                 processedPostalCodes.append(bestAroundPostalCode.get('postalcodes'))                    
                 if bestPriceOnRoute is None or bestAroundPostalCode.get('price') < bestPriceOnRoute:
                     bestStationOnRoute = bestAroundPostalCode

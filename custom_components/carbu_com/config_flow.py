@@ -4,6 +4,7 @@ from collections import OrderedDict
 
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.helpers.selector import selector
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.const import (
@@ -79,21 +80,18 @@ def create_schema(entry, option=False):
     return data_schema
 
 
-def create_town_schema(entry, option=False):
+def create_town_schema(towns):
     """Create a default schema based on if a option or if settings
     is already filled out.
     """
-
-    if option:
-        # We use .get here incase some of the texts gets changed.
-        default_town = entry.data.get("town","")
-    else:
-        default_town = ""
-
     data_schema = OrderedDict()
-    data_schema[
-        vol.Optional("town", default=default_town, description="Town (leave empty if postal code is unique)")
-    ] = str
+
+    data_schema["town"] = selector({
+                "select": {
+                    "options": towns,
+                    "mode": "dropdown"
+                }
+            })  
 
     return data_schema
 
@@ -105,6 +103,7 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
     _init_info = {}
     _carbuLocationInfo = {}
+    _towns = []
     _session = None
 
     def __init__(self):
@@ -115,24 +114,28 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
 
         if user_input is not None:
-            _LOGGER.debug(f"user_input step user: {user_input}")
             self._init_info = user_input
             if not(self._session):
                 self._session = ComponentSession()
-            self._carbuLocationInfo = await self.hass.async_add_executor_job(lambda: self._session.convertPostalCodeMultiMatch(user_input.get('postalcode'), user_input.get('country')))
-            _LOGGER.debug(f"_carbuLocationInfo: {self._carbuLocationInfo}")
-            return await self.async_step_town()
+            carbuLocationInfo = await self.hass.async_add_executor_job(lambda: self._session.convertPostalCodeMultiMatch(user_input.get('postalcode'), user_input.get('country')))
+            if len(carbuLocationInfo) > 1:
+                for location in carbuLocationInfo:
+                    self._towns.append(location.get('n'))
+                _LOGGER.debug(f"carbuLocationInfo: {carbuLocationInfo} towns {self._towns}")
+                return await self.async_step_town()
+            elif len(carbuLocationInfo) == 1:
+                self._init_info['town'] = carbuLocationInfo[0].get('n')
+                return self.async_create_entry(title=NAME, data=self._init_info)
         
         return await self._show_config_form(user_input)
 
     async def async_step_town(self, user_input=None):  # pylint: disable=dangerous-default-value
         """Handle a flow initialized by the user."""
-
-        _LOGGER.debug(f"step town _carbuLocationInfo: {self._carbuLocationInfo}")
         if user_input is not None:
-            return self.async_create_entry(title=NAME, data=user_input)
+            self._init_info.update(user_input)
+            return self.async_create_entry(title=NAME, data=self._init_info)
 
-        return await self._show_town_config_form(user_input)
+        return await self._show_town_config_form(self._towns)
 
     async def _show_config_form(self, user_input):
         """Show the configuration form to edit location data."""
@@ -141,9 +144,9 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors
         )
 
-    async def _show_town_config_form(self, user_input):
+    async def _show_town_config_form(self, towns):
         """Show the configuration form to edit location data."""
-        data_schema = create_town_schema(user_input)
+        data_schema = create_town_schema(towns)
         return self.async_show_form(
             step_id="town", data_schema=vol.Schema(data_schema), errors=self._errors
         )
