@@ -45,19 +45,19 @@ get_lowest_fuel_price_on_route:
       description: >
         The postalcode to look for as start of the route
       example: 3620
-    town:
-      description: >
-        (Optonal) The town to look for as start of the route
-      example: Lanaken
     to_postalcode:
       description: >
         The postalcode to look for as end of the route
       example: 3620
-    to_town:
-      description: >
-        (Optonal) The town to look for as end of the route
-      example: Lanaken
     filter:
       description: >
         (Optional) Filter out only specific supplier brands, leave empty if any supplier brand is allowed
       example: Shell
+    ors_api_key:
+      description: >
+        OpenRouteService API key for route requests (free key available at https://openrouteservice.org/)
+      example: abcdefghijklmnopqrstuvwxyz123456_-
+    here_api_key:
+      description: >
+        Here API key for route requests (free key available at https://platform.here.com/)
+      example: abcdefghijklmnopqrstuvwxyz123456_-

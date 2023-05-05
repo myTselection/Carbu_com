@@ -7,7 +7,7 @@
                 "data": {
                     "country": "Country (BE/FR/LU)",
                     "postalcode": "Postal code",
-                    "town": "Town (leave empty if postal code is unique)",
+                    "town": "Town",
                     "filter": "Supplier brand filter (optional)",
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
@@ -17,12 +17,17 @@
 					"quantity": "Mazout Heating Oil quanitity (liters)"
                 }
             },
+            "town": {
+                "data": {
+                    "town": "Town"
+                }
+            },
             "edit": {
                 "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
                     "country": "Country (BE/FR/LU)",
                     "postalcode": "Postal code",
-                    "town": "Town (leave empty if postal code is unique)",
+                    "town": "Town",
                     "filter": "Supplier brand filter (optional)",
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
@@ -48,7 +53,7 @@
                 "data": {
                     "country": "Country (BE/FR/LU)",
                     "postalcode": "Postal code",
-                    "town": "Town (leave empty if postal code is unique)",
+                    "town": "Town",
                     "filter": "Supplier brand filter (optional)",
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
