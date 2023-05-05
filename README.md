@@ -23,7 +23,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 - Restart Home Assistant
 - Add 'Carbu.com' integration via HA Settings > 'Devices and Services' > 'Integrations'
 - Provide country (currently only tested with BE), postal code and select the desired sensors
-   - If your postal code is not unique, the name of the town can be added. If provided, it will be used to find the matching location. See [carbu.com](https://carbu.com) website for known towns and postal codes.
+   - If your postal code is not unique, the name of the town can be selected from the dropdown in the next step of the setup config flow. See [carbu.com](https://carbu.com) website for known towns and postal codes.
    - A filter on supplier brand name can be set (optional). If the filter match, the fuel station will be considered, else next will be searched. A python regex filter value be set
 
 ## Integration
@@ -167,6 +167,70 @@ A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in 
 
     </details>
     
+    
+A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the lowest fuel price on the route in between two postal codes. The lowest fuel price will be fetched and an event will be triggered with all the details found. The route is retrieved using an OpenRouteService API key (free key available at https://openrouteservice.org/). If too long routes are searched, it can easily get stuck because of the limitations of the quota of the free API.
+
+- <details><summary>Even data returned</summary>
+
+    | Attribute | Description |
+    | --------- | ----------- |
+    | State     | Price |
+    | `fueltype`   | Fuel type |
+    | `fuelname` | Full name of the fuel type |
+    | `postalcode`  | Postalcode at which the price was retrieved |
+    | `supplier`  | Name of the supplier of the fuel |
+    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) |
+    | `url`  | Url with details of the supplier |
+    | `entity_picture`  | Url with the logo of the supplier |
+    | `address`  | Address of the supplier |
+    | `city`  | City of the supplier |
+    | `latitude`  | Latitude of the supplier |
+    | `longitude`  | Longitude of the supplier |
+    | `region`  | Distand 5km or 10km around postal code in which cheapest prices is found |
+    | **`distance`**  | **Distance to the supplier vs postal code** |
+    | **`price diff`**  | **Price difference between the cheapest found in region versus the local price** |
+    | `price diff %`  | Price difference in % between the cheapest found in region versus the local price |
+    | `price diff 30l`  | Price difference for 30 liters between the cheapest found in region versus the local price |
+    | `date`  | Date for the validity of the price |
+    </details>
+
+- <details><summary>Example service call</summary>
+
+   ```
+   service: carbu_com.get_lowest_fuel_price_on_route
+   data:
+     fuel_type: diesel
+     country: BE
+     from_postalcode: 3620
+     to_postalcode: 3660
+     ors_api_key: 12345abcd
+
+   ```
+
+    </details>
+    
+- <details><summary>Example automation triggered by event</summary>
+
+   ```
+   alias: Carbu event
+   description: ""
+   trigger:
+     - platform: event
+       event_type: carbu_com_lowest_fuel_price_on_route
+   condition: []
+   action:
+     - service: notify.persistent_notification
+       data:
+         message: >-
+           {{ trigger.event.data.supplier_brand }}: {{ trigger.event.data.price }}€
+           at {{ trigger.event.data.distance }}km, {{ trigger.event.data.address }}
+   mode: single
+
+   ```
+
+    </details>
+    
+
 ## Status
 Still some optimisations are planned, see [Issues](https://github.com/myTselection/carbu_com/issues) section in GitHub.
 
