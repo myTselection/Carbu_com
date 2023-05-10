@@ -266,7 +266,7 @@ cards:
           <img
           src="{{state_attr('sensor.carbu_com_diesel_1000_5km','entity_picture')}}"
           width="40"/>
-          [{{state_attr('sensor.carbu_com_diesel_1000_5km','supplier')}}]({{state_attr('sensor.carbu_com_diesel_1000_5km','url')}})
+          [{{state_attr('sensor.carbu_com_diesel_1000_5km','supplier')}}]({{state_attr('sensor.carbu_com_diesel_1000_5km','url')}} "{{state_attr('sensor.carbu_com_diesel_1000_5km','address')}}")
 
           #### Coming days: {% if
           states('sensor.carbu_com_diesel_prediction')|float < 0 %}<font
