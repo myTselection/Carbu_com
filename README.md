@@ -130,17 +130,17 @@ A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in 
     | `date`  | Date for the validity of the price |
     </details>
 
-- <details><summary>Example service call</summary>
+- <details><summary>Example service call using iphone gecoded user location</summary>
 
    ```
    service: carbu_com.get_lowest_fuel_price
    data:
      fuel_type: diesel
      country: BE
-     postalcode: 3620
-     town: Lanaken
-     max_distance: 20
-     filter: Shell
+     postalcode: "{{state_attr('sensor.iphone_geocoded_location','Postal Code')}}"
+     town: "{{state_attr('sensor.iphone_geocoded_location','Locality')}}"
+     max_distance: 5
+     filter: Total
 
    ```
 
