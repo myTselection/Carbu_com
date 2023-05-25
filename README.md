@@ -168,7 +168,7 @@ A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in 
     </details>
     
     
-A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the lowest fuel price on the route in between two postal codes. The lowest fuel price will be fetched and an event will be triggered with all the details found. The route is retrieved using an OpenRouteService API key (free key available at https://openrouteservice.org/). If too long routes are searched, it can easily get stuck because of the limitations of the quota of the free API.
+A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the lowest fuel price on the route in between two postal codes. The lowest fuel price will be fetched and an event will be triggered with all the details found. The route is retrieved using [Open Source Routing Machine](https://project-osrm.org/). For performance and request limitations, 30% of the locations are used for which the best price on a distance of 3km is fetched. So no guarantee this would be the absolute best price. If too long routes are searched, it might get stuck because of the limitations of the quota of the free API.
 
 - <details><summary>Even data returned</summary>
 
@@ -203,7 +203,6 @@ A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the l
      country: BE
      from_postalcode: 3620
      to_postalcode: 3660
-     ors_api_key: 12345abcd
 
    ```
 
