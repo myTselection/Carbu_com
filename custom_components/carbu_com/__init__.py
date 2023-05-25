@@ -120,12 +120,12 @@ def register_services(hass, config_entry):
         from_postalcode = call.data.get('from_postalcode')
         to_postalcode = call.data.get('to_postalcode')
         # here_api_key = call.data.get('here_api_key','')
-        ors_api_key = call.data.get('ors_api_key','')
+        # ors_api_key = call.data.get('ors_api_key','')
 
-        _LOGGER.debug(f"handle_get_lowest_fuel_price_on_route: country: {country}, fuel_type: {fuel_type}, filter: {filter}, from_postalcode: {from_postalcode}, to_postalcode: {to_postalcode}, ors_api_key: {ors_api_key}")
+        _LOGGER.debug(f"handle_get_lowest_fuel_price_on_route: country: {country}, fuel_type: {fuel_type}, filter: {filter}, from_postalcode: {from_postalcode}, to_postalcode: {to_postalcode}")
 
         session = ComponentSession()
-        station_info = await hass.async_add_executor_job(lambda: session.getPriceOnRoute(country, fuel_type, from_postalcode, to_postalcode, ors_api_key))
+        station_info = await hass.async_add_executor_job(lambda: session.getPriceOnRoute(country, fuel_type, from_postalcode, to_postalcode))
         
         _LOGGER.debug(f"{NAME} get_lowest_fuel_price_on_route info found: {station_info}")
         hass.bus.async_fire(f"{DOMAIN}_lowest_fuel_price_on_route", station_info)

@@ -417,7 +417,8 @@ class ComponentSession(object):
         location = response.json()["items"][0]["position"]
         return location
     
-    def getPriceOnRoute(self, country, fuel_type: FuelType, from_postalcode, to_postalcode, ors_api_key, filter = "", here_api_key= ""):
+    
+    def getPriceOnRouteORS(self, country, fuel_type: FuelType, from_postalcode, to_postalcode, ors_api_key, filter = "", here_api_key= ""):
         from_location = self.geocodeORS(country, from_postalcode, ors_api_key)
         assert from_location is not None
         to_location = self.geocodeORS(country, to_postalcode, ors_api_key)
@@ -434,6 +435,39 @@ class ComponentSession(object):
         for i in range(1, len(route), 20):
             _LOGGER.debug(f"point: {route[i]}")
             postal_code = self.reverseGeocodeORS({"latitude":route[i][1], "longitude": route[i][0]}, ors_api_key)
+            if postal_code is not None and postal_code not in processedPostalCodes:
+                bestAroundPostalCode = self.getStationInfo(postal_code, country, fuel_type, '', 3, filter)
+                processedPostalCodes.append(bestAroundPostalCode.get('postalcodes'))                    
+                if bestPriceOnRoute is None or bestAroundPostalCode.get('price') < bestPriceOnRoute:
+                    bestStationOnRoute = bestAroundPostalCode
+
+        _LOGGER.debug(f"handle_get_lowest_fuel_price_on_route info found: {processedPostalCodes}")
+
+
+        return bestStationOnRoute
+    
+    def getPriceOnRoute(self, country, fuel_type: FuelType, from_postalcode, to_postalcode, filter = "", here_api_key= ""):
+        from_location = self.geocodeOSM(country, from_postalcode)
+        assert from_location is not None
+        to_location = self.geocodeOSM(country, to_postalcode)
+        assert to_location is not None
+        route = self.getOSMRoute(from_location, to_location)
+        assert route is not None
+        _LOGGER.debug(f"route lenght: {len(route)}, route: {route}")
+
+        # Calculate the number of elements to process (10% of the total)
+        elements_to_process = round((30 / 100) * len(route))
+        # Calculate the step size to evenly spread the elements
+        step_size = len(route) // elements_to_process
+
+        processedPostalCodes = []
+        
+        bestPriceOnRoute = None
+        bestStationOnRoute = None
+
+        for i in range(0, len(route), step_size):
+            _LOGGER.debug(f"point: {route[i]}")
+            postal_code = self.reverseGeocodeOSM((route[i]['maneuver']['location'][0], route[i]['maneuver']['location'][1]))
             if postal_code is not None and postal_code not in processedPostalCodes:
                 bestAroundPostalCode = self.getStationInfo(postal_code, country, fuel_type, '', 3, filter)
                 processedPostalCodes.append(bestAroundPostalCode.get('postalcodes'))                    
@@ -484,6 +518,25 @@ class ComponentSession(object):
             _LOGGER.debug(f"geocodeORS response no features found: {response_json}")
             return
     
+    @sleep_and_retry
+    @limits(calls=100, period=60)
+    def geocodeOSM(self, country_code, postal_code):
+        _LOGGER.debug(f"geocodeOSM request: country_code: {country_code}, postalcode: {postal_code}")
+        # header = {"Content-Type": "application/x-www-form-urlencoded"}
+        # header = {"Accept-Language": "nl-BE"}
+
+        geocode_url = 'https://nominatim.openstreetmap.org/search'
+        params = {'format': 'json', 'postalcode': postal_code, 'country': country_code, 'limit': 1}
+        response = requests.get(geocode_url, params=params)
+        geocode_data = response.json()
+        if geocode_data:
+            location = (geocode_data[0]['lat'], geocode_data[0]['lon'])
+            _LOGGER.debug(f"geocodeOSM lat: {location[0]}, lon {location[1]}")
+            return location
+        else:
+            _LOGGER.error(f"ERROR: {response.text}")
+            return None
+        
     
     @sleep_and_retry
     @limits(calls=100, period=60)
@@ -501,7 +554,21 @@ class ComponentSession(object):
             return response_json['features'][0]['properties']['postalcode']
         else:
             return
+        
+    
+    @sleep_and_retry
+    @limits(calls=100, period=60)
+    def reverseGeocodeOSM(self, location):
+        nominatim_url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={location[1]}&lon={location[0]}"
+        nominatim_response = requests.get(nominatim_url)
+        nominatim_data = nominatim_response.json()
+        _LOGGER.debug(f"nominatim_data {nominatim_data}")
 
+        # Extract the postal code from the Nominatim response
+        postal_code = nominatim_data['address'].get('postcode', None)
+        _LOGGER.debug(f"nominatim_data postal_code {postal_code}")
+
+        return postal_code
     
     
     @sleep_and_retry
@@ -536,3 +603,19 @@ class ComponentSession(object):
         # Extract the geometry (i.e. the points along the route) from the response
         geometry = response_json["features"][0]["geometry"]["coordinates"]
         return geometry
+
+    @sleep_and_retry
+    @limits(calls=40, period=60)
+    def getOSMRoute(self, from_location, to_location):
+
+        # Request the route from OpenStreetMap API
+        url = f'https://router.project-osrm.org/route/v1/driving/{from_location[1]},{from_location[0]};{to_location[1]},{to_location[0]}?steps=true'
+        response = requests.get(url)
+        route_data = response.json()
+        _LOGGER.debug(f"route_data {route_data}")
+        
+        # Extract the waypoints (towns) along the route
+        waypoints = route_data['routes'][0]['legs'][0]['steps']
+        
+        _LOGGER.debug(f"waypoints {waypoints}")
+        return waypoints
