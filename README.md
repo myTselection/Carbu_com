@@ -6,7 +6,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/myTselection/carbu_com.svg)](https://github.com/myTselection/carbu_com/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/myTselection/carbu_com.svg)](https://github.com/myTselection/carbu_com/graphs/commit-activity)
 
-# Carbu.com
+# Carbu.com Home Assistant integration
 [Carbu.com](https://www.Carbu.com/) Home Assistant custom component. This custom component has been built from the ground up to bring Carbu.com & Mazout.com site data to compare and save on your fuel oil, diesel and Super prices and integrate this information into Home Assistant to help you towards a better follow up. This integration is built against the public website provided by Carbu.com for Belgium and has not been tested for any other countries.
 
 This integration is in no way affiliated with Carbu.com.
@@ -130,17 +130,17 @@ A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in 
     | `date`  | Date for the validity of the price |
     </details>
 
-- <details><summary>Example service call</summary>
+- <details><summary>Example service call using iphone gecoded user location</summary>
 
    ```
    service: carbu_com.get_lowest_fuel_price
    data:
      fuel_type: diesel
      country: BE
-     postalcode: 3620
-     town: Lanaken
-     max_distance: 20
-     filter: Shell
+     postalcode: "{{state_attr('sensor.iphone_geocoded_location','Postal Code')}}"
+     town: "{{state_attr('sensor.iphone_geocoded_location','Locality')}}"
+     max_distance: 5
+     filter: Total
 
    ```
 
@@ -266,7 +266,7 @@ cards:
           <img
           src="{{state_attr('sensor.carbu_com_diesel_1000_5km','entity_picture')}}"
           width="40"/>
-          [{{state_attr('sensor.carbu_com_diesel_1000_5km','supplier')}}]({{state_attr('sensor.carbu_com_diesel_1000_5km','url')}})
+          [{{state_attr('sensor.carbu_com_diesel_1000_5km','supplier')}}]({{state_attr('sensor.carbu_com_diesel_1000_5km','url')}} "{{state_attr('sensor.carbu_com_diesel_1000_5km','address')}}")
 
           #### Coming days: {% if
           states('sensor.carbu_com_diesel_prediction')|float < 0 %}<font
