@@ -2,7 +2,7 @@
 
 get_lowest_fuel_price:
   description: >
-    Get the lowest fuel price in the neighbourhood of a specific location.
+    Get the lowest fuel price in the neighbourhood of a specific location defined by postalcode and town (optional).
   fields:
     fuel_type:
       description: >
@@ -28,10 +28,36 @@ get_lowest_fuel_price:
       description: >
         (Optional) Filter out only specific supplier brands, leave empty if any supplier brand is allowed
       example: Shell
+
+      
+get_lowest_fuel_price_coor:
+  description: >
+    Get the lowest fuel price in the neighbourhood of a specific location defined by coordinates latitude and longitude.
+  fields:
+    fuel_type:
+      description: >
+        The type of fuel to look for, supported options: super95, super98 or diesel
+      example: diesel
+    latitude:
+      description: >
+        The latitude of the location (N)
+      example: 50.8503
+    longitude:
+      description: >
+        The longitude of the location (E)
+      example: 4.3517
+    max_distance:
+      description: >
+        Max distance in km around postal code to look for lowest fuel price, eg search 5km around postal code
+      example: 5
+    filter:
+      description: >
+        (Optional) Filter out only specific supplier brands, leave empty if any supplier brand is allowed
+      example: Shell
     
 get_lowest_fuel_price_on_route:
   description: >
-    Get the lowest fuel price on a route between 2 locations.
+    Get the lowest fuel price on a route between 2 locations defined by postalcodes
   fields:
     fuel_type:
       description: >
@@ -49,6 +75,39 @@ get_lowest_fuel_price_on_route:
       description: >
         The postalcode to look for as end of the route
       example: 3620
+    to_country:
+      description: >
+        (Optional) The country of target location to look for, supported options: BE / FR / LU, if no to_country is provided, country will be used same for source and target location
+      example: BE
+    filter:
+      description: >
+        (Optional) Filter out only specific supplier brands, leave empty if any supplier brand is allowed
+      example: Shell
+          
+get_lowest_fuel_price_on_route_coor:
+  description: >
+    Get the lowest fuel price on a route between 2 locations  defined by coordinates latitude and longitude.
+  fields:
+    fuel_type:
+      description: >
+        The type of fuel to look for, supported options: super95, super98 or diesel
+      example: diesel
+    from_latitude:
+      description: >
+        The latitude of the source location (N)
+      example: 50.8503
+    from_longitude:
+      description: >
+        The longitude of the source location (E)
+      example: 4.3517
+    to_latitude:
+      description: >
+        The latitude of the target location (N)
+      example: 51.2194
+    to_longitude:
+      description: >
+        The longitude of the target location (E)
+      example: 4.4025
     filter:
       description: >
         (Optional) Filter out only specific supplier brands, leave empty if any supplier brand is allowed

@@ -104,9 +104,9 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `quantity`  | Quantity for which the price is expected. Main difference between below or above 2000l |
     </details>
 
-A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in the area of a postalcode is available. For a given fuel type and a distance in km, the lowest fuel price will be fetched and an event will be triggered with all the details found.
+A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in the area of a postalcode is available. For a given fuel type and a distance in km, the lowest fuel price will be fetched and an event will be triggered with all the details found. Similar, the service **`carbu_com.get_lowest_fuel_price_coor`** can be called providing latitude and longitude coordinates instead of country, postalcode and town.
 
-- <details><summary>Even data returned</summary>
+- <details><summary>Even data returned, event name: `carbu_com_lowest_fuel_price` /  `carbu_com_lowest_fuel_price_coor`</summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -145,6 +145,21 @@ A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in 
    ```
 
     </details>
+
+- <details><summary>Example service call using iphone lat lon coordinates location</summary>
+
+   ```
+   service: carbu_com.get_lowest_fuel_price_coor
+   data:
+     fuel_type: diesel
+     latitude: "{{state_attr('device_tracker.iphone','latitude')}}"
+     longitude: "{{state_attr('device_tracker.iphone','longitude')}}"
+     max_distance: 5
+     filter: Total
+
+   ```
+
+    </details>
     
 - <details><summary>Example automation triggered by event</summary>
 
@@ -153,7 +168,7 @@ A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in 
    description: ""
    trigger:
      - platform: event
-       event_type: carbu_com_lowest_fuel_price
+       event_type: carbu_com_lowest_fuel_price # or carbu_com_lowest_fuel_price_coor
    condition: []
    action:
      - service: notify.persistent_notification
@@ -168,9 +183,9 @@ A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in 
     </details>
     
     
-A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the lowest fuel price on the route in between two postal codes. Can be used for example to get the lowest price between your current location and your home, or between office and home etc. The lowest fuel price will be fetched and an event will be triggered with all the details found. The route is retrieved using [Open Source Routing Machine](https://project-osrm.org/). For performance and request limitations, 30% of the locations (evenly distributed) are used for which the best price of each on a distance of 3km is fetched. So no guarantee this would be the absolute best price. If too long routes are searched, it might get stuck because of the limitations of the quota of the free API.
+A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the lowest fuel price on the route in between two postal codes. Can be used for example to get the lowest price between your current location and your home, or between office and home etc. The lowest fuel price will be fetched and an event will be triggered with all the details found. The route is retrieved using [Open Source Routing Machine](https://project-osrm.org/). For performance and request limitations, 30% of the locations (evenly distributed) are used for which the best price of each on a distance of 3km is fetched. So no guarantee this would be the absolute best price. If too long routes are searched, it might get stuck because of the limitations of the quota of the free API. Similar, the service **`carbu_com.get_lowest_fuel_price_on_route_coor`** can be called providing latitude and longitude coordinates instead of country, postalcode and town.
 
-- <details><summary>Even data returned</summary>
+- <details><summary>Even data returned, Event name: `carbu_com_lowest_fuel_price_on_route` or `carbu_com_lowest_fuel_price_on_route_coor`</summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -207,6 +222,21 @@ A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the l
    ```
 
     </details>
+
+- <details><summary>Example service call using lat lon coordinates location</summary>
+
+   ```
+   service: carbu_com.get_lowest_fuel_price_on_route
+   data:
+     fuel_type: diesel
+     from_latitude: 50.8503
+     from_longitude: 4.3517
+     to_latitude: 51.2194
+     to_longitude: 4.4025
+
+   ```
+
+    </details>
     
 - <details><summary>Example automation triggered by event</summary>
 
@@ -215,7 +245,7 @@ A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the l
    description: ""
    trigger:
      - platform: event
-       event_type: carbu_com_lowest_fuel_price_on_route
+       event_type: carbu_com_lowest_fuel_price_on_route # or carbu_com_lowest_fuel_price_on_route_coor
    condition: []
    action:
      - service: notify.persistent_notification

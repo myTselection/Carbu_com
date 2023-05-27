@@ -136,7 +136,7 @@ class ComponentSession(object):
                 # <div class="stations-grid row">
                     # <div class="station-content col-xs-12">
         stationgrids = soup.find_all('div', class_='stations-grid')
-        _LOGGER.debug(f"stationgrids: {len(stationgrids)}, postalcode: {postalcode}, {stationgrids}")
+        _LOGGER.debug(f"stationgrids: {len(stationgrids)}, postalcode: {postalcode}, stationgrids")
         for div in stationgrids:
             stationcontents = div.find_all('div', class_='station-content')
             for stationcontent in stationcontents:
@@ -313,7 +313,7 @@ class ComponentSession(object):
         
         return oildetails
 
-    def getStationInfo(self,postalcode, country, fuel_type: FuelType, town="", max_distance=0, filter=""):
+    def getStationInfo(self, postalcode, country, fuel_type: FuelType, town="", max_distance=0, filter=""):
         
         carbuLocationInfo = self.convertPostalCode(postalcode, country, town)
         if not carbuLocationInfo:
@@ -326,6 +326,24 @@ class ComponentSession(object):
         price_info = self.getFuelPrices(postalcode, country, town, locationid, fuel_type.code, False)
         # _LOGGER.debug(f"price_info {fuel_type.name} {price_info}")
         return self.getStationInfoFromPriceInfo(price_info, postalcode, fuel_type, max_distance, filter)
+    
+
+    def getStationInfoLatLon(self,latitude, longitude, fuel_type: FuelType, max_distance=0, filter=""):
+
+        
+        postal_code_country = self.reverseGeocodeOSM((longitude, latitude))
+        
+        carbuLocationInfo = self.convertPostalCode(postal_code_country[0], postal_code_country[1])
+        if not carbuLocationInfo:
+            raise Exception(f"Location not found country: {postal_code_country[1]}, postalcode: {postal_code_country[0]}")
+        town = carbuLocationInfo.get("n")
+        city = carbuLocationInfo.get("pn")
+        countryname = carbuLocationInfo.get("cn")
+        locationid = carbuLocationInfo.get("id")
+        _LOGGER.debug(f"convertPostalCode postalcode: {postal_code_country[0]}, town: {town}, city: {city}, countryname: {countryname}, locationid: {locationid}")
+        price_info = self.getFuelPrices(postal_code_country[0], postal_code_country[1], town, locationid, fuel_type.code, False)
+        # _LOGGER.debug(f"price_info {fuel_type.name} {price_info}")
+        return self.getStationInfoFromPriceInfo(price_info, postal_code_country[0], fuel_type, max_distance, filter)
 
     def getStationInfoFromPriceInfo(self,price_info, postalcode, fuel_type: FuelType, max_distance=0, filter=""):
         data = {
@@ -342,7 +360,7 @@ class ComponentSession(object):
             "entity_picture" : None,
             "address" : None,
             "postalcode" : None,
-            "postalcodes" : [],
+            "postalcodes" : [postalcode],
             "city" : None,
             "latitude" : None,
             "longitude" : None,
@@ -418,7 +436,7 @@ class ComponentSession(object):
         return location
     
     
-    def getPriceOnRouteORS(self, country, fuel_type: FuelType, from_postalcode, to_postalcode, ors_api_key, filter = "", here_api_key= ""):
+    def getPriceOnRouteORS(self, country, fuel_type: FuelType, from_postalcode, to_postalcode, ors_api_key, filter = ""):
         from_location = self.geocodeORS(country, from_postalcode, ors_api_key)
         assert from_location is not None
         to_location = self.geocodeORS(country, to_postalcode, ors_api_key)
@@ -442,23 +460,36 @@ class ComponentSession(object):
                     bestStationOnRoute = bestAroundPostalCode
 
         _LOGGER.debug(f"handle_get_lowest_fuel_price_on_route info found: {processedPostalCodes}")
-
-
         return bestStationOnRoute
+
+
     
-    def getPriceOnRoute(self, country, fuel_type: FuelType, from_postalcode, to_postalcode, filter = "", here_api_key= ""):
+    def getPriceOnRoute(self, country, fuel_type: FuelType, from_postalcode, to_postalcode, to_country = "", filter = ""):
         from_location = self.geocodeOSM(country, from_postalcode)
         assert from_location is not None
-        to_location = self.geocodeOSM(country, to_postalcode)
+        if to_country == "":
+            to_country = country
+        to_location = self.geocodeOSM(to_country, to_postalcode)
+        assert to_location is not None
+        return self.getPriceOnRouteLatLon(fuel_type, from_location[0], from_location[1], to_location[0], to_location[1], filter)
+
+    
+    def getPriceOnRouteLatLon(self, fuel_type: FuelType, from_latitude, from_longitude, to_latitude, to_longitude, filter = ""):
+        from_location = (from_latitude, from_longitude)
+        assert from_location is not None
+        to_location = (to_latitude, to_longitude)
         assert to_location is not None
         route = self.getOSMRoute(from_location, to_location)
         assert route is not None
-        _LOGGER.debug(f"route lenght: {len(route)}, route: {route}")
+        _LOGGER.debug(f"route lenght: {len(route)}, from_location {from_location}, to_location {to_location}, route: {route}")
 
-        # Calculate the number of elements to process (10% of the total)
+        # Calculate the number of elements to process (30% of the total)
         elements_to_process = round((30 / 100) * len(route))
         # Calculate the step size to evenly spread the elements
         step_size = len(route) // elements_to_process
+
+        if len(route) < 8:
+            step_size = 1
 
         processedPostalCodes = []
         
@@ -466,19 +497,20 @@ class ComponentSession(object):
         bestStationOnRoute = None
 
         for i in range(0, len(route), step_size):
-            _LOGGER.debug(f"point: {route[i]}")
-            postal_code = self.reverseGeocodeOSM((route[i]['maneuver']['location'][0], route[i]['maneuver']['location'][1]))
-            if postal_code is not None and postal_code not in processedPostalCodes:
-                bestAroundPostalCode = self.getStationInfo(postal_code, country, fuel_type, '', 3, filter)
-                processedPostalCodes.append(bestAroundPostalCode.get('postalcodes'))                    
-                if bestPriceOnRoute is None or bestAroundPostalCode.get('price') < bestPriceOnRoute:
+            _LOGGER.debug(f"point: {route[i]}, step_size {step_size} of len(route): {len(route)}")
+            postal_code_country = self.reverseGeocodeOSM((route[i]['maneuver']['location'][0], route[i]['maneuver']['location'][1]))
+            if postal_code_country[0] is not None and postal_code_country[0] not in processedPostalCodes:
+                _LOGGER.debug(f"Get route postalcode {postal_code_country[0]}, processedPostalCodes {processedPostalCodes}")
+                bestAroundPostalCode = self.getStationInfo(postal_code_country[0], postal_code_country[1], fuel_type, '', 3, filter)
+                processedPostalCodes.extend(bestAroundPostalCode.get('postalcodes'))                    
+                if (bestPriceOnRoute is None) or (bestAroundPostalCode.get('price') is not None and bestAroundPostalCode.get('price',999) < bestPriceOnRoute):
                     bestStationOnRoute = bestAroundPostalCode
+                    bestPriceOnRoute = bestAroundPostalCode.get('price',999)
+            else:
+                _LOGGER.debug(f"skipped route postalcode {postal_code_country[0]}, processedPostalCodes {processedPostalCodes}")
 
         _LOGGER.debug(f"handle_get_lowest_fuel_price_on_route info found: {processedPostalCodes}")
-
-
         return bestStationOnRoute
-
     
     # set the maximum number of requests per minute
     @sleep_and_retry
@@ -566,9 +598,10 @@ class ComponentSession(object):
 
         # Extract the postal code from the Nominatim response
         postal_code = nominatim_data['address'].get('postcode', None)
-        _LOGGER.debug(f"nominatim_data postal_code {postal_code}")
+        country_code = nominatim_data['address'].get('country_code', None)
+        _LOGGER.debug(f"nominatim_data postal_code {postal_code}, country_code {country_code}")
 
-        return postal_code
+        return (postal_code, country_code)
     
     
     @sleep_and_retry
@@ -608,7 +641,10 @@ class ComponentSession(object):
     @limits(calls=40, period=60)
     def getOSMRoute(self, from_location, to_location):
 
+        #location expected (lat, lon)
+
         # Request the route from OpenStreetMap API
+        # 'https://router.project-osrm.org/route/v1/driving/<from_lon>,<from_lat>;<to_lon>,<to_lat>?steps=true
         url = f'https://router.project-osrm.org/route/v1/driving/{from_location[1]},{from_location[0]};{to_location[1]},{to_location[0]}?steps=true'
         response = requests.get(url)
         route_data = response.json()
