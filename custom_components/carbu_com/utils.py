@@ -4,6 +4,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 from ratelimit import limits, sleep_and_retry
+from datetime import date
 import urllib.parse
 from enum import Enum
 
@@ -30,18 +31,19 @@ def check_settings(config, hass):
         
 
 class FuelType(Enum):
-    SUPER95 = ("E10")
+    SUPER95 = ("E10", 5)
     SUPER95_Prediction = ("E95")
-    SUPER98 = ("SP98")
-    DIESEL = ("GO")
+    SUPER98 = ("SP98", 6)
+    DIESEL = ("GO",3)
     DIESEL_Prediction = ("D")
     OILSTD = ("7")
     OILSTD_Prediction = ("mazout50s")
     OILEXTRA = ("2")
     OILEXTRA_Prediction = ("extra")
     
-    def __init__(self, code):
+    def __init__(self, code, de_code=0):
         self.code = code
+        self.de_code = de_code
 
     @property
     def name_lowercase(self):
@@ -116,11 +118,13 @@ class ComponentSession(object):
         
     @sleep_and_retry
     @limits(calls=1, period=1)
-    def getFuelPrices(self, postalcode, country, town, locationid, fueltypecode, single):
+    def getFuelPrices(self, postalcode, country, town, locationid, fueltype: FuelType, single):
+        if country.lower() == 'de':
+            return self.getFuelPricesDE(postalcode,country,town,locationid, fueltype, single)
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # https://carbu.com/belgie//liste-stations-service/GO/Diegem/1831/BE_bf_279
 
-        response = self.s.get(f"https://carbu.com/belgie//liste-stations-service/{fueltypecode}/{town}/{postalcode}/{locationid}",headers=header,timeout=50)
+        response = self.s.get(f"https://carbu.com/belgie//liste-stations-service/{fueltype.code}/{town}/{postalcode}/{locationid}",headers=header,timeout=50)
         if response.status_code != 200:
             _LOGGER.error(f"ERROR: {response.text}")
         assert response.status_code == 200
@@ -193,13 +197,81 @@ class ComponentSession(object):
                 except AttributeError:
                     date = ""
                 
-                stationdetails.append({"id":stationid,"name":name,"url":url,"logo_url":logo_url,"brand":brand,"address":', '.join(el for el in address),"postalcode": address_postalcode, "locality":locality,"price":price,"lat":lat,"lon":lng,"fuelname":fuelname,"distance":distance,"date":date})
+                stationdetails.append({"id":stationid,"name":name,"url":url,"logo_url":logo_url,"brand":brand,"address":', '.join(el for el in address),"postalcode": address_postalcode, "locality":locality,"price":price,"lat":lat,"lon":lng,"fuelname":fuelname,"distance":distance,"date":date, "country": country})
                 
                 # _LOGGER.debug(f"stationdetails: {stationdetails}")
                 if single:
                     break
             if single:
                 break
+        return stationdetails
+    
+    
+    @sleep_and_retry
+    @limits(calls=1, period=1)
+    def getFuelPricesDE(self, postalcode, country, town, locationid, fueltype: FuelType, single):
+        if country.lower() != 'de':
+            return self.getFuelPrices(postalcode,country,town,locationid, fueltype, single)
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+        # https://www.clever-tanken.de/tankstelle_liste?lat=&lon=&ort=Kr%C3%BCn&spritsorte=3&r=5
+        # _LOGGER.debug(f"https://www.clever-tanken.de/tankstelle_liste?lat=&lon=&ort={postalcode}&spritsorte={fueltype.de_code}&r=25&sort=km")
+
+        response = self.s.get(f"https://www.clever-tanken.de/tankstelle_liste?lat=&lon=&ort={postalcode}&spritsorte={fueltype.de_code}&r=25&sort=km",headers=header,timeout=50)
+        if response.status_code != 200:
+            _LOGGER.error(f"ERROR: {response.text}")
+        assert response.status_code == 200
+
+        stationdetails = []
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        blocks = soup.find_all('a', href=lambda href: href and href.startswith('/tankstelle_details/'))
+        # _LOGGER.debug(f"blocks: {len(blocks)}")
+
+        stationdetails = []
+        for block in blocks:
+            url = block['href']
+            station_id = url.split('/')[-1]
+            station_name = block.find('span', class_='fuel-station-location-name').text.strip()
+            station_street = block.find('div', class_='fuel-station-location-street').text.strip()
+            station_city = block.find('div', class_='fuel-station-location-city').text.strip()
+            station_postalcode, station_locality = station_city.split(maxsplit=1)
+            price_text = block.find('div', class_='price-text')
+            if price_text != None:
+                price_text = price_text.text.strip()
+            else:
+                continue
+            price_changed = [span.text.strip() for span in block.find_all('span', class_='price-changed')]
+            logo_url = block.find('img', class_='mtsk-logo')['src']
+            distance = float(block.find('div', class_='fuel-station-location-distance').text.strip().replace(' km',''))
+            today = date.today()
+            current_date = today.strftime("%Y-%m-%d")
+            # _LOGGER.debug(f"blocks id : {station_id}, postalcode: {station_postalcode}")
+
+
+            block_data = {
+                'id': station_id,
+                'name': station_name,
+                'url': f"https://www.clever-tanken.de{url}",
+                'logo_url': f"https://www.clever-tanken.de/{logo_url}",
+                'brand': station_name,
+                'address': f"{station_street}, {station_city}",
+                'postalcode': station_postalcode,
+                'locality': station_locality,
+                'price': price_text,
+                'price_changed': price_changed,
+                'lat': 0,
+                'lon': 0,
+                'fuelname': fueltype.name,
+                'distance': distance,
+                'date': current_date, 
+                'country': country
+            }
+            if single:
+                if postalcode == station_postalcode:
+                    stationdetails.append(block_data)
+                    return stationdetails
+            else:
+                stationdetails.append(block_data)
         return stationdetails
         
     @sleep_and_retry
@@ -314,36 +386,40 @@ class ComponentSession(object):
         return oildetails
 
     def getStationInfo(self, postalcode, country, fuel_type: FuelType, town="", max_distance=0, filter=""):
-        
-        carbuLocationInfo = self.convertPostalCode(postalcode, country, town)
-        if not carbuLocationInfo:
-            raise Exception(f"Location not found country: {country}, postalcode: {postalcode}, town: {town}")
-        town = carbuLocationInfo.get("n")
-        city = carbuLocationInfo.get("pn")
-        countryname = carbuLocationInfo.get("cn")
-        locationid = carbuLocationInfo.get("id")
-        _LOGGER.debug(f"convertPostalCode postalcode: {postalcode}, town: {town}, city: {city}, countryname: {countryname}, locationid: {locationid}")
-        price_info = self.getFuelPrices(postalcode, country, town, locationid, fuel_type.code, False)
+        town = None
+        locationid = None
+        if country != "DE":
+            carbuLocationInfo = self.convertPostalCode(postalcode, country, town)
+            if not carbuLocationInfo:
+                raise Exception(f"Location not found country: {country}, postalcode: {postalcode}, town: {town}")
+            town = carbuLocationInfo.get("n")
+            city = carbuLocationInfo.get("pn")
+            countryname = carbuLocationInfo.get("cn")
+            locationid = carbuLocationInfo.get("id")
+            _LOGGER.debug(f"convertPostalCode postalcode: {postalcode}, town: {town}, city: {city}, countryname: {countryname}, locationid: {locationid}")
+        price_info = self.getFuelPrices(postalcode, country, town, locationid, fuel_type, False)
         # _LOGGER.debug(f"price_info {fuel_type.name} {price_info}")
         return self.getStationInfoFromPriceInfo(price_info, postalcode, fuel_type, max_distance, filter)
     
+    
 
     def getStationInfoLatLon(self,latitude, longitude, fuel_type: FuelType, max_distance=0, filter=""):
-
-        
         postal_code_country = self.reverseGeocodeOSM((longitude, latitude))
-        
-        carbuLocationInfo = self.convertPostalCode(postal_code_country[0], postal_code_country[1])
-        if not carbuLocationInfo:
-            raise Exception(f"Location not found country: {postal_code_country[1]}, postalcode: {postal_code_country[0]}")
-        town = carbuLocationInfo.get("n")
-        city = carbuLocationInfo.get("pn")
-        countryname = carbuLocationInfo.get("cn")
-        locationid = carbuLocationInfo.get("id")
-        _LOGGER.debug(f"convertPostalCode postalcode: {postal_code_country[0]}, town: {town}, city: {city}, countryname: {countryname}, locationid: {locationid}")
-        price_info = self.getFuelPrices(postal_code_country[0], postal_code_country[1], town, locationid, fuel_type.code, False)
+        town = None
+        locationid = None
+        if postal_code_country[1].lower() != "de":        
+            carbuLocationInfo = self.convertPostalCode(postal_code_country[0], postal_code_country[1])
+            if not carbuLocationInfo:
+                raise Exception(f"Location not found country: {postal_code_country[1]}, postalcode: {postal_code_country[0]}")
+            town = carbuLocationInfo.get("n")
+            city = carbuLocationInfo.get("pn")
+            countryname = carbuLocationInfo.get("cn")
+            locationid = carbuLocationInfo.get("id")
+            _LOGGER.debug(f"convertPostalCode postalcode: {postal_code_country[0]}, town: {town}, city: {city}, countryname: {countryname}, locationid: {locationid}")
+        price_info = self.getFuelPrices(postal_code_country[0], postal_code_country[1], town, locationid, fuel_type, False)
         # _LOGGER.debug(f"price_info {fuel_type.name} {price_info}")
         return self.getStationInfoFromPriceInfo(price_info, postal_code_country[0], fuel_type, max_distance, filter)
+        
 
     def getStationInfoFromPriceInfo(self,price_info, postalcode, fuel_type: FuelType, max_distance=0, filter=""):
         data = {
@@ -366,9 +442,10 @@ class ComponentSession(object):
             "longitude" : None,
             "fuelname" : None,
             "fueltype" : fuel_type,
-            "date" : None
+            "date" : None,
+            "country": None
         }
-        _LOGGER.debug(f"getStationInfoFromPriceInfo {fuel_type.name}, postalcode: {postalcode}, max_distance : {max_distance}, filter: {filter}, price_info: {price_info}")
+        # _LOGGER.debug(f"getStationInfoFromPriceInfo {fuel_type.name}, postalcode: {postalcode}, max_distance : {max_distance}, filter: {filter}, price_info: {price_info}")
 
         filterSet = False
         if filter is not None and filter.strip() != "":
@@ -393,7 +470,7 @@ class ComponentSession(object):
                 data["localPrice"] = 0 if price_info[0].get("price") == '' else float(price_info[0].get("price"))
                 data["diff"] = round(data["price"] - data["localPrice"],3)
                 data["diff30"] = round(data["diff"] * 30,3)
-                data["diffPct"] = round(100*((data["price"] - data["localPrice"])/data["price"]),3)
+                data["diffPct"] = 0 if data["price"] == 0 else round(100*((data["price"] - data["localPrice"])/data["price"]),3)
                 data["supplier"]  = station.get("name")
                 data["supplier_brand"]  = station.get("brand")
                 data["url"]   = station.get("url")
@@ -407,14 +484,18 @@ class ComponentSession(object):
                 data["date"] = station.get("date")
                 if data["postalcode"] not in data["postalcodes"]:
                     data["postalcodes"].append(data["postalcode"])
+                data['country'] = station.get('country')
+                # _LOGGER.debug(f"before break {max_distance}, country: {station.get('country') }, postalcode: {station.get('postalcode')} required postalcode {postalcode}")
                 if max_distance == 0:
-                    break
+                        # _LOGGER.debug(f"break {max_distance}, country: {station.get('country') }, postalcode: {station.get('postalcode')} required postalcode {postalcode}")
+                        break
         if data["supplier"] is None and filterSet:
             _LOGGER.warning(f"{postalcode} the station filter '{filter}' may result in no results found, if needed, please review filter")
         
         _LOGGER.debug(f"get_lowest_fuel_price info found: {data}")
         return data
         
+    # NOT USED
     def geocodeHere(self, country, postalcode, here_api_key):
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # header = {"Accept-Language": "nl-BE"}
@@ -435,7 +516,7 @@ class ComponentSession(object):
         location = response.json()["items"][0]["position"]
         return location
     
-    
+    # NOT USED
     def getPriceOnRouteORS(self, country, fuel_type: FuelType, from_postalcode, to_postalcode, ors_api_key, filter = ""):
         from_location = self.geocodeORS(country, from_postalcode, ors_api_key)
         assert from_location is not None
@@ -463,7 +544,7 @@ class ComponentSession(object):
         return bestStationOnRoute
 
 
-    
+    #USED BY Service: handle_get_lowest_fuel_price_on_route
     def getPriceOnRoute(self, country, fuel_type: FuelType, from_postalcode, to_postalcode, to_country = "", filter = ""):
         from_location = self.geocodeOSM(country, from_postalcode)
         assert from_location is not None
@@ -474,6 +555,7 @@ class ComponentSession(object):
         return self.getPriceOnRouteLatLon(fuel_type, from_location[0], from_location[1], to_location[0], to_location[1], filter)
 
     
+    #USED BY Service: handle_get_lowest_fuel_price_on_route_coor
     def getPriceOnRouteLatLon(self, fuel_type: FuelType, from_latitude, from_longitude, to_latitude, to_longitude, filter = ""):
         from_location = (from_latitude, from_longitude)
         assert from_location is not None

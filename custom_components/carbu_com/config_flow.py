@@ -51,7 +51,12 @@ def create_schema(entry, option=False):
     data_schema = OrderedDict()
     data_schema[
         vol.Required("country", default=default_country, description="Country")
-    ] = str
+    ] = selector({
+                "select": {
+                    "options": ['BE','FR','LU','DE'],
+                    "mode": "dropdown"
+                }
+            })
     data_schema[
         vol.Required("postalcode", default=default_postalcode, description="Postal Code")
     ] = str
@@ -91,7 +96,7 @@ def create_town_schema(towns):
                     "options": towns,
                     "mode": "dropdown"
                 }
-            })  
+            })
 
     return data_schema
 
@@ -117,6 +122,8 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._init_info = user_input
             if not(self._session):
                 self._session = ComponentSession()
+            if user_input.get('country') == 'DE':
+                return self.async_create_entry(title=NAME, data=self._init_info)
             carbuLocationInfo = await self.hass.async_add_executor_job(lambda: self._session.convertPostalCodeMultiMatch(user_input.get('postalcode'), user_input.get('country')))
             if len(carbuLocationInfo) > 1:
                 for location in carbuLocationInfo:

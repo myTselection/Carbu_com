@@ -7,9 +7,11 @@
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/myTselection/carbu_com.svg)](https://github.com/myTselection/carbu_com/graphs/commit-activity)
 
 # Carbu.com Home Assistant integration
-[Carbu.com](https://www.Carbu.com/) Home Assistant custom component. This custom component has been built from the ground up to bring Carbu.com & Mazout.com site data to compare and save on your fuel oil, diesel and Super prices and integrate this information into Home Assistant to help you towards a better follow up. This integration is built against the public website provided by Carbu.com for Belgium and has not been tested for any other countries.
-
+[Carbu.com](https://www.Carbu.com/) Home Assistant custom component. This custom component has been built from the ground up to bring Carbu.com & Mazout.com site data to compare and save on your fuel oil, diesel and Super prices and integrate this information into Home Assistant to help you towards a better follow up. This integration is built against the public website provided by Carbu.com.
 This integration is in no way affiliated with Carbu.com.
+
+Since R5.0, support for fuel prices in Germany (DE) has been added. City or postalcode can be provided as location.
+
 
 Some discussion on this topic can be found within [the Home Assistant community forum](https://community.home-assistant.io/t/rest-sensor-needs-to-get-latest-element-of-list/404882/4).
 
@@ -22,12 +24,12 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 - [HACS](https://hacs.xyz/): add url https://github.com/myTselection/carbu_com as custom repository (HACS > Integration > option: Custom Repositories)
 - Restart Home Assistant
 - Add 'Carbu.com' integration via HA Settings > 'Devices and Services' > 'Integrations'
-- Provide country (currently only tested with BE), postal code and select the desired sensors
-   - If your postal code is not unique, the name of the town can be selected from the dropdown in the next step of the setup config flow. See [carbu.com](https://carbu.com) website for known towns and postal codes.
+- Provide country, postal code and select the desired sensors
+   - If your postal code is not unique, the name of the town can be selected from the dropdown in the next step of the setup config flow. See [carbu.com](https://carbu.com) website for known towns and postal codes. (Not supported for DE)
    - A filter on supplier brand name can be set (optional). If the filter match, the fuel station will be considered, else next will be searched. A python regex filter value be set
 
 ## Integration
-- <details><summary>Sensor diesel and super <code>sensor.carbu_com_[fueltype]_[postalcode]_price</code> and fuel oil <code>sensor.carbu_com_[fueltype]_[postalcode]_[quantity]l_price</code></summary>
+- <details><summary>Sensor diesel and super <code>sensor.carbu_com_[fueltype]_[postalcode]_price</code> and fuel oil <code>sensor.carbu_com_[fueltype]_[postalcode]_[quantity]l_price</code> Fuel oil only supported for BE/FR/LU</summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -37,7 +39,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `fuelname` | Full name of the fuel type |
     | `postalcode`  | Postalcode at which the price was retrieved |
     | **`supplier`**  | **Name of the supplier of the fuel** |
-    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) |
+    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) Not supported for DE |
     | `url`  | Url with details of the supplier |
     | `entity_picture`  | Url with the logo of the supplier |
     | `address`  | Address of the supplier |
@@ -62,13 +64,13 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `fuelname` | Full name of the fuel type |
     | `postalcode`  | Postalcode at which the price was retrieved |
     | `supplier`  | Name of the supplier of the fuel |
-    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) |
+    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) Not supported for DE |
     | `url`  | Url with details of the supplier |
     | `entity_picture`  | Url with the logo of the supplier |
     | `address`  | Address of the supplier |
     | `city`  | City of the supplier |
-    | `latitude`  | Latitude of the supplier |
-    | `longitude`  | Longitude of the supplier |
+    | `latitude`  | Latitude of the supplier Not supported for DE |
+    | `longitude`  | Longitude of the supplier Not supported for DE |
     | `region`  | Distand 5km or 10km around postal code in which cheapest prices is found |
     | **`distance`**  | **Distance to the supplier vs postal code** |
     | **`price diff`**  | **Price difference between the cheapest found in region versus the local price** |
@@ -79,7 +81,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `score`  | Score of the supplier |
     </details>
     
-- <details><summary>Sensor diesel and super prediction: <code>sensor.carbu_com_[fueltype]_prediction</code></summary>
+- <details><summary>Sensor diesel and super prediction: <code>sensor.carbu_com_[fueltype]_prediction</code> Only supported for BE/FR/LU</summary>
     
     | Attribute | Description |
     | --------- | ----------- |
@@ -90,7 +92,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `date`  | Date for the validity of the price |
     </details>
     
-- <details><summary>Sensor fuel oil prediction: <code>sensor.carbu_com_[oiltype]_[quantity]l_prediction</code></summary>
+- <details><summary>Sensor fuel oil prediction: <code>sensor.carbu_com_[oiltype]_[quantity]l_prediction</code> Only supported for BE/FR/LU</summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -115,13 +117,13 @@ A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in 
     | `fuelname` | Full name of the fuel type |
     | `postalcode`  | Postalcode at which the price was retrieved |
     | `supplier`  | Name of the supplier of the fuel |
-    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) |
+    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) Not supported for DE |
     | `url`  | Url with details of the supplier |
     | `entity_picture`  | Url with the logo of the supplier |
     | `address`  | Address of the supplier |
     | `city`  | City of the supplier |
-    | `latitude`  | Latitude of the supplier |
-    | `longitude`  | Longitude of the supplier |
+    | `latitude`  | Latitude of the supplier Not supported for DE |
+    | `longitude`  | Longitude of the supplier Not supported for DE |
     | `region`  | Distand 5km or 10km around postal code in which cheapest prices is found |
     | **`distance`**  | **Distance to the supplier vs postal code** |
     | **`price diff`**  | **Price difference between the cheapest found in region versus the local price** |
@@ -194,13 +196,13 @@ A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the l
     | `fuelname` | Full name of the fuel type |
     | `postalcode`  | Postalcode at which the price was retrieved |
     | `supplier`  | Name of the supplier of the fuel |
-    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) |
+    | `supplier_brand`  | Brand name of the supplier (eg Shell, Texaco, ...) Not supported for DE |
     | `url`  | Url with details of the supplier |
     | `entity_picture`  | Url with the logo of the supplier |
     | `address`  | Address of the supplier |
     | `city`  | City of the supplier |
-    | `latitude`  | Latitude of the supplier |
-    | `longitude`  | Longitude of the supplier |
+    | `latitude`  | Latitude of the supplier Not supported for DE |
+    | `longitude`  | Longitude of the supplier Not supported for DE |
     | `region`  | Distand 5km or 10km around postal code in which cheapest prices is found |
     | **`distance`**  | **Distance to the supplier vs postal code** |
     | **`price diff`**  | **Price difference between the cheapest found in region versus the local price** |

@@ -5,7 +5,7 @@
             "user": {
                 "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
-                    "country": "Country (BE/FR/LU)",
+                    "country": "Country (BE/FR/LU/DE)",
                     "postalcode": "Postal code",
                     "town": "Town",
                     "filter": "Supplier brand filter (optional)",
@@ -25,7 +25,7 @@
             "edit": {
                 "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
-                    "country": "Country (BE/FR/LU)",
+                    "country": "Country (BE/FR/LU/DE)",
                     "postalcode": "Postal code",
                     "town": "Town",
                     "filter": "Supplier brand filter (optional)",
@@ -51,7 +51,7 @@
             "edit": {
                 "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
-                    "country": "Country (BE/FR/LU)",
+                    "country": "Country (BE/FR/LU/DE)",
                     "postalcode": "Postal code",
                     "town": "Town",
                     "filter": "Supplier brand filter (optional)",
@@ -65,7 +65,7 @@
             }
         },
         "error": {
-            "missing country": "Please provide a valid country: BE/FR/LU",
+            "missing country": "Please provide a valid country: BE/FR/LU/DE",
             "missing postal code": "Please provide a valid postal code",
             "missing data options handler": "Option handler failed",
             "no_valid_settings": "No valid settings check in ha config."

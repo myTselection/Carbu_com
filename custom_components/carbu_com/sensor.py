@@ -79,9 +79,10 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorSuper95Neigh.async_update()
         sensors.append(sensorSuper95Neigh)
         
-        sensorSuper95Prediction = ComponentFuelPredictionSensor(componentData, FuelType.SUPER95_Prediction)
-        # await sensorSuper95Prediction.async_update()
-        sensors.append(sensorSuper95Prediction)
+        if country != 'DE':
+            sensorSuper95Prediction = ComponentFuelPredictionSensor(componentData, FuelType.SUPER95_Prediction)
+            # await sensorSuper95Prediction.async_update()
+            sensors.append(sensorSuper95Prediction)
     
     
     if super98:
@@ -110,11 +111,12 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorDieselNeigh.async_update()
         sensors.append(sensorDieselNeigh)
         
-        sensorDieselPrediction = ComponentFuelPredictionSensor(componentData, FuelType.DIESEL_Prediction)
-        # await sensorDieselPrediction.async_update()
-        sensors.append(sensorDieselPrediction)
+        if country != 'DE':
+            sensorDieselPrediction = ComponentFuelPredictionSensor(componentData, FuelType.DIESEL_Prediction)
+            # await sensorDieselPrediction.async_update()
+            sensors.append(sensorDieselPrediction)
     
-    if oilstd:
+    if oilstd and country != 'DE':
         sensorOilstd = ComponentPriceSensor(componentData, FuelType.OILSTD, postalcode, True, quantity)
         # await sensorOilstd.async_update()
         sensors.append(sensorOilstd)
@@ -123,7 +125,7 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorOilstdPrediction.async_update()
         sensors.append(sensorOilstdPrediction)
     
-    if oilextra:
+    if oilextra and country != 'DE':
         sensorOilextra = ComponentPriceSensor(componentData, FuelType.OILEXTRA, postalcode, True, quantity)
         # await sensorOilextra.async_update()
         sensors.append(sensorOilextra)    
@@ -203,7 +205,7 @@ class ComponentData:
         
     async def get_fuel_price_info(self, fuel_type: FuelType):
         _LOGGER.debug(f"{NAME} getting fuel price_info {fuel_type.name_lowercase}") 
-        price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrices(self._postalcode, self._country, self._town, self._locationid, fuel_type.code, False))
+        price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrices(self._postalcode, self._country, self._town, self._locationid, fuel_type, False))
         self._price_info[fuel_type] = price_info
         _LOGGER.debug(f"{NAME} price_info {fuel_type.name_lowercase} {price_info}")  
 
@@ -239,7 +241,7 @@ class ComponentData:
 
         if self._session:
             _LOGGER.debug("Starting with session for " + NAME)
-            if self._locationid is None:
+            if self._locationid is None and self._country != 'DE':
                 self._carbuLocationInfo = await self._hass.async_add_executor_job(lambda: self._session.convertPostalCode(self._postalcode, self._country, self._town))
                 self._town = self._carbuLocationInfo.get("n")
                 self._city = self._carbuLocationInfo.get("pn")
@@ -248,7 +250,8 @@ class ComponentData:
             # postalcode, country, town, locationid, fueltypecode)
             if self._super95:
                 await self.get_fuel_price_info(FuelType.SUPER95)  
-                await self.get_fuel_price_prediction_info(FuelType.SUPER95_Prediction) 
+                if self._country != 'DE':
+                    await self.get_fuel_price_prediction_info(FuelType.SUPER95_Prediction) 
             else:
                 _LOGGER.debug(f"{NAME} not getting fuel price_info {self._super95} FueltType.SUPER95.name_lowercase {FuelType.SUPER95.name_lowercase}")  
                 
@@ -257,15 +260,16 @@ class ComponentData:
                 
             if self._diesel:
                 await self.get_fuel_price_info(FuelType.DIESEL)  
-                await self.get_fuel_price_prediction_info(FuelType.DIESEL_Prediction)
+                if self._country != 'DE':
+                    await self.get_fuel_price_prediction_info(FuelType.DIESEL_Prediction)
                 
-            if self._oilstd:
+            if self._oilstd and self._country != 'DE':
                 await self.get_oil_price_info(FuelType.OILSTD)  
                 
-            if self._oilextra:
+            if self._oilextra and self._country != 'DE':
                 await self.get_oil_price_info(FuelType.OILEXTRA)
                 
-            if self._oilstd or self._oilextra:
+            if self._oilstd or self._oilextra and self._country != 'DE':
                 await self.get_oil_price_prediction_info()
                 
             self._lastupdate = datetime.now()
