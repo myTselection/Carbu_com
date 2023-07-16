@@ -1,0 +1,74 @@
+{
+    "config": {
+        "title": "Carbu.com",
+        "step": {
+            "user": {
+                "description": "Configuration des capteurs Carbu.com et Mazout.com.",
+                "data": {
+                    "country": "Pays (BE/FR/LU)",
+                    "postalcode": "Code postal",
+                    "town": "Ville",
+                    "filter": "Filtre marque fournisseur (facultatif)",
+					"super95": "Super 95 (E10)",
+					"super98": "Super 98 (E5)",
+					"diesel": "Diesel (B7)",
+					"oilstd": "Fioul Standard (50S)",
+					"oilextra": "Fioul Extra",
+					"quantity": "Quantité Fioul (liters)"
+                }
+            },
+            "town": {
+                "data": {
+                    "town": "Ville"
+                }
+            },
+            "edit": {
+                "description": "Configuration des capteurs Carbu.com et Mazout.com.",
+                "data": {
+                    "country": "Pays (BE/FR/LU)",
+                    "postalcode": "Code postal",
+                    "town": "Ville",
+                    "filter": "Filtrer par marque de fournisseur (facultatif)",
+					"super95": "SP 95 (E10)",
+					"super98": "SP 98 (E5)",
+					"diesel": "Diesel (B7)",
+					"oilstd": "Fioul Standard (50S)",
+					"oilextra": "Fioul Extra",
+					"quantity": "Quantité Fioul (litres)"
+                }
+            }
+
+        },
+        "error": {
+            "missing country": "Veuillez fournir un pays valide: BE/FR/LU",
+            "missing postal code": "Veuillez fournir un code postal valide",
+            "missing data options handler": "Le gestionnaire d'options a échoué",
+            "no_valid_settings": "Aucun paramètre valide trouvé dans la configuration HA."
+        }
+    },
+    "options": {
+        "step": {
+            "edit": {
+                "description": "Configuration des capteurs Carbu.com et Mazout.com.",
+                "data": {
+                    "country": "Pays (BE/FR/LU)",
+                    "postalcode": "Code postal",
+                    "town": "Ville",
+                    "filter": "Filtrer par marque de fournisseur (facultatif)",
+					"super95": "SP 95 (E10)",
+					"super98": "SP 98 (E5)",
+					"diesel": "Diesel (B7)",
+					"oilstd": "Fioul Standard (50S)",
+					"oilextra": "Fioul Extra",
+					"quantity": "Quantité Fioul (litres)"
+                }
+            }
+        },
+        "error": {
+            "missing country": "Veuillez fournir un pays valide: BE/FR/LU",
+            "missing postal code": "Veuillez fournir un code postal valide",
+            "missing data options handler": "Le gestionnaire d'options a échoué",
+            "no_valid_settings": "Aucun paramètre valide trouvé dans la configuration HA."
+        }
+    }
+}
