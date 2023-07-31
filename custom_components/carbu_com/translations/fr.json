@@ -5,7 +5,7 @@
             "user": {
                 "description": "Configuration des capteurs Carbu.com et Mazout.com.",
                 "data": {
-                    "country": "Pays (BE/FR/LU)",
+                    "country": "Pays (BE/FR/LU/DE)",
                     "postalcode": "Code postal",
                     "town": "Ville",
                     "filter": "Filtre marque fournisseur (facultatif)",
@@ -25,7 +25,7 @@
             "edit": {
                 "description": "Configuration des capteurs Carbu.com et Mazout.com.",
                 "data": {
-                    "country": "Pays (BE/FR/LU)",
+                    "country": "Pays (BE/FR/LU/DE)",
                     "postalcode": "Code postal",
                     "town": "Ville",
                     "filter": "Filtrer par marque de fournisseur (facultatif)",
@@ -40,7 +40,7 @@
 
         },
         "error": {
-            "missing country": "Veuillez fournir un pays valide: BE/FR/LU",
+            "missing country": "Veuillez fournir un pays valide: BE/FR/LU/DE",
             "missing postal code": "Veuillez fournir un code postal valide",
             "missing data options handler": "Le gestionnaire d'options a échoué",
             "no_valid_settings": "Aucun paramètre valide trouvé dans la configuration HA."
@@ -51,7 +51,7 @@
             "edit": {
                 "description": "Configuration des capteurs Carbu.com et Mazout.com.",
                 "data": {
-                    "country": "Pays (BE/FR/LU)",
+                    "country": "Pays (BE/FR/LU/DE)",
                     "postalcode": "Code postal",
                     "town": "Ville",
                     "filter": "Filtrer par marque de fournisseur (facultatif)",
@@ -65,10 +65,128 @@
             }
         },
         "error": {
-            "missing country": "Veuillez fournir un pays valide: BE/FR/LU",
+            "missing country": "Veuillez fournir un pays valide: BE/FR/LU/DE",
             "missing postal code": "Veuillez fournir un code postal valide",
             "missing data options handler": "Le gestionnaire d'options a échoué",
             "no_valid_settings": "Aucun paramètre valide trouvé dans la configuration HA."
+        }
+    },
+    "services": {
+        "get_lowest_fuel_price": {
+            "name": "get_lowest_fuel_price",
+            "description": "Obtenez le prix du carburant le plus bas dans le voisinage d'un emplacement spécifique défini par le code postal et la ville (facultatif).",
+            "fields": {
+                "fuel_type": {
+                    "name": "fuel_type",
+                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98 ou diesel"
+                },
+                "country": {
+                    "name": "country",
+                    "description": "Le pays à rechercher, options prises en charge : BE / FR / LU / DE"
+                },
+                "postalcode": {
+                    "name": "postalcode",
+                    "description": "Le code postal à rechercher"
+                },
+                "town": {
+                    "name": "town",
+                    "description": "(Facultatif) La ville à rechercher"
+                },
+                "max_distance": {
+                    "name": "max_distance",
+                    "description": "Distance maximale en km autour du code postal pour rechercher le prix du carburant le plus bas, par exemple, rechercher 5 km autour du code postal"
+                },
+                "filter": {
+                    "name": "filter",
+                    "description": "(Facultatif) Filtrez uniquement les marques de fournisseur spécifiques, laissez vide si une marque de fournisseur est autorisée"
+                }
+            }
+        },
+        "get_lowest_fuel_price_coor": {
+            "name": "get_lowest_fuel_price_coor",
+            "description": "Obtenez le prix du carburant le plus bas dans le voisinage d'un emplacement spécifique défini par des coordonnées de latitude et de longitude.",
+            "fields": {
+                "fuel_type": {
+                    "name": "fuel_type",
+                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98 ou diesel"
+                },
+                "latitude": {
+                    "name": "latitude",
+                    "description": "La latitude du lieu (N)"
+                },
+                "longitude": {
+                    "name": "longitude",
+                    "description": "La longitude du lieu (E)"
+                },
+                "max_distance": {
+                    "name": "max_distance",
+                    "description": "Distance maximale en km autour du code postal pour rechercher le prix du carburant le plus bas, par exemple, rechercher 5 km autour du code postal"
+                },
+                "filter": {
+                    "name": "filter",
+                    "description": "(Facultatif) Filtrez uniquement les marques de fournisseur spécifiques, laissez vide si une marque de fournisseur est autorisée"
+                }
+            }
+        },
+        "get_lowest_fuel_price_on_route": {
+            "name": "get_lowest_fuel_price_on_route",
+            "description": "Obtenez le prix du carburant le plus bas sur un itinéraire entre 2 emplacements définis par des codes postaux",
+            "fields": {
+                "fuel_type": {
+                    "name": "fuel_type",
+                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98 ou diesel"
+                },
+                "country": {
+                    "name": "country",
+                    "description": "Le pays à rechercher, options prises en charge : BE / FR / LU / DE"
+                },
+                "from_postalcode": {
+                    "name": "from_postalcode",
+                    "description": "Le code postal à rechercher comme point de départ de l'itinéraire"
+                },
+                "to_postalcode": {
+                    "name": "to_postalcode",
+                    "description": "Le code postal à rechercher en fin de parcours"
+                },
+                "to_country": {
+                    "name": "to_country",
+                    "description": "(Facultatif) Le pays de l'emplacement cible à rechercher, options prises en charge : BE / FR / LU / DE, si aucun to_country n'est fourni, le pays sera utilisé de la même manière pour l'emplacement source et cible"
+                },
+                "filter": {
+                    "name": "filter",
+                    "description": "(Facultatif) Filtrez uniquement les marques de fournisseur spécifiques, laissez vide si une marque de fournisseur est autorisée"
+                }
+            }
+        },
+        "get_lowest_fuel_price_on_route_coor": {
+            "name": "get_lowest_fuel_price_on_route_coor",
+            "description": "Obtenez le prix du carburant le plus bas sur un itinéraire entre 2 emplacements définis par des coordonnées de latitude et de longitude.",
+            "fields": {
+                "fuel_type": {
+                    "name": "fuel_type",
+                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98 ou diesel"
+                },
+                "from_latitude": {
+                    "name": "from_latitude",
+                    "description": "La latitude de l'emplacement de la source (N)"
+                },
+                "from_longitude": {
+                    "name": "from_longitude",
+                    "description": "La longitude de l'emplacement de la source (E)"
+                },
+                "to_latitude": {
+                    "name": "to_latitude",
+                    "description": "La latitude de l'emplacement cible (N)"
+                },
+                "to_longitude": {
+                    "name": "to_longitude",
+                    "description": "La longitude de l'emplacement cible (E)"
+                },
+                "filter": {
+                    "name": "filter",
+                    "description": "(Facultatif) Filtrez uniquement les marques de fournisseur spécifiques, laissez vide si une marque de fournisseur est autorisée"
+                }
+            }
         }
     }
 }
