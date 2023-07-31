@@ -10,7 +10,7 @@ get_lowest_fuel_price:
       example: diesel
     country:
       description: >
-        The country to look for, supported options: BE / FR / LU
+        The country to look for, supported options: BE / FR / LU / DE
       example: BE
     postalcode:
       description: >
@@ -65,7 +65,7 @@ get_lowest_fuel_price_on_route:
       example: diesel
     country:
       description: >
-        The country to look for, supported options: BE / FR / LU
+        The country to look for, supported options: BE / FR / LU / DE
       example: BE
     from_postalcode:
       description: >
@@ -77,7 +77,7 @@ get_lowest_fuel_price_on_route:
       example: 3620
     to_country:
       description: >
-        (Optional) The country of target location to look for, supported options: BE / FR / LU, if no to_country is provided, country will be used same for source and target location
+        (Optional) The country of target location to look for, supported options: BE / FR / LU / DE, if no to_country is provided, country will be used same for source and target location
       example: BE
     filter:
       description: >
