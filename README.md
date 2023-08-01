@@ -10,7 +10,8 @@
 [Carbu.com](https://www.Carbu.com/) Home Assistant custom component. This custom component has been built from the ground up to bring Carbu.com & Mazout.com site data to compare and save on your fuel oil, diesel and Super prices and integrate this information into Home Assistant to help you towards a better follow up. This integration is built against the public website provided by Carbu.com.
 This integration is in no way affiliated with Carbu.com.
 
-Since R5.0, support for fuel prices in Germany (DE) has been added. City or postalcode can be provided as location.
+Since R5.0, beta support for fuel prices in Germany (DE) has been added. City or postalcode can be provided as location.
+Since R6.0, beta support for fuel prices in Italy (IT) has been added. Postalcode and town need to be provided.
 
 
 Some discussion on this topic can be found within [the Home Assistant community forum](https://community.home-assistant.io/t/rest-sensor-needs-to-get-latest-element-of-list/404882/4).
@@ -25,7 +26,8 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 - Restart Home Assistant
 - Add 'Carbu.com' integration via HA Settings > 'Devices and Services' > 'Integrations'
 - Provide country, postal code and select the desired sensors
-   - If your postal code is not unique, the name of the town can be selected from the dropdown in the next step of the setup config flow. See [carbu.com](https://carbu.com) website for known towns and postal codes. (Not supported for DE)
+   - If your postal code is not unique, the name of the town can be selected from the dropdown in the next step of the setup config flow. See [carbu.com](https://carbu.com) website for known towns and postal codes. (Only for BE/FR/LU)
+   - For Italy, the town will be requested in the second step of the config flow
    - A filter on supplier brand name can be set (optional). If the filter match, the fuel station will be considered, else next will be searched. A python regex filter value be set
 
 ## Integration
@@ -46,7 +48,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `city`  | City of the supplier |
     | `latitude`  | Latitude of the supplier |
     | `longitude`  | Longitude of the supplier |
-    | **`distance`**  | **Distance to the supplier vs postal code** |
+    | **`distance`**  | **Distance to the supplier vs postal code** ( Not supported for IT ) |
     | `date`  | Date for the validity of the price |
     | `quantity`  | Quantity of fuel (only for fuel oil) |
     | `score`  | Score of the supplier |
@@ -54,7 +56,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     
     </details>
     
-- <details><summary>Sensor diesel and super price in neighbourhood: <code>sensor.carbu_com_[fueltype]_[postalcode]_[*]km</code> for 5km and 10km</summary>
+- <details><summary>Sensor diesel and super price in neighbourhood: <code>sensor.carbu_com_[fueltype]_[postalcode]_[*]km</code> for 5km and 10km ( Not supported for IT )</summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -125,7 +127,7 @@ A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in 
     | `latitude`  | Latitude of the supplier Not supported for DE |
     | `longitude`  | Longitude of the supplier Not supported for DE |
     | `region`  | Distand 5km or 10km around postal code in which cheapest prices is found |
-    | **`distance`**  | **Distance to the supplier vs postal code** |
+    | **`distance`**  | **Distance to the supplier vs postal code** ( Not supported for IT ) |
     | **`price diff`**  | **Price difference between the cheapest found in region versus the local price** |
     | `price diff %`  | Price difference in % between the cheapest found in region versus the local price |
     | `price diff 30l`  | Price difference for 30 liters between the cheapest found in region versus the local price |
@@ -204,9 +206,9 @@ A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the l
     | `latitude`  | Latitude of the supplier Not supported for DE |
     | `longitude`  | Longitude of the supplier Not supported for DE |
     | `region`  | Distand 5km or 10km around postal code in which cheapest prices is found |
-    | **`distance`**  | **Distance to the supplier vs postal code** |
-    | **`price diff`**  | **Price difference between the cheapest found in region versus the local price** |
-    | `price diff %`  | Price difference in % between the cheapest found in region versus the local price |
+    | **`distance`**  | **Distance to the supplier vs postal code** ( Not supported for IT ) |
+    | **`price diff`**  | **Price difference between the cheapest found in region versus the local price** ( Not supported for IT ) |
+    | `price diff %`  | Price difference in % between the cheapest found in region versus the local price ( Not supported for IT ) |
     | `price diff 30l`  | Price difference for 30 liters between the cheapest found in region versus the local price |
     | `date`  | Date for the validity of the price |
     </details>

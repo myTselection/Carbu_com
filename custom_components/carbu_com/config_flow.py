@@ -53,7 +53,7 @@ def create_schema(entry, option=False):
         vol.Required("country", default=default_country, description="Country")
     ] = selector({
                 "select": {
-                    "options": ['BE','FR','LU','DE'],
+                    "options": ['BE','FR','LU','DE',"IT"],
                     "mode": "dropdown"
                 }
             })
@@ -100,6 +100,18 @@ def create_town_schema(towns):
 
     return data_schema
 
+def create_it_town_schema():
+    """Create a default schema based on if a option or if settings
+    is already filled out.
+    """
+    data_schema = OrderedDict()
+
+    data_schema[
+        vol.Required("town", default="", description="Town")
+    ] = str
+
+    return data_schema
+
 
 class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for component."""
@@ -124,6 +136,8 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 self._session = ComponentSession()
             if user_input.get('country') == 'DE':
                 return self.async_create_entry(title=NAME, data=self._init_info)
+            if user_input.get('country') == 'IT':
+                return await self.async_step_it_town()
             carbuLocationInfo = await self.hass.async_add_executor_job(lambda: self._session.convertPostalCodeMultiMatch(user_input.get('postalcode'), user_input.get('country')))
             if len(carbuLocationInfo) > 1:
                 for location in carbuLocationInfo:
@@ -136,6 +150,13 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         
         return await self._show_config_form(user_input)
 
+    async def _show_config_form(self, user_input):
+        """Show the configuration form to edit location data."""
+        data_schema = create_schema(user_input)
+        return self.async_show_form(
+            step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors
+        )
+
     async def async_step_town(self, user_input=None):  # pylint: disable=dangerous-default-value
         """Handle a flow initialized by the user."""
         if user_input is not None:
@@ -144,16 +165,24 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_town_config_form(self._towns)
 
-    async def _show_config_form(self, user_input):
-        """Show the configuration form to edit location data."""
-        data_schema = create_schema(user_input)
-        return self.async_show_form(
-            step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors
-        )
-
     async def _show_town_config_form(self, towns):
         """Show the configuration form to edit location data."""
         data_schema = create_town_schema(towns)
+        return self.async_show_form(
+            step_id="town", data_schema=vol.Schema(data_schema), errors=self._errors
+        )
+
+    async def async_step_it_town(self, user_input=None):  # pylint: disable=dangerous-default-value
+        """Handle a flow initialized by the user."""
+        if user_input is not None:
+            self._init_info.update(user_input)
+            return self.async_create_entry(title=NAME, data=self._init_info)
+
+        return await self._show_it_town_config_form(self._towns)
+
+    async def _show_it_town_config_form(self, towns):
+        """Show the configuration form to edit location data."""
+        data_schema = create_it_town_schema()
         return self.async_show_form(
             step_id="town", data_schema=vol.Schema(data_schema), errors=self._errors
         )

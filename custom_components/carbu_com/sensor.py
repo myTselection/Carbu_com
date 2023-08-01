@@ -71,15 +71,17 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorSuper95.async_update()
         sensors.append(sensorSuper95)
         
-        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 5)
-        # await sensorSuper95Neigh.async_update()
-        sensors.append(sensorSuper95Neigh)
+        if country.lower() not in ['it']:
+            sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 5)
+            # await sensorSuper95Neigh.async_update()
+            sensors.append(sensorSuper95Neigh)
         
-        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 10)
-        # await sensorSuper95Neigh.async_update()
-        sensors.append(sensorSuper95Neigh)
+        if country.lower() not in ['it']:
+            sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 10)
+            # await sensorSuper95Neigh.async_update()
+            sensors.append(sensorSuper95Neigh)
         
-        if country != 'DE':
+        if country.lower() in ['be','fr','lu']:
             sensorSuper95Prediction = ComponentFuelPredictionSensor(componentData, FuelType.SUPER95_Prediction)
             # await sensorSuper95Prediction.async_update()
             sensors.append(sensorSuper95Prediction)
@@ -90,33 +92,37 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorSuper95.async_update()
         sensors.append(sensorSuper98)
         
-        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 5)
-        # await sensorSuper95Neigh.async_update()
-        sensors.append(sensorSuper98Neigh)
+        if country.lower() not in ['it']:
+            sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 5)
+            # await sensorSuper95Neigh.async_update()
+            sensors.append(sensorSuper98Neigh)
         
-        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 10)
-        # await sensorSuper95Neigh.async_update()
-        sensors.append(sensorSuper98Neigh)
+        if country.lower() not in ['it']:
+            sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 10)
+            # await sensorSuper95Neigh.async_update()
+            sensors.append(sensorSuper98Neigh)
 
     if diesel:
         sensorDiesel = ComponentPriceSensor(componentData, FuelType.DIESEL, postalcode, False, 0)
         # await sensorDiesel.async_update()
         sensors.append(sensorDiesel)
         
-        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 5)
-        # await sensorDieselNeigh.async_update()
-        sensors.append(sensorDieselNeigh)
+        if country.lower() not in ['it']:
+            sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 5)
+            # await sensorDieselNeigh.async_update()
+            sensors.append(sensorDieselNeigh)
         
-        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 10)
-        # await sensorDieselNeigh.async_update()
-        sensors.append(sensorDieselNeigh)
+        if country.lower() not in ['it']:
+            sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 10)
+            # await sensorDieselNeigh.async_update()
+            sensors.append(sensorDieselNeigh)
         
-        if country != 'DE':
+        if country.lower() in ['be','fr','lu']:
             sensorDieselPrediction = ComponentFuelPredictionSensor(componentData, FuelType.DIESEL_Prediction)
             # await sensorDieselPrediction.async_update()
             sensors.append(sensorDieselPrediction)
     
-    if oilstd and country != 'DE':
+    if oilstd and country.lower() in ['be','fr','lu']:
         sensorOilstd = ComponentPriceSensor(componentData, FuelType.OILSTD, postalcode, True, quantity)
         # await sensorOilstd.async_update()
         sensors.append(sensorOilstd)
@@ -125,7 +131,7 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorOilstdPrediction.async_update()
         sensors.append(sensorOilstdPrediction)
     
-    if oilextra and country != 'DE':
+    if oilextra and country.lower() in ['be','fr','lu']:
         sensorOilextra = ComponentPriceSensor(componentData, FuelType.OILEXTRA, postalcode, True, quantity)
         # await sensorOilextra.async_update()
         sensors.append(sensorOilextra)    
@@ -241,7 +247,7 @@ class ComponentData:
 
         if self._session:
             _LOGGER.debug("Starting with session for " + NAME)
-            if self._locationid is None and self._country != 'DE':
+            if self._locationid is None and self._country.lower() in ['be','fr','lu']:
                 self._carbuLocationInfo = await self._hass.async_add_executor_job(lambda: self._session.convertPostalCode(self._postalcode, self._country, self._town))
                 self._town = self._carbuLocationInfo.get("n")
                 self._city = self._carbuLocationInfo.get("pn")
@@ -250,7 +256,7 @@ class ComponentData:
             # postalcode, country, town, locationid, fueltypecode)
             if self._super95:
                 await self.get_fuel_price_info(FuelType.SUPER95)  
-                if self._country != 'DE':
+                if self._country.lower() in ['be','fr','lu']:
                     await self.get_fuel_price_prediction_info(FuelType.SUPER95_Prediction) 
             else:
                 _LOGGER.debug(f"{NAME} not getting fuel price_info {self._super95} FueltType.SUPER95.name_lowercase {FuelType.SUPER95.name_lowercase}")  
@@ -260,16 +266,16 @@ class ComponentData:
                 
             if self._diesel:
                 await self.get_fuel_price_info(FuelType.DIESEL)  
-                if self._country != 'DE':
+                if self._country.lower() in ['be','fr','lu']:
                     await self.get_fuel_price_prediction_info(FuelType.DIESEL_Prediction)
                 
-            if self._oilstd and self._country != 'DE':
+            if self._oilstd and self._country.lower() in ['be','fr','lu']:
                 await self.get_oil_price_info(FuelType.OILSTD)  
                 
-            if self._oilextra and self._country != 'DE':
+            if self._oilextra and self._country.lower() in ['be','fr','lu']:
                 await self.get_oil_price_info(FuelType.OILEXTRA)
                 
-            if self._oilstd or self._oilextra and self._country != 'DE':
+            if self._oilstd or self._oilextra and self._country.lower() in ['be','fr','lu']:
                 await self.get_oil_price_prediction_info()
                 
             self._lastupdate = datetime.now()
@@ -323,6 +329,7 @@ class ComponentPriceSensor(Entity):
         self._distance = None
         self._date = None
         self._score = None
+        self._country = data._country
 
     @property
     def state(self):
@@ -365,6 +372,7 @@ class ComponentPriceSensor(Entity):
             self._fuelname = stationInfo.get("fuelname")
             self._distance = stationInfo.get("distance")
             self._date = stationInfo.get("date")
+            self._country = stationInfo.get("country")
             
         
     async def async_will_remove_from_hass(self):
@@ -412,7 +420,8 @@ class ComponentPriceSensor(Entity):
             "date": self._date,
             "quantity": self._quantity,
             "score": self._score,
-            "filter": self._data._filter
+            "filter": self._data._filter,
+            "country": self._country
             # "suppliers": self._priceinfo
         }
 
@@ -468,6 +477,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
         self._diff = None
         self._diff30 = None
         self._diffPct = None
+        self._country = data._country
 
     @property
     def state(self):
@@ -499,6 +509,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
         self._fuelname = stationInfo.get("fuelname")
         self._distance = stationInfo.get("distance")
         self._date = stationInfo.get("date")
+        self._country = stationInfo.get("country")
         
     async def async_will_remove_from_hass(self):
         """Clean up after entity before removal."""
@@ -545,7 +556,8 @@ class ComponentPriceNeighborhoodSensor(Entity):
             "price diff 30l": f"{self._diff30}€",
             "date": self._date,
             "score": self._score,
-            "filter": self._data._filter
+            "filter": self._data._filter,
+            "country": self._country
         }
 
     @property

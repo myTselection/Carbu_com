@@ -10,7 +10,7 @@ from enum import Enum
 
 import voluptuous as vol
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
 
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.0%z"
@@ -279,6 +279,16 @@ class ComponentSession(object):
         return stationdetails
     
     
+    @sleep_and_retry
+    @limits(calls=1, period=1)
+    def getFuelPricesAT(self, postalcode, country, town, locationid, fueltype: FuelType, single):
+        if country.lower() != 'at':
+            return self.getFuelPrices(postalcode,country,town,locationid, fueltype, single)
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+        # https://www.spritpreisrechner.at/#/fossil
+        return
+
+    
     
     @sleep_and_retry
     @limits(calls=1, period=1)
@@ -291,7 +301,7 @@ class ComponentSession(object):
         #get stations on lat lon: https://api3.prezzibenzina.it/?do=pb_get_prices&output=json&os=android&appname=AndroidFuel&sdk=33&platform=SM-S906B&udid=dlwHryfCRXy-zJWX6mMN22&appversion=3.22.08.14&loc_perm=foreground&network=mobile&limit=5000&offset=1&min_lat=45.56&max_lat=46&min_long=8.82&max_long=9.26
         #get station details prices https://api3.prezzibenzina.it/?do=pb_get_stations&output=json&appname=PrezziBenzinaWidget&ids=21249,20078,5922,28629,5914&prices=on&minprice=1&fuels=d&apiversion=3.1
 
-        boundingbox = self.searchGeocodeOSM(postalcode, "Italy")
+        boundingbox = self.searchGeocodeOSM(postalcode, town, "Italy")
 
         if len(boundingbox) < 3:
             return []
@@ -312,7 +322,7 @@ class ComponentSession(object):
         sorted_diesel_items = sorted(diesel_items, key=lambda x: float(x["price"]))
 
         # Extract all the station IDs into a list
-        station_ids = [item["station"] for item in pb_get_prices_price]
+        station_ids = [item["station"] for item in sorted_diesel_items]
         comma_separated_station_ids = ",".join(station_ids)
         
         response = self.s.get(f"https://api3.prezzibenzina.it/?do=pb_get_stations&output=json&appname=PrezziBenzinaWidget&ids={comma_separated_station_ids}&prices=on&minprice=1&fuels=d&apiversion=3.1",headers=header,timeout=50)
@@ -334,21 +344,21 @@ class ComponentSession(object):
             if len(fuel_price_items) == 0:
                 continue
             block_data = {
-                'id': block.id,
-                'name': block.name,
-                'url': block.url,
+                'id': block.get('id'),
+                'name': block.get('name'),
+                'url': block.get('url'),
                 'logo_url': f"",
-                'brand': block.co_name,
-                'address': block.address,
-                'postalcode': block.zip,
-                'locality': block.city_name,
+                'brand': block.get('co_name'),
+                'address': block.get('address'),
+                'postalcode': block.get('zip'),
+                'locality': block.get('city_name'),
                 'price': fuel_price_items[0].get('price'),
                 'price_changed': fuel_price_items[0].get('date'),
-                'lat': block.lat,
-                'lon': block.lng,
+                'lat': block.get('lat'),
+                'lon': block.get('lng'),
                 'fuelname': fueltype.name,
                 'distance': 0,
-                'date': block.last_updated, 
+                'date': block.get('last_updated'), 
                 'country': country
             }
             if single:
@@ -477,7 +487,7 @@ class ComponentSession(object):
         town = None
         locationid = None
         single = True if max_distance == 0 else False
-        if country.lower() != "de":
+        if country.lower() in ["be","fr","lu"]:
             carbuLocationInfo = self.convertPostalCode(postalcode, country, town)
             if not carbuLocationInfo:
                 raise Exception(f"Location not found country: {country}, postalcode: {postalcode}, town: {town}")
@@ -498,7 +508,7 @@ class ComponentSession(object):
         postal_code_country = self.reverseGeocodeOSM((longitude, latitude))
         town = None
         locationid = None
-        if postal_code_country[1].lower() != "de":        
+        if postal_code_country[1].lower() in ["be","fr","lu"]:        
             carbuLocationInfo = self.convertPostalCode(postal_code_country[0], postal_code_country[1])
             if not carbuLocationInfo:
                 raise Exception(f"Location not found country: {postal_code_country[1]}, postalcode: {postal_code_country[0]}")
@@ -769,8 +779,8 @@ class ComponentSession(object):
     
     @sleep_and_retry
     @limits(calls=1, period=2)
-    def searchGeocodeOSM(self, postalcode, country):
-        nominatim_url = f"https://nominatim.openstreetmap.org/search?postalcode={postalcode}&country={country}&format=json"
+    def searchGeocodeOSM(self, postalcode, city, country):
+        nominatim_url = f"https://nominatim.openstreetmap.org/search?postalcode={postalcode}&city={city}&country={country}&format=json"
         nominatim_response = requests.get(nominatim_url)
         nominatim_data = nominatim_response.json()
         _LOGGER.debug(f"nominatim_data {nominatim_data}")
@@ -854,5 +864,5 @@ class ComponentSession(object):
         _LOGGER.debug(f"waypoints {waypoints}")
         return waypoints
     
-session = ComponentSession()
-session.getFuelPrices(63043, "IT", "", "", FuelType.DIESEL, False)
+# session = ComponentSession()
+# session.getFuelPrices(48017, "IT", "Conselice", "", FuelType.DIESEL, False)
