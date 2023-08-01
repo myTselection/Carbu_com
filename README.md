@@ -31,7 +31,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
    - A filter on supplier brand name can be set (optional). If the filter match, the fuel station will be considered, else next will be searched. A python regex filter value be set
 
 ## Integration
-- <details><summary>Sensor diesel and super <code>sensor.carbu_com_[fueltype]_[postalcode]_price</code> and fuel oil <code>sensor.carbu_com_[fueltype]_[postalcode]_[quantity]l_price</code> Fuel oil only supported for BE/FR/LU</summary>
+- <details><summary>Sensor with lowest diesel and super <code>sensor.carbu_com_[fueltype]_[postalcode]_price</code> and lowest fuel oil <code>sensor.carbu_com_[fueltype]_[postalcode]_[quantity]l_price</code> Fuel oil only supported for BE/FR/LU</summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -56,7 +56,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     
     </details>
     
-- <details><summary>Sensor diesel and super price in neighbourhood: <code>sensor.carbu_com_[fueltype]_[postalcode]_[*]km</code> for 5km and 10km </summary>
+- <details><summary>Sensor with lowest diesel and super price in neighbourhood: <code>sensor.carbu_com_[fueltype]_[postalcode]_[*]km</code> for 5km and 10km </summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -87,7 +87,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     
     | Attribute | Description |
     | --------- | ----------- |
-    | State     | Price |
+    | State     | Percentage of increase or decrease predicted for coming days |
     | `last update` | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
     | `fueltype`   | Fuel type |
     | **`trend`** | **Percentage of increase or decrease predicted for coming days** |
@@ -98,7 +98,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 
     | Attribute | Description |
     | --------- | ----------- |
-    | State     | Price |
+    | State     | Percentage of increase or decrease predicted for coming days |
     | `last update `   | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
     | `fueltype`   | Fuel type |
     | `fuelname` | Full name of the fuel type |
@@ -114,7 +114,6 @@ A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in 
 
     | Attribute | Description |
     | --------- | ----------- |
-    | State     | Price |
     | `fueltype`   | Fuel type |
     | `fuelname` | Full name of the fuel type |
     | `postalcode`  | Postalcode at which the price was retrieved |
@@ -193,7 +192,6 @@ A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the l
 
     | Attribute | Description |
     | --------- | ----------- |
-    | State     | Price |
     | `fueltype`   | Fuel type |
     | `fuelname` | Full name of the fuel type |
     | `postalcode`  | Postalcode at which the price was retrieved |
