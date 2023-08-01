@@ -110,7 +110,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 
 A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in the area of a postalcode is available. For a given fuel type and a distance in km, the lowest fuel price will be fetched and an event will be triggered with all the details found. Similar, the service **`carbu_com.get_lowest_fuel_price_coor`** can be called providing latitude and longitude coordinates instead of country, postalcode and town.
 
-- <details><summary>Even data returned, event name: `carbu_com_lowest_fuel_price` /  `carbu_com_lowest_fuel_price_coor`</summary>
+- <details><summary>Event data returned, event name: <code>carbu_com_lowest_fuel_price</code> /  <code>carbu_com_lowest_fuel_price_coor</code></summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -189,7 +189,7 @@ A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in 
     
 A **service `carbu_com.get_lowest_fuel_price_on_route`** (**BETA**) to get the lowest fuel price on the route in between two postal codes. Can be used for example to get the lowest price between your current location and your home, or between office and home etc. The lowest fuel price will be fetched and an event will be triggered with all the details found. The route is retrieved using [Open Source Routing Machine](https://project-osrm.org/). For performance and request limitations, 30% of the locations (evenly distributed) are used for which the best price of each on a distance of 3km is fetched. So no guarantee this would be the absolute best price. If too long routes are searched, it might get stuck because of the limitations of the quota of the free API. Similar, the service **`carbu_com.get_lowest_fuel_price_on_route_coor`** can be called providing latitude and longitude coordinates instead of country, postalcode and town.
 
-- <details><summary>Even data returned, Event name: `carbu_com_lowest_fuel_price_on_route` or `carbu_com_lowest_fuel_price_on_route_coor`</summary>
+- <details><summary>Event data returned, Event name: <code>carbu_com_lowest_fuel_price_on_route</code> or <code>carbu_com_lowest_fuel_price_on_route_coor</code></summary>
 
     | Attribute | Description |
     | --------- | ----------- |
