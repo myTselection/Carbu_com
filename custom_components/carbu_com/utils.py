@@ -34,7 +34,7 @@ def check_settings(config, hass):
 class FuelType(Enum):
     SUPER95 = ("E10", 5, "benzina")
     SUPER95_Prediction = ("E95")
-    SUPER98 = ("SP98", 6)
+    SUPER98 = ("SP98", 6, "benzina")
     DIESEL = ("GO",3,"diesel")
     DIESEL_Prediction = ("D")
     OILSTD = ("7")
@@ -301,72 +301,81 @@ class ComponentSession(object):
         #get stations on lat lon: https://api3.prezzibenzina.it/?do=pb_get_prices&output=json&os=android&appname=AndroidFuel&sdk=33&platform=SM-S906B&udid=dlwHryfCRXy-zJWX6mMN22&appversion=3.22.08.14&loc_perm=foreground&network=mobile&limit=5000&offset=1&min_lat=45.56&max_lat=46&min_long=8.82&max_long=9.26
         #get station details prices https://api3.prezzibenzina.it/?do=pb_get_stations&output=json&appname=PrezziBenzinaWidget&ids=21249,20078,5922,28629,5914&prices=on&minprice=1&fuels=d&apiversion=3.1
 
-        boundingbox = self.searchGeocodeOSM(postalcode, town, "Italy")
+        orig_boundingbox = self.searchGeocodeOSM(postalcode, town, "Italy")
 
-        if len(boundingbox) < 3:
+        if len(orig_boundingbox) < 3:
             return []
-
-        response = self.s.get(f"https://api3.prezzibenzina.it/?do=pb_get_prices&output=json&os=android&appname=AndroidFuel&sdk=33&platform=SM-S906B&udid=dlwHryfCRXy-zJWX6mMN22&appversion=3.22.08.14&loc_perm=foreground&network=mobile&limit=5000&offset=1&min_lat={boundingbox[0]}&max_lat={boundingbox[1]}&min_long={boundingbox[2]}&max_long={boundingbox[3]}",headers=header,timeout=50)
-        if response.status_code != 200:
-            _LOGGER.error(f"ERROR: {response.text}")
-        assert response.status_code == 200
-
-        pb_get_prices = response.json()
-        pb_get_prices = pb_get_prices.get('pb_get_prices')
-        pb_get_prices_price = pb_get_prices.get('prices').get('price')
-
-        # Filter the list to keep only items containing "diesel" in the "fuel" value
-        diesel_items = [item for item in pb_get_prices_price if fueltype.it_name in item["fuel"].lower()]
-
-        # Sort the filtered list by the "price" key in ascending order
-        sorted_diesel_items = sorted(diesel_items, key=lambda x: float(x["price"]))
-
-        # Extract all the station IDs into a list
-        station_ids = [item["station"] for item in sorted_diesel_items]
-        comma_separated_station_ids = ",".join(station_ids)
         
-        response = self.s.get(f"https://api3.prezzibenzina.it/?do=pb_get_stations&output=json&appname=PrezziBenzinaWidget&ids={comma_separated_station_ids}&prices=on&minprice=1&fuels=d&apiversion=3.1",headers=header,timeout=50)
-        if response.status_code != 200:
-            _LOGGER.error(f"ERROR: {response.text}")
-        assert response.status_code == 200
+        
+        all_stations = dict()
 
-        stationdetails_prezzibenzina = response.json()
-        stationdetails_prezzibenzina = stationdetails_prezzibenzina.get('pb_get_stations')
-        stationdetails_prezzibenzina_stations = stationdetails_prezzibenzina.get("stations").get("station")
+        boundingboxes = [orig_boundingbox, [float(orig_boundingbox[0])-0.045, float(orig_boundingbox[1])+0.045, float(orig_boundingbox[2])-0.045, float(orig_boundingbox[3])+0.045], [float(orig_boundingbox[0])-0.09, float(orig_boundingbox[1])+0.09, float(orig_boundingbox[2])-0.09, float(orig_boundingbox[3])+0.09]]
+        curr_dist = 0
+        for boundingbox in boundingboxes:
+            response = self.s.get(f"https://api3.prezzibenzina.it/?do=pb_get_prices&output=json&os=android&appname=AndroidFuel&sdk=33&platform=SM-S906B&udid=dlwHryfCRXy-zJWX6mMN22&appversion=3.22.08.14&loc_perm=foreground&network=mobile&limit=5000&offset=1&min_lat={boundingbox[0]}&max_lat={boundingbox[1]}&min_long={boundingbox[2]}&max_long={boundingbox[3]}",headers=header,timeout=50)
+            if response.status_code != 200:
+                _LOGGER.error(f"ERROR: {response.text}")
+            assert response.status_code == 200
+
+            pb_get_prices = response.json()
+            pb_get_prices = pb_get_prices.get('pb_get_prices')
+            pb_get_prices_price = pb_get_prices.get('prices').get('price')
+
+            # Filter the list to keep only items containing "diesel" in the "fuel" value
+            diesel_items = [item for item in pb_get_prices_price if fueltype.it_name in item["fuel"].lower()]
+
+            # Sort the filtered list by the "price" key in ascending order
+            sorted_diesel_items = sorted(diesel_items, key=lambda x: float(x["price"]))
+
+            # Extract all the station IDs into a list
+            station_ids = [item["station"] for item in sorted_diesel_items]
+            comma_separated_station_ids = ",".join(station_ids)
+            
+            response = self.s.get(f"https://api3.prezzibenzina.it/?do=pb_get_stations&output=json&appname=PrezziBenzinaWidget&ids={comma_separated_station_ids}&prices=on&minprice=1&fuels=d&apiversion=3.1",headers=header,timeout=50)
+            if response.status_code != 200:
+                _LOGGER.error(f"ERROR: {response.text}")
+            assert response.status_code == 200
+
+            stationdetails_prezzibenzina = response.json()
+            stationdetails_prezzibenzina = stationdetails_prezzibenzina.get('pb_get_stations')
+            stationdetails_prezzibenzina_stations = stationdetails_prezzibenzina.get("stations").get("station")
+            all_stations[str(curr_dist)] = stationdetails_prezzibenzina_stations
+            curr_dist = curr_dist + 5
 
 
         stationdetails = []
-        for block in stationdetails_prezzibenzina_stations:
-            # Filter the list to keep only items containing "diesel" in the "fuel" value
-            if len(block.get('reports').get('report')) == 0:
-                continue
-            fuel_price_items = [item for item in block.get('reports').get('report') if fueltype.it_name in item["fuel"].lower()]
-            if len(fuel_price_items) == 0:
-                continue
-            block_data = {
-                'id': block.get('id'),
-                'name': block.get('name'),
-                'url': block.get('url'),
-                'logo_url': f"",
-                'brand': block.get('co_name'),
-                'address': block.get('address'),
-                'postalcode': block.get('zip'),
-                'locality': block.get('city_name'),
-                'price': fuel_price_items[0].get('price'),
-                'price_changed': fuel_price_items[0].get('date'),
-                'lat': block.get('lat'),
-                'lon': block.get('lng'),
-                'fuelname': fueltype.name,
-                'distance': 0,
-                'date': block.get('last_updated'), 
-                'country': country
-            }
-            if single:
-                if postalcode == block.zip:
+        for curr_dist, d_stations in all_stations.items():
+            for block in d_stations:
+                # Filter the list to keep only items containing "diesel" in the "fuel" value
+                if len(block.get('reports').get('report')) == 0:
+                    continue
+                fuel_price_items = [item for item in block.get('reports').get('report') if fueltype.it_name in item["fuel"].lower()]
+                if len(fuel_price_items) == 0:
+                    continue
+                block_data = {
+                    'id': block.get('id'),
+                    'name': block.get('name'),
+                    'url': block.get('url'),
+                    'logo_url': f"",
+                    'brand': block.get('co_name'),
+                    'address': block.get('address'),
+                    'postalcode': block.get('zip'),
+                    'locality': block.get('city_name'),
+                    'price': fuel_price_items[0].get('price'),
+                    'price_changed': fuel_price_items[0].get('date'),
+                    'lat': block.get('lat'),
+                    'lon': block.get('lng'),
+                    'fuelname': fueltype.name,
+                    'distance': curr_dist,
+                    'date': block.get('last_updated'), 
+                    'country': country
+                }
+                if single:
+                    if postalcode == block.zip:
+                        stationdetails.append(block_data)
+                        return stationdetails
+                else:
                     stationdetails.append(block_data)
-                    return stationdetails
-            else:
-                stationdetails.append(block_data)
         return stationdetails
         
     @sleep_and_retry
@@ -865,4 +874,4 @@ class ComponentSession(object):
         return waypoints
     
 # session = ComponentSession()
-# session.getFuelPrices(48017, "IT", "Conselice", "", FuelType.DIESEL, False)
+# session.getFuelPrices("07021", "IT", "Arzachena", "", FuelType.DIESEL, False)

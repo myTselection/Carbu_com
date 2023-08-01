@@ -71,15 +71,13 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorSuper95.async_update()
         sensors.append(sensorSuper95)
         
-        if country.lower() not in ['it']:
-            sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 5)
-            # await sensorSuper95Neigh.async_update()
-            sensors.append(sensorSuper95Neigh)
+        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 5)
+        # await sensorSuper95Neigh.async_update()
+        sensors.append(sensorSuper95Neigh)
         
-        if country.lower() not in ['it']:
-            sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 10)
-            # await sensorSuper95Neigh.async_update()
-            sensors.append(sensorSuper95Neigh)
+        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 10)
+        # await sensorSuper95Neigh.async_update()
+        sensors.append(sensorSuper95Neigh)
         
         if country.lower() in ['be','fr','lu']:
             sensorSuper95Prediction = ComponentFuelPredictionSensor(componentData, FuelType.SUPER95_Prediction)
@@ -92,31 +90,27 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorSuper95.async_update()
         sensors.append(sensorSuper98)
         
-        if country.lower() not in ['it']:
-            sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 5)
-            # await sensorSuper95Neigh.async_update()
-            sensors.append(sensorSuper98Neigh)
+        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 5)
+        # await sensorSuper95Neigh.async_update()
+        sensors.append(sensorSuper98Neigh)
         
-        if country.lower() not in ['it']:
-            sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 10)
-            # await sensorSuper95Neigh.async_update()
-            sensors.append(sensorSuper98Neigh)
+        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 10)
+        # await sensorSuper95Neigh.async_update()
+        sensors.append(sensorSuper98Neigh)
 
     if diesel:
         sensorDiesel = ComponentPriceSensor(componentData, FuelType.DIESEL, postalcode, False, 0)
         # await sensorDiesel.async_update()
         sensors.append(sensorDiesel)
         
-        if country.lower() not in ['it']:
-            sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 5)
-            # await sensorDieselNeigh.async_update()
-            sensors.append(sensorDieselNeigh)
+        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 5)
+        # await sensorDieselNeigh.async_update()
+        sensors.append(sensorDieselNeigh)
         
-        if country.lower() not in ['it']:
-            sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 10)
-            # await sensorDieselNeigh.async_update()
-            sensors.append(sensorDieselNeigh)
-        
+        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 10)
+        # await sensorDieselNeigh.async_update()
+        sensors.append(sensorDieselNeigh)
+    
         if country.lower() in ['be','fr','lu']:
             sensorDieselPrediction = ComponentFuelPredictionSensor(componentData, FuelType.DIESEL_Prediction)
             # await sensorDieselPrediction.async_update()
@@ -289,17 +283,17 @@ class ComponentData:
 
     async def update(self):
         # force update if (some) values are still unknown
-        if ((self._super95 and self._price_info.get(FuelType.SUPER95) is None) 
-            or (self._super95 and self._price_info.get(FuelType.SUPER95_Prediction) is None)
-            or (self._super98 and self._price_info.get(FuelType.SUPER98) is None) 
-            or (self._diesel and self._price_info.get(FuelType.DIESEL) is None) 
-            or (self._diesel and self._price_info.get(FuelType.DIESEL_Prediction) is None)
-            or (self._oilstd and self._price_info.get(FuelType.OILSTD) is None) 
-            or (self._oilextra and self._price_info.get(FuelType.OILEXTRA) is None) 
-            or (self._oilstd and self._price_info.get(FuelType.OILSTD_Prediction) is None)
-            or (self._oilextra and self._price_info.get(FuelType.OILEXTRA_Prediction) is None)):
-            await self._forced_update()
-        else:
+        # if ((self._super95 and self._price_info.get(FuelType.SUPER95) is None) 
+        #     or (self._super95 and self._price_info.get(FuelType.SUPER95_Prediction) is None)
+        #     or (self._super98 and self._price_info.get(FuelType.SUPER98) is None) 
+        #     or (self._diesel and self._price_info.get(FuelType.DIESEL) is None) 
+        #     or (self._diesel and self._price_info.get(FuelType.DIESEL_Prediction) is None)
+        #     or (self._oilstd and self._price_info.get(FuelType.OILSTD) is None) 
+        #     or (self._oilextra and self._price_info.get(FuelType.OILEXTRA) is None) 
+        #     or (self._oilstd and self._price_info.get(FuelType.OILSTD_Prediction) is None)
+        #     or (self._oilextra and self._price_info.get(FuelType.OILEXTRA_Prediction) is None)):
+        #     await self._forced_update()
+        # else:
             await self._update()
     
     def clear_session(self):

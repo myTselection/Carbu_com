@@ -56,7 +56,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     
     </details>
     
-- <details><summary>Sensor diesel and super price in neighbourhood: <code>sensor.carbu_com_[fueltype]_[postalcode]_[*]km</code> for 5km and 10km ( Not supported for IT )</summary>
+- <details><summary>Sensor diesel and super price in neighbourhood: <code>sensor.carbu_com_[fueltype]_[postalcode]_[*]km</code> for 5km and 10km </summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -74,7 +74,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
     | `latitude`  | Latitude of the supplier Not supported for DE |
     | `longitude`  | Longitude of the supplier Not supported for DE |
     | `region`  | Distand 5km or 10km around postal code in which cheapest prices is found |
-    | **`distance`**  | **Distance to the supplier vs postal code** |
+    | **`distance`**  | **Distance to the supplier vs postal code** ( Not supported for IT )|
     | **`price diff`**  | **Price difference between the cheapest found in region versus the local price** |
     | `price diff %`  | Price difference in % between the cheapest found in region versus the local price |
     | `price diff 30l`  | Price difference for 30 liters between the cheapest found in region versus the local price |
