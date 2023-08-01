@@ -10,6 +10,7 @@ from enum import Enum
 
 import voluptuous as vol
 
+logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
 
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.0%z"
@@ -31,19 +32,20 @@ def check_settings(config, hass):
         
 
 class FuelType(Enum):
-    SUPER95 = ("E10", 5)
+    SUPER95 = ("E10", 5, "benzina")
     SUPER95_Prediction = ("E95")
     SUPER98 = ("SP98", 6)
-    DIESEL = ("GO",3)
+    DIESEL = ("GO",3,"diesel")
     DIESEL_Prediction = ("D")
     OILSTD = ("7")
     OILSTD_Prediction = ("mazout50s")
     OILEXTRA = ("2")
     OILEXTRA_Prediction = ("extra")
     
-    def __init__(self, code, de_code=0):
+    def __init__(self, code, de_code=0, it_name=""):
         self.code = code
         self.de_code = de_code
+        self.it_name = it_name
 
     @property
     def name_lowercase(self):
@@ -52,9 +54,9 @@ class FuelType(Enum):
 class ComponentSession(object):
     def __init__(self):
         self.s = requests.Session()
-        self.s.headers["User-Agent"] = "Python/3"
+        self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
         
-    # Country = country code: BE/FR/LU
+    # Country = country code: BE/FR/LU/DE/IT
     
     @sleep_and_retry
     @limits(calls=1, period=1)
@@ -121,6 +123,8 @@ class ComponentSession(object):
     def getFuelPrices(self, postalcode, country, town, locationid, fueltype: FuelType, single):
         if country.lower() == 'de':
             return self.getFuelPricesDE(postalcode,country,town,locationid, fueltype, single)
+        if country.lower() == 'it':
+            return self.getFuelPricesIT(postalcode,country,town,locationid, fueltype, single)
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # https://carbu.com/belgie//liste-stations-service/GO/Diegem/1831/BE_bf_279
 
@@ -273,6 +277,87 @@ class ComponentSession(object):
             else:
                 stationdetails.append(block_data)
         return stationdetails
+    
+    
+    
+    @sleep_and_retry
+    @limits(calls=1, period=1)
+    def getFuelPricesIT(self, postalcode, country, town, locationid, fueltype: FuelType, single):
+        if country.lower() != 'it':
+            return self.getFuelPrices(postalcode,country,town,locationid, fueltype, single)
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+
+        # https://www.prezzibenzina.it/downloads/dos_log.txt
+        #get stations on lat lon: https://api3.prezzibenzina.it/?do=pb_get_prices&output=json&os=android&appname=AndroidFuel&sdk=33&platform=SM-S906B&udid=dlwHryfCRXy-zJWX6mMN22&appversion=3.22.08.14&loc_perm=foreground&network=mobile&limit=5000&offset=1&min_lat=45.56&max_lat=46&min_long=8.82&max_long=9.26
+        #get station details prices https://api3.prezzibenzina.it/?do=pb_get_stations&output=json&appname=PrezziBenzinaWidget&ids=21249,20078,5922,28629,5914&prices=on&minprice=1&fuels=d&apiversion=3.1
+
+        boundingbox = self.searchGeocodeOSM(postalcode, "Italy")
+
+        if len(boundingbox) < 3:
+            return []
+
+        response = self.s.get(f"https://api3.prezzibenzina.it/?do=pb_get_prices&output=json&os=android&appname=AndroidFuel&sdk=33&platform=SM-S906B&udid=dlwHryfCRXy-zJWX6mMN22&appversion=3.22.08.14&loc_perm=foreground&network=mobile&limit=5000&offset=1&min_lat={boundingbox[0]}&max_lat={boundingbox[1]}&min_long={boundingbox[2]}&max_long={boundingbox[3]}",headers=header,timeout=50)
+        if response.status_code != 200:
+            _LOGGER.error(f"ERROR: {response.text}")
+        assert response.status_code == 200
+
+        pb_get_prices = response.json()
+        pb_get_prices = pb_get_prices.get('pb_get_prices')
+        pb_get_prices_price = pb_get_prices.get('prices').get('price')
+
+        # Filter the list to keep only items containing "diesel" in the "fuel" value
+        diesel_items = [item for item in pb_get_prices_price if fueltype.it_name in item["fuel"].lower()]
+
+        # Sort the filtered list by the "price" key in ascending order
+        sorted_diesel_items = sorted(diesel_items, key=lambda x: float(x["price"]))
+
+        # Extract all the station IDs into a list
+        station_ids = [item["station"] for item in pb_get_prices_price]
+        comma_separated_station_ids = ",".join(station_ids)
+        
+        response = self.s.get(f"https://api3.prezzibenzina.it/?do=pb_get_stations&output=json&appname=PrezziBenzinaWidget&ids={comma_separated_station_ids}&prices=on&minprice=1&fuels=d&apiversion=3.1",headers=header,timeout=50)
+        if response.status_code != 200:
+            _LOGGER.error(f"ERROR: {response.text}")
+        assert response.status_code == 200
+
+        stationdetails_prezzibenzina = response.json()
+        stationdetails_prezzibenzina = stationdetails_prezzibenzina.get('pb_get_stations')
+        stationdetails_prezzibenzina_stations = stationdetails_prezzibenzina.get("stations").get("station")
+
+
+        stationdetails = []
+        for block in stationdetails_prezzibenzina_stations:
+            # Filter the list to keep only items containing "diesel" in the "fuel" value
+            if len(block.get('reports').get('report')) == 0:
+                continue
+            fuel_price_items = [item for item in block.get('reports').get('report') if fueltype.it_name in item["fuel"].lower()]
+            if len(fuel_price_items) == 0:
+                continue
+            block_data = {
+                'id': block.id,
+                'name': block.name,
+                'url': block.url,
+                'logo_url': f"",
+                'brand': block.co_name,
+                'address': block.address,
+                'postalcode': block.zip,
+                'locality': block.city_name,
+                'price': fuel_price_items[0].get('price'),
+                'price_changed': fuel_price_items[0].get('date'),
+                'lat': block.lat,
+                'lon': block.lng,
+                'fuelname': fueltype.name,
+                'distance': 0,
+                'date': block.last_updated, 
+                'country': country
+            }
+            if single:
+                if postalcode == block.zip:
+                    stationdetails.append(block_data)
+                    return stationdetails
+            else:
+                stationdetails.append(block_data)
+        return stationdetails
         
     @sleep_and_retry
     @limits(calls=1, period=1)
@@ -385,10 +470,14 @@ class ComponentSession(object):
         
         return oildetails
 
+
+    @sleep_and_retry
+    @limits(calls=1, period=1)
     def getStationInfo(self, postalcode, country, fuel_type: FuelType, town="", max_distance=0, filter=""):
         town = None
         locationid = None
-        if country != "DE":
+        single = True if max_distance == 0 else False
+        if country.lower() != "de":
             carbuLocationInfo = self.convertPostalCode(postalcode, country, town)
             if not carbuLocationInfo:
                 raise Exception(f"Location not found country: {country}, postalcode: {postalcode}, town: {town}")
@@ -397,12 +486,14 @@ class ComponentSession(object):
             countryname = carbuLocationInfo.get("cn")
             locationid = carbuLocationInfo.get("id")
             _LOGGER.debug(f"convertPostalCode postalcode: {postalcode}, town: {town}, city: {city}, countryname: {countryname}, locationid: {locationid}")
-        price_info = self.getFuelPrices(postalcode, country, town, locationid, fuel_type, False)
+        price_info = self.getFuelPrices(postalcode, country, town, locationid, fuel_type, single)
         # _LOGGER.debug(f"price_info {fuel_type.name} {price_info}")
         return self.getStationInfoFromPriceInfo(price_info, postalcode, fuel_type, max_distance, filter)
     
     
 
+    @sleep_and_retry
+    @limits(calls=1, period=1)
     def getStationInfoLatLon(self,latitude, longitude, fuel_type: FuelType, max_distance=0, filter=""):
         postal_code_country = self.reverseGeocodeOSM((longitude, latitude))
         town = None
@@ -421,6 +512,8 @@ class ComponentSession(object):
         return self.getStationInfoFromPriceInfo(price_info, postal_code_country[0], fuel_type, max_distance, filter)
         
 
+    @sleep_and_retry
+    @limits(calls=1, period=1)
     def getStationInfoFromPriceInfo(self,price_info, postalcode, fuel_type: FuelType, max_distance=0, filter=""):
         data = {
             "price" : None,
@@ -545,6 +638,8 @@ class ComponentSession(object):
 
 
     #USED BY Service: handle_get_lowest_fuel_price_on_route
+    @sleep_and_retry
+    @limits(calls=1, period=1)
     def getPriceOnRoute(self, country, fuel_type: FuelType, from_postalcode, to_postalcode, to_country = "", filter = ""):
         from_location = self.geocodeOSM(country, from_postalcode)
         assert from_location is not None
@@ -556,6 +651,8 @@ class ComponentSession(object):
 
     
     #USED BY Service: handle_get_lowest_fuel_price_on_route_coor
+    @sleep_and_retry
+    @limits(calls=1, period=1)
     def getPriceOnRouteLatLon(self, fuel_type: FuelType, from_latitude, from_longitude, to_latitude, to_longitude, filter = ""):
         from_location = (from_latitude, from_longitude)
         assert from_location is not None
@@ -596,7 +693,7 @@ class ComponentSession(object):
     
     # set the maximum number of requests per minute
     @sleep_and_retry
-    @limits(calls=100, period=60)
+    @limits(calls=1, period=1)
     def make_api_request(self, url,headers="",timeout=30):
         response = self.s.get(url, headers=headers, timeout=timeout)
         if response.status_code != 200:
@@ -633,7 +730,7 @@ class ComponentSession(object):
             return
     
     @sleep_and_retry
-    @limits(calls=100, period=60)
+    @limits(calls=1, period=1)
     def geocodeOSM(self, country_code, postal_code):
         _LOGGER.debug(f"geocodeOSM request: country_code: {country_code}, postalcode: {postal_code}")
         # header = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -668,10 +765,29 @@ class ComponentSession(object):
             return response_json['features'][0]['properties']['postalcode']
         else:
             return
-        
+    
     
     @sleep_and_retry
-    @limits(calls=100, period=60)
+    @limits(calls=1, period=2)
+    def searchGeocodeOSM(self, postalcode, country):
+        nominatim_url = f"https://nominatim.openstreetmap.org/search?postalcode={postalcode}&country={country}&format=json"
+        nominatim_response = requests.get(nominatim_url)
+        nominatim_data = nominatim_response.json()
+        _LOGGER.debug(f"nominatim_data {nominatim_data}")
+        boundingbox = []
+        if len(nominatim_data) > 0:
+            location = nominatim_data[0]
+            lat = location.get('lat')
+            lon = location.get('lon')
+            boundingbox = location.get('boundingbox')
+            min_lat = boundingbox[0]
+            max_lat = boundingbox[1]
+            min_lon = boundingbox[2]
+            max_lon = boundingbox[3]
+        return boundingbox
+    
+    @sleep_and_retry
+    @limits(calls=1, period=2)
     def reverseGeocodeOSM(self, location):
         nominatim_url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={location[1]}&lon={location[0]}"
         nominatim_response = requests.get(nominatim_url)
@@ -687,7 +803,7 @@ class ComponentSession(object):
     
     
     @sleep_and_retry
-    @limits(calls=40, period=60)
+    @limits(calls=1, period=15)
     def getOrsRoute(self, from_location, to_location, ors_api_key):
 
         header = {
@@ -720,7 +836,7 @@ class ComponentSession(object):
         return geometry
 
     @sleep_and_retry
-    @limits(calls=40, period=60)
+    @limits(calls=1, period=15)
     def getOSMRoute(self, from_location, to_location):
 
         #location expected (lat, lon)
@@ -737,3 +853,6 @@ class ComponentSession(object):
         
         _LOGGER.debug(f"waypoints {waypoints}")
         return waypoints
+    
+session = ComponentSession()
+session.getFuelPrices(63043, "IT", "", "", FuelType.DIESEL, False)
