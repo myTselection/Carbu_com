@@ -178,7 +178,7 @@ class ComponentData:
         self._carbuLocationInfo = None
         self._city = None
         self._countryname = None
-        self._locationid = None
+        self._locationinfo = None
         
         self._quantity = config.get("quantity")
         self._super95 = config.get(FuelType.SUPER95.name_lowercase)
@@ -205,13 +205,13 @@ class ComponentData:
         
     async def get_fuel_price_info(self, fuel_type: FuelType):
         _LOGGER.debug(f"{NAME} getting fuel price_info {fuel_type.name_lowercase}") 
-        price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrices(self._postalcode, self._country, self._town, self._locationid, fuel_type, False))
+        price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrices(self._postalcode, self._country, self._town, self._locationinfo, fuel_type, False))
         self._price_info[fuel_type] = price_info
         _LOGGER.debug(f"{NAME} price_info {fuel_type.name_lowercase} {price_info}")  
 
     async def get_oil_price_info(self, fuel_type: FuelType):
         _LOGGER.debug(f"{NAME} getting oil price_info {fuel_type.name_lowercase}") 
-        price_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrice(self._locationid, self._quantity, fuel_type.code))
+        price_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrice(self._locationinfo, self._quantity, fuel_type.code))
         self._price_info[fuel_type] = price_info
         _LOGGER.debug(f"{NAME} price_info {fuel_type.name_lowercase} {price_info}")   
     
@@ -241,13 +241,16 @@ class ComponentData:
 
         if self._session:
             _LOGGER.debug("Starting with session for " + NAME)
-            if self._locationid is None and self._country.lower() in ['be','fr','lu']:
+            if self._locationinfo is None and self._country.lower() in ['be','fr','lu']:
                 self._carbuLocationInfo = await self._hass.async_add_executor_job(lambda: self._session.convertPostalCode(self._postalcode, self._country, self._town))
                 self._town = self._carbuLocationInfo.get("n")
                 self._city = self._carbuLocationInfo.get("pn")
                 self._countryname = self._carbuLocationInfo.get("cn")
-                self._locationid = self._carbuLocationInfo.get("id")
-            # postalcode, country, town, locationid, fueltypecode)
+                self._locationinfo = self._carbuLocationInfo.get("id")
+            if self._locationinfo is None and self._country.lower() in ['it','nl']:
+                boundingboxLocationInfo = await self._hass.async_add_executor_job(lambda: self._session.convertLocationBoundingBox(self._postalcode, self._country, self._town))
+                self._locationinfo = boundingboxLocationInfo
+            # postalcode, country, town, locationinfo, fueltypecode)
             if self._super95:
                 await self.get_fuel_price_info(FuelType.SUPER95)  
                 if self._country.lower() in ['be','fr','lu']:
@@ -339,7 +342,7 @@ class ComponentPriceSensor(Entity):
             self._price = float(self._priceinfo.get("data")[0].get("unitPrice"))
             self._supplier  = self._priceinfo.get("data")[0].get("supplier").get("name") #x.data[0].supplier.name
             oilproductid = self._fueltype.code
-            self._url   = f"https://mazout.com/belgie/offers?areaCode={self._data._locationid}&by=quantity&for={self._quantity}&productId={oilproductid}"
+            self._url   = f"https://mazout.com/belgie/offers?areaCode={self._data._locationinfo}&by=quantity&for={self._quantity}&productId={oilproductid}"
             self._logourl = self._priceinfo.get("data")[0].get("supplier").get("media").get("logo").get("src") #x.data[0].supplier.media.logo.src
             self._score = self._priceinfo.get("data")[0].get("supplier").get("rating").get("score") #x.data[0].supplier.rating.score
             # self._address = 
@@ -355,9 +358,11 @@ class ComponentPriceSensor(Entity):
             # stationInfo = await self._data._hass.async_add_executor_job(lambda: self._data._session.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter))
             self._price = stationInfo.get("price") 
             self._supplier  = stationInfo.get("supplier")
-            self._supplier_brand  = stationInfo.get("supplier_brand")
+            # self._supplier_brand  = stationInfo.get("supplier_brand")
+            self._supplier_brand  = stationInfo.get("supplier_brand") if stationInfo.get("supplier_brand") != None and len(stationInfo.get("supplier_brand")) > 1 else f'{stationInfo.get("supplier_brand")}  '
             self._url   = stationInfo.get("url")
-            self._logourl = stationInfo.get("entity_picture")
+            # self._logourl = stationInfo.get("entity_picture")
+            self._logourl = f"https://www.prezzibenzina.it/www2/marker.php?brand={self._supplier_brand[:2].upper()}&status=AP&price={stationInfo.get('price')}&certified=0&marker_type=1"
             self._address = stationInfo.get("address")
             self._postalcode = stationInfo.get("postalcode")
             self._city = stationInfo.get("city")
@@ -492,9 +497,10 @@ class ComponentPriceNeighborhoodSensor(Entity):
         self._diff30 = stationInfo.get("diff30") 
         self._diffPct = stationInfo.get("diffPct") 
         self._supplier  = stationInfo.get("supplier")
-        self._supplier_brand  = stationInfo.get("supplier_brand")
-        self._url   = stationInfo.get("url")
-        self._logourl = stationInfo.get("entity_picture")
+        # self._supplier_brand  = stationInfo.get("supplier_brand")
+        self._supplier_brand  = stationInfo.get("supplier_brand") if stationInfo.get("supplier_brand") != None and len(stationInfo.get("supplier_brand")) > 1 else f'{stationInfo.get("supplier_brand")}  '
+        # self._logourl = stationInfo.get("entity_picture")
+        self._logourl = f"https://www.prezzibenzina.it/www2/marker.php?brand={self._supplier_brand[:2].upper()}&status=AP&price={stationInfo.get('price')}&certified=0&marker_type=1"
         self._address = stationInfo.get("address")
         self._postalcode = stationInfo.get("postalcode")
         self._city = stationInfo.get("city")
@@ -530,7 +536,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
     def extra_state_attributes(self) -> dict:
         """Return the state attributes."""
         return {
-            ATTR_ATTRIBUTION: NAME,
+            ATTR_ATTRIBUTION: self._supplier_brand,
             "last update": self._last_update,
             "fueltype": self._fueltype.name_lowercase,
             "fuelname": self._fuelname,

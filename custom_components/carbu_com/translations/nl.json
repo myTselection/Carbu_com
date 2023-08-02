@@ -5,27 +5,26 @@
             "user": {
                 "description": "Configureer Carbu.com en Mazout.com sensoren.",
                 "data": {
-                    "country": "Land (BE/FR/LU/DE/IT)",
+                    "country": "Land (BE/DE/FR/IT/LU/NL)",
                     "postalcode": "Postcode",
-                    "town": "Stad",
                     "filter": "Filter voor leveranciersmerk (optioneel)",
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
-					"diesel": "Diesel (B7)",
+					"diesel": "Diesel (B7)"
+                }
+            },
+            "town": {
+                "data": {
+                    "town": "Stad",
 					"oilstd": "Standaard Mazout Verwarmingsolie (50S)",
 					"oilextra": "Extra Mazout Verwarmingsolie",
 					"quantity": "Hoeveelheid Mazout Verwarmingsolie (liters)"
                 }
             },
-            "town": {
-                "data": {
-                    "town": "Stad"
-                }
-            },
             "edit": {
                 "description": "Configureer Carbu.com en Mazout.com sensoren.",
                 "data": {
-                    "country": "Land (BE/FR/LU/DE/IT)",
+                    "country": "Land (BE/DE/FR/IT/LU/NL)",
                     "postalcode": "Postcode",
                     "town": "Stad",
                     "filter": "Filter voor leveranciersmerk (optioneel)",
@@ -39,7 +38,7 @@
             }
         },
         "error": {
-            "missing country": "Geef een geldig land op: BE/FR/LU/DE/IT",
+            "missing country": "Geef een geldig land op: BE/DE/FR/IT/LU/NL",
             "missing postal code": "Geef een geldige postcode op",
             "missing data options handler": "Fout bij het verwerken van de opties",
             "no_valid_settings": "Geen geldige instellingen gevonden in de configuratie."
@@ -50,7 +49,7 @@
             "edit": {
                 "description": "Configureer Carbu.com en Mazout.com sensoren.",
                 "data": {
-                    "country": "Land (BE/FR/LU/DE/IT)",
+                    "country": "Land (BE/DE/FR/IT/LU/NL)",
                     "postalcode": "Postcode",
                     "town": "Stad",
                     "filter": "Filter voor leveranciersmerk (optioneel)",
@@ -64,7 +63,7 @@
             }
         },
         "error": {
-            "missing country": "Geef een geldig land op: BE/FR/LU/DE/IT",
+            "missing country": "Geef een geldig land op: BE/DE/FR/IT/LU/NL",
             "missing postal code": "Geef een geldige postcode op",
             "missing data options handler": "Fout bij het verwerken van de opties",
             "no_valid_settings": "Geen geldige instellingen gevonden in de configuratie."
@@ -81,7 +80,7 @@
                 },
                 "country": {
                     "name": "country",
-                    "description": "Het land om naar te zoeken, ondersteunde opties: BE / FR / LU / DE / IT"
+                    "description": "Het land om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL"
                 },
                 "postalcode": {
                     "name": "postalcode",
@@ -137,7 +136,7 @@
                 },
                 "country": {
                     "name": "country",
-                    "description": "Het land om naar te zoeken, ondersteunde opties: BE / FR / LU / DE / IT"
+                    "description": "Het land om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL"
                 },
                 "from_postalcode": {
                     "name": "from_postalcode",
@@ -149,7 +148,7 @@
                 },
                 "to_country": {
                     "name": "to_country",
-                    "description": "(Optioneel) Het land van de doellocatie om naar te zoeken, ondersteunde opties: BE / FR / LU / DE / IT, als er geen to_country is opgegeven, wordt hetzelfde land gebruikt voor zowel de bron- als doellocatie"
+                    "description": "(Optioneel) Het land van de doellocatie om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL, als er geen to_country is opgegeven, wordt hetzelfde land gebruikt voor zowel de bron- als doellocatie"
                 },
                 "filter": {
                     "name": "filter",

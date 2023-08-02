@@ -32,20 +32,21 @@ def check_settings(config, hass):
         
 
 class FuelType(Enum):
-    SUPER95 = ("E10", 5, "benzina")
+    SUPER95 = ("E10", 5, "benzina", "euro95")
     SUPER95_Prediction = ("E95")
-    SUPER98 = ("SP98", 6, "benzina")
-    DIESEL = ("GO",3,"diesel")
+    SUPER98 = ("SP98", 6, "benzina","superplus")
+    DIESEL = ("GO",3,"diesel","diesel")
     DIESEL_Prediction = ("D")
     OILSTD = ("7")
     OILSTD_Prediction = ("mazout50s")
     OILEXTRA = ("2")
     OILEXTRA_Prediction = ("extra")
     
-    def __init__(self, code, de_code=0, it_name=""):
+    def __init__(self, code, de_code=0, it_name="",nl_name=""):
         self.code = code
         self.de_code = de_code
         self.it_name = it_name
+        self.nl_name = nl_name
 
     @property
     def name_lowercase(self):
@@ -118,17 +119,46 @@ class ComponentSession(object):
                 _LOGGER.warning(f"locationinfo missing info to process: {info_dict}")
         return results        
         
+        
     @sleep_and_retry
     @limits(calls=1, period=1)
-    def getFuelPrices(self, postalcode, country, town, locationid, fueltype: FuelType, single):
-        if country.lower() == 'de':
-            return self.getFuelPricesDE(postalcode,country,town,locationid, fueltype, single)
+    def convertLocationBoundingBox(self, postalcode, country, town):
+        country_name = "Italy"
         if country.lower() == 'it':
-            return self.getFuelPricesIT(postalcode,country,town,locationid, fueltype, single)
+            country_name = "Italy"
+        if country.lower() == 'nl':
+            country_name = "Netherlands"
+        orig_boundingbox = self.searchGeocodeOSM(postalcode, town, country_name).get('boundingbox')
+        if len(orig_boundingbox) < 3:
+            return []
+        boundingboxes = [orig_boundingbox, [float(orig_boundingbox[0])-0.045, float(orig_boundingbox[1])+0.045, float(orig_boundingbox[2])-0.045, float(orig_boundingbox[3])+0.045], [float(orig_boundingbox[0])-0.09, float(orig_boundingbox[1])+0.09, float(orig_boundingbox[2])-0.09, float(orig_boundingbox[3])+0.09]]
+        return boundingboxes
+    
+    
+    def convertLatLonBoundingBox(self, lat, lon):
+        f_lat = float(lat)
+        f_lon = float(lon)
+        boundingboxes = [[f_lat-0.020, f_lat+0.020,f_lon-0.020, f_lon+0.02], [f_lat-0.045, f_lat+0.045, f_lon-0.045, f_lon+0.045], [f_lat-0.09, f_lat+0.09, f_lon-0.09, f_lon+0.09]]
+        return boundingboxes
+    
+
+    @sleep_and_retry
+    @limits(calls=1, period=1)
+    def getFuelPrices(self, postalcode, country, town, locationinfo, fueltype: FuelType, single):
+        if country.lower() == 'de':
+            return self.getFuelPricesDE(postalcode,country,town,locationinfo, fueltype, single)
+        if country.lower() == 'it':
+            return self.getFuelPricesIT(postalcode,country,town,locationinfo, fueltype, single)
+        if country.lower() == 'nl':
+            return self.getFuelPricesNL(postalcode,country,town,locationinfo, fueltype, single)
+        if country.lower() == 'at':
+            return self.getFuelPricesAT(postalcode,country,town,locationinfo, fueltype, single)
+        
+        #CARU.COM BE / FR / LU:
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # https://carbu.com/belgie//liste-stations-service/GO/Diegem/1831/BE_bf_279
 
-        response = self.s.get(f"https://carbu.com/belgie//liste-stations-service/{fueltype.code}/{town}/{postalcode}/{locationid}",headers=header,timeout=50)
+        response = self.s.get(f"https://carbu.com/belgie//liste-stations-service/{fueltype.code}/{town}/{postalcode}/{locationinfo}",headers=header,timeout=50)
         if response.status_code != 200:
             _LOGGER.error(f"ERROR: {response.text}")
         assert response.status_code == 200
@@ -213,9 +243,9 @@ class ComponentSession(object):
     
     @sleep_and_retry
     @limits(calls=1, period=1)
-    def getFuelPricesDE(self, postalcode, country, town, locationid, fueltype: FuelType, single):
+    def getFuelPricesDE(self, postalcode, country, town, locationinfo, fueltype: FuelType, single):
         if country.lower() != 'de':
-            return self.getFuelPrices(postalcode,country,town,locationid, fueltype, single)
+            return self.getFuelPrices(postalcode,country,town,locationinfo, fueltype, single)
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # https://www.clever-tanken.de/tankstelle_liste?lat=&lon=&ort=Kr%C3%BCn&spritsorte=3&r=5
         # _LOGGER.debug(f"https://www.clever-tanken.de/tankstelle_liste?lat=&lon=&ort={postalcode}&spritsorte={fueltype.de_code}&r=25&sort=km")
@@ -281,9 +311,9 @@ class ComponentSession(object):
     
     @sleep_and_retry
     @limits(calls=1, period=1)
-    def getFuelPricesAT(self, postalcode, country, town, locationid, fueltype: FuelType, single):
+    def getFuelPricesAT(self, postalcode, country, town, locationinfo, fueltype: FuelType, single):
         if country.lower() != 'at':
-            return self.getFuelPrices(postalcode,country,town,locationid, fueltype, single)
+            return self.getFuelPrices(postalcode,country,town,locationinfo, fueltype, single)
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # https://www.spritpreisrechner.at/#/fossil
         return
@@ -292,26 +322,76 @@ class ComponentSession(object):
     
     @sleep_and_retry
     @limits(calls=1, period=1)
-    def getFuelPricesIT(self, postalcode, country, town, locationid, fueltype: FuelType, single):
+    def getFuelPricesNL(self, postalcode, country, town, locationinfo, fueltype: FuelType, single):
+        if country.lower() != 'nl':
+            return self.getFuelPrices(postalcode,country,town,locationinfo, fueltype, single)
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+        # https://www.brandstof-zoeker.nl/
+        # https://www.brandstof-zoeker.nl/ajax/stations/?pageType=geo%2FpostalCode&type=diesel&latitude=51.9487915&longitude=5.8837565&radius=0.008
+        
+        all_stations = []
+        radius = 0.023
+        for boundingbox in locationinfo:
+            #TODO check if needs to be retrieved 3 times 0, 5 & 10km or radius can be set to 0.09 to get all at once
+            nl_url = f"https://www.brandstof-zoeker.nl/ajax/stations/?pageType=geo%2FpostalCode&type={fueltype.nl_name}&latitude={locationinfo[0][0]}&longitude={locationinfo[0][2]}&radius={radius}"
+            # _LOGGER.debug(f"NL URL: {nl_url}")
+            response = self.s.get(nl_url,headers=header,timeout=50)
+            if response.status_code != 200:
+                _LOGGER.error(f"ERROR: {response.text}")
+            assert response.status_code == 200
+            radius = radius + 0.045
+
+            nl_prices = response.json()
+            all_stations.extend(nl_prices)
+
+
+        stationdetails = []
+        for block in all_stations:
+            if block.get('fuelPrice') is None:
+                continue
+            block_data = {
+                'id': block.get('id'),
+                'name': block.get('station').get('naam'),
+                'url': f"https://www.brandstof-zoeker.nl/station/{block.get('station').get('url')}",
+                'brand':block.get('station').get('chain'),
+                'address': block.get('station').get('adres'),
+                'postalcode': f"{block.get('station').get('pc_cijfer')}{block.get('station').get('pc_letter')}",
+                'locality': block.get('station').get('plaats'),
+                'price': block.get('fuelPrice').get('prijs'),
+                'price_changed': block.get('fuelPrice').get('datum'),
+                'lat': block.get('station').get('latitude'),
+                'lon': block.get('station').get('longitude'),
+                'fuelname': fueltype.name,
+                'distance': block.get('distance'),
+                'date': block.get('fuelPrice').get('datum'), 
+                'country': country
+            }
+            if single:
+                if postalcode == f"{block.get('station').get('pc_cijfer')}{block.get('station').get('pc_letter')}":
+                    stationdetails.append(block_data)
+                    return stationdetails
+            else:
+                stationdetails.append(block_data)
+        return stationdetails
+    
+    
+    @sleep_and_retry
+    @limits(calls=1, period=1)
+    def getFuelPricesIT(self, postalcode, country, town, locationinfo, fueltype: FuelType, single):
         if country.lower() != 'it':
-            return self.getFuelPrices(postalcode,country,town,locationid, fueltype, single)
+            return self.getFuelPrices(postalcode,country,town,locationinfo, fueltype, single)
         header = {"Content-Type": "application/x-www-form-urlencoded"}
 
         # https://www.prezzibenzina.it/downloads/dos_log.txt
         #get stations on lat lon: https://api3.prezzibenzina.it/?do=pb_get_prices&output=json&os=android&appname=AndroidFuel&sdk=33&platform=SM-S906B&udid=dlwHryfCRXy-zJWX6mMN22&appversion=3.22.08.14&loc_perm=foreground&network=mobile&limit=5000&offset=1&min_lat=45.56&max_lat=46&min_long=8.82&max_long=9.26
         #get station details prices https://api3.prezzibenzina.it/?do=pb_get_stations&output=json&appname=PrezziBenzinaWidget&ids=21249,20078,5922,28629,5914&prices=on&minprice=1&fuels=d&apiversion=3.1
 
-        orig_boundingbox = self.searchGeocodeOSM(postalcode, town, "Italy")
-
-        if len(orig_boundingbox) < 3:
+        if len(locationinfo) < 3:
             return []
         
-        
         all_stations = dict()
-
-        boundingboxes = [orig_boundingbox, [float(orig_boundingbox[0])-0.045, float(orig_boundingbox[1])+0.045, float(orig_boundingbox[2])-0.045, float(orig_boundingbox[3])+0.045], [float(orig_boundingbox[0])-0.09, float(orig_boundingbox[1])+0.09, float(orig_boundingbox[2])-0.09, float(orig_boundingbox[3])+0.09]]
         curr_dist = 0
-        for boundingbox in boundingboxes:
+        for boundingbox in locationinfo:
             response = self.s.get(f"https://api3.prezzibenzina.it/?do=pb_get_prices&output=json&os=android&appname=AndroidFuel&sdk=33&platform=SM-S906B&udid=dlwHryfCRXy-zJWX6mMN22&appversion=3.22.08.14&loc_perm=foreground&network=mobile&limit=5000&offset=1&min_lat={boundingbox[0]}&max_lat={boundingbox[1]}&min_long={boundingbox[2]}&max_long={boundingbox[3]}",headers=header,timeout=50)
             if response.status_code != 200:
                 _LOGGER.error(f"ERROR: {response.text}")
@@ -356,7 +436,7 @@ class ComponentSession(object):
                     'id': block.get('id'),
                     'name': block.get('name'),
                     'url': block.get('url'),
-                    'logo_url': f"",
+                    'logo_url': f"https://www.prezzibenzina.it/www2/marker.php?brand={block.get('co')}&status=AP&price={fuel_price_items[0].get('price')}&certified=0&marker_type=1",
                     'brand': block.get('co_name'),
                     'address': block.get('address'),
                     'postalcode': block.get('zip'),
@@ -371,7 +451,7 @@ class ComponentSession(object):
                     'country': country
                 }
                 if single:
-                    if postalcode == block.zip:
+                    if postalcode == block.get('zip'):
                         stationdetails.append(block_data)
                         return stationdetails
                 else:
@@ -434,7 +514,7 @@ class ComponentSession(object):
         
     @sleep_and_retry
     @limits(calls=1, period=1)
-    def getOilPrice(self, locationid, volume, oiltypecode):
+    def getOilPrice(self, locationinfo, volume, oiltypecode):
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         header = {"Accept-Language": "nl-BE"}
         # https://mazout.com/belgie/offers?areaCode=BE_bf_279&by=quantity&for=2000&productId=7
@@ -451,7 +531,7 @@ class ComponentSession(object):
         url = api_details.get("api").get("url")
         namespace = api_details.get("api").get("namespace")
         offers = api_details.get("api").get("routes").get("offers") #x.api.routes.offers
-        oildetails_url = f"{url}{namespace}{offers}?api_key={api_key}&sk={sk}&areaCode={locationid}&productId={oiltypecode}&quantity={volume}&locale=nl-BE"
+        oildetails_url = f"{url}{namespace}{offers}?api_key={api_key}&sk={sk}&areaCode={locationinfo}&productId={oiltypecode}&quantity={volume}&locale=nl-BE"
         
         response = self.s.get(oildetails_url,headers=header,timeout=30, verify=False)
         if response.status_code != 200:
@@ -494,7 +574,7 @@ class ComponentSession(object):
     @limits(calls=1, period=1)
     def getStationInfo(self, postalcode, country, fuel_type: FuelType, town="", max_distance=0, filter=""):
         town = None
-        locationid = None
+        locationinfo = None
         single = True if max_distance == 0 else False
         if country.lower() in ["be","fr","lu"]:
             carbuLocationInfo = self.convertPostalCode(postalcode, country, town)
@@ -503,9 +583,13 @@ class ComponentSession(object):
             town = carbuLocationInfo.get("n")
             city = carbuLocationInfo.get("pn")
             countryname = carbuLocationInfo.get("cn")
-            locationid = carbuLocationInfo.get("id")
-            _LOGGER.debug(f"convertPostalCode postalcode: {postalcode}, town: {town}, city: {city}, countryname: {countryname}, locationid: {locationid}")
-        price_info = self.getFuelPrices(postalcode, country, town, locationid, fuel_type, single)
+            locationinfo = carbuLocationInfo.get("id")
+            _LOGGER.debug(f"convertPostalCode postalcode: {postalcode}, town: {town}, city: {city}, countryname: {countryname}, locationinfo: {locationinfo}")
+        if country.lower() in ["it"]:
+            itLocationInfo = self.convertLocationBoundingBox(postalcode, country, town)
+            locationinfo = itLocationInfo
+
+        price_info = self.getFuelPrices(postalcode, country, town, locationinfo, fuel_type, single)
         # _LOGGER.debug(f"price_info {fuel_type.name} {price_info}")
         return self.getStationInfoFromPriceInfo(price_info, postalcode, fuel_type, max_distance, filter)
     
@@ -516,7 +600,7 @@ class ComponentSession(object):
     def getStationInfoLatLon(self,latitude, longitude, fuel_type: FuelType, max_distance=0, filter=""):
         postal_code_country = self.reverseGeocodeOSM((longitude, latitude))
         town = None
-        locationid = None
+        locationinfo = None
         if postal_code_country[1].lower() in ["be","fr","lu"]:        
             carbuLocationInfo = self.convertPostalCode(postal_code_country[0], postal_code_country[1])
             if not carbuLocationInfo:
@@ -524,9 +608,15 @@ class ComponentSession(object):
             town = carbuLocationInfo.get("n")
             city = carbuLocationInfo.get("pn")
             countryname = carbuLocationInfo.get("cn")
-            locationid = carbuLocationInfo.get("id")
-            _LOGGER.debug(f"convertPostalCode postalcode: {postal_code_country[0]}, town: {town}, city: {city}, countryname: {countryname}, locationid: {locationid}")
-        price_info = self.getFuelPrices(postal_code_country[0], postal_code_country[1], town, locationid, fuel_type, False)
+            locationinfo = carbuLocationInfo.get("id")
+            _LOGGER.debug(f"convertPostalCode postalcode: {postal_code_country[0]}, town: {town}, city: {city}, countryname: {countryname}, locationinfo: {locationinfo}")
+        if postal_code_country[1].lower() in ["it"]: 
+            #TODO calc boudingboxes for known lat lon
+            postal_code_country = self.reverseGeocodeOSM((longitude, latitude))
+            town = postal_code_country[2]
+            itLocationInfo = self.convertLocationBoundingBox(postal_code_country[0], postal_code_country[1], town)
+            locationinfo = itLocationInfo
+        price_info = self.getFuelPrices(postal_code_country[0], postal_code_country[1], town, locationinfo, fuel_type, False)
         # _LOGGER.debug(f"price_info {fuel_type.name} {price_info}")
         return self.getStationInfoFromPriceInfo(price_info, postal_code_country[0], fuel_type, max_distance, filter)
         
@@ -803,7 +893,7 @@ class ComponentSession(object):
             max_lat = boundingbox[1]
             min_lon = boundingbox[2]
             max_lon = boundingbox[3]
-        return boundingbox
+        return location
     
     @sleep_and_retry
     @limits(calls=1, period=2)
@@ -816,9 +906,10 @@ class ComponentSession(object):
         # Extract the postal code from the Nominatim response
         postal_code = nominatim_data['address'].get('postcode', None)
         country_code = nominatim_data['address'].get('country_code', None)
-        _LOGGER.debug(f"nominatim_data postal_code {postal_code}, country_code {country_code}")
+        town = nominatim_data['address'].get('town', None)
+        _LOGGER.debug(f"nominatim_data postal_code {postal_code}, country_code {country_code}, town {town}")
 
-        return (postal_code, country_code)
+        return (postal_code, country_code, town)
     
     
     @sleep_and_retry
@@ -873,5 +964,10 @@ class ComponentSession(object):
         _LOGGER.debug(f"waypoints {waypoints}")
         return waypoints
     
-# session = ComponentSession()
-# session.getFuelPrices("07021", "IT", "Arzachena", "", FuelType.DIESEL, False)
+session = ComponentSession()
+# test IT
+# locationinfo= session.convertLocationBoundingBox("07021", "IT", "Arzachena")
+# session.getFuelPrices("07021", "IT", "Arzachena", locationinfo, FuelType.DIESEL, False)
+# test NL
+# locationinfo= session.convertLocationBoundingBox("2627AR", "NL", "Delft")
+# session.getFuelPrices("2627AR", "NL", "Delft", locationinfo, FuelType.DIESEL, False)
