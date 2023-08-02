@@ -60,7 +60,7 @@ class ComponentSession(object):
     # Country = country code: BE/FR/LU/DE/IT
     
     @sleep_and_retry
-    @limits(calls=1, period=1)
+    @limits(calls=1, period=5)
     def convertPostalCode(self, postalcode, country, town = ''):
         _LOGGER.debug(f"convertPostalCode: postalcode: {postalcode}, country: {country}, town: {town}")
         header = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -128,9 +128,10 @@ class ComponentSession(object):
             country_name = "Italy"
         if country.lower() == 'nl':
             country_name = "Netherlands"
-        orig_boundingbox = self.searchGeocodeOSM(postalcode, town, country_name).get('boundingbox')
-        if len(orig_boundingbox) < 3:
+        orig_location = self.searchGeocodeOSM(postalcode, town, country_name)
+        if orig_location is None:
             return []
+        orig_boundingbox = orig_location.get('boundingbox')
         boundingboxes = [orig_boundingbox, [float(orig_boundingbox[0])-0.045, float(orig_boundingbox[1])+0.045, float(orig_boundingbox[2])-0.045, float(orig_boundingbox[3])+0.045], [float(orig_boundingbox[0])-0.09, float(orig_boundingbox[1])+0.09, float(orig_boundingbox[2])-0.09, float(orig_boundingbox[3])+0.09]]
         return boundingboxes
     
@@ -571,7 +572,7 @@ class ComponentSession(object):
 
 
     @sleep_and_retry
-    @limits(calls=1, period=1)
+    @limits(calls=1, period=5)
     def getStationInfo(self, postalcode, country, fuel_type: FuelType, town="", max_distance=0, filter=""):
         town = None
         locationinfo = None
@@ -585,7 +586,7 @@ class ComponentSession(object):
             countryname = carbuLocationInfo.get("cn")
             locationinfo = carbuLocationInfo.get("id")
             _LOGGER.debug(f"convertPostalCode postalcode: {postalcode}, town: {town}, city: {city}, countryname: {countryname}, locationinfo: {locationinfo}")
-        if country.lower() in ["it"]:
+        if country.lower() in ["it","nl"]:
             itLocationInfo = self.convertLocationBoundingBox(postalcode, country, town)
             locationinfo = itLocationInfo
 
@@ -789,7 +790,9 @@ class ComponentSession(object):
             postal_code_country = self.reverseGeocodeOSM((route[i]['maneuver']['location'][0], route[i]['maneuver']['location'][1]))
             if postal_code_country[0] is not None and postal_code_country[0] not in processedPostalCodes:
                 _LOGGER.debug(f"Get route postalcode {postal_code_country[0]}, processedPostalCodes {processedPostalCodes}")
-                bestAroundPostalCode = self.getStationInfo(postal_code_country[0], postal_code_country[1], fuel_type, '', 3, filter)
+                bestAroundPostalCode = self.getStationInfo(postal_code_country[0], postal_code_country[1], fuel_type, postal_code_country[2], 3, filter)
+                if bestAroundPostalCode is None:
+                    continue
                 processedPostalCodes.extend(bestAroundPostalCode.get('postalcodes'))                    
                 if (bestPriceOnRoute is None) or (bestAroundPostalCode.get('price') is not None and bestAroundPostalCode.get('price',999) < bestPriceOnRoute):
                     bestStationOnRoute = bestAroundPostalCode
@@ -883,17 +886,17 @@ class ComponentSession(object):
         nominatim_response = requests.get(nominatim_url)
         nominatim_data = nominatim_response.json()
         _LOGGER.debug(f"nominatim_data {nominatim_data}")
-        boundingbox = []
+        location = []
         if len(nominatim_data) > 0:
             location = nominatim_data[0]
-            lat = location.get('lat')
-            lon = location.get('lon')
-            boundingbox = location.get('boundingbox')
-            min_lat = boundingbox[0]
-            max_lat = boundingbox[1]
-            min_lon = boundingbox[2]
-            max_lon = boundingbox[3]
-        return location
+            # lat = location.get('lat')
+            # lon = location.get('lon')
+            # boundingbox = location.get('boundingbox')
+            # min_lat = boundingbox[0]
+            # max_lat = boundingbox[1]
+            # min_lon = boundingbox[2]
+            # max_lon = boundingbox[3]
+            return location
     
     @sleep_and_retry
     @limits(calls=1, period=2)

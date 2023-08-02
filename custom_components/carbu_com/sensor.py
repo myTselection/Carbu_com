@@ -255,8 +255,6 @@ class ComponentData:
                 await self.get_fuel_price_info(FuelType.SUPER95)  
                 if self._country.lower() in ['be','fr','lu']:
                     await self.get_fuel_price_prediction_info(FuelType.SUPER95_Prediction) 
-            else:
-                _LOGGER.debug(f"{NAME} not getting fuel price_info {self._super95} FueltType.SUPER95.name_lowercase {FuelType.SUPER95.name_lowercase}")  
                 
             if self._super98:
                 await self.get_fuel_price_info(FuelType.SUPER98)  
