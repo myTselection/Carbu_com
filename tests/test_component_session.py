@@ -63,6 +63,20 @@ class TestComponentSession(unittest.TestCase):
         _LOGGER.debug(f"priceinfo {priceinfo}")
         self.assertIsNotNone(priceinfo)
         
+    def test_getFuelPricesIT(self):
+        # Test successful login
+        locationinfo= self.session.convertLocationBoundingBox("07021", "IT", "Arzachena")
+        priceinfo = self.session.getFuelPrices("07021", "IT", "Arzachena", locationinfo, FuelType.DIESEL, False)
+        _LOGGER.debug(f"priceinfo {priceinfo}")
+        self.assertIsNotNone(priceinfo)
+        
+    def test_getFuelPricesNL(self):
+        # Test successful login
+        locationinfo= self.session.convertLocationBoundingBox("2627AR", "NL", "Delft")
+        priceinfo = self.session.getFuelPrices("2627AR", "NL", "Delft", locationinfo, FuelType.DIESEL, False)
+        _LOGGER.debug(f"priceinfo {priceinfo}")
+        self.assertIsNotNone(priceinfo)
+        
         
 if __name__ == '__main__':
     unittest.main()
