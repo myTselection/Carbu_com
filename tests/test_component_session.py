@@ -23,9 +23,6 @@ class TestComponentSession(unittest.TestCase):
         self.locationinfo = None
         
     # def test_crc(self):
-        # filename = "C:\\Users\\Sil\\Documents\\Tweaks\\IoT\\HA_CustomComponent\\Carbu.com\\main-e91191c6b0.js"
-        # filename = "C:\\Users\\Sil\\Documents\\Tweaks\\IoT\\HA_CustomComponent\\Carbu.com\\test.html"
-        # filename = "C:\\Users\\Sil\\Documents\\Tweaks\\IoT\\HA_CustomComponent\\Carbu.com\\rc-consent-67d63bd6fd.js"
         # # replace with the name of your file
         # with open(filename, "rb") as f:
             # file_content = f.read()
