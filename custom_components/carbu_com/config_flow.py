@@ -78,8 +78,9 @@ def create_town_carbu_schema(towns):
     default_oilextra = True
     default_quantity = 1000
     data_schema = OrderedDict()
-
-    data_schema["town"] = selector({
+    data_schema[
+        vol.Required("town", description="Town")
+    ] = selector({
                 "select": {
                     "options": towns,
                     "mode": "dropdown"

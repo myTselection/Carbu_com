@@ -65,7 +65,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage to send GET request:: python http_test.py <url>")
         print("Usage to send POST request: python http_test.py <url> <data>")
-        url = "https://www.prezzibenzina.it/www2/develop/tech/handlers/search_handler.php?brand=&compact=1&fuels=b&max_lat=48.2086&max_long=24.7836&min_lat=36.4372&min_long=-1.5836&sel=getStations&rand=1690877107123"
+        # url = "https://www.prezzibenzina.it/www2/develop/tech/handlers/search_handler.php?brand=&compact=1&fuels=b&max_lat=48.2086&max_long=24.7836&min_lat=36.4372&min_long=-1.5836&sel=getStations&rand=1690877107123"
+        url = "https://carbu.com/belgie//liste-stations-service/E10/Alsemberg/1652/BE_bf_223"
         send_http_get_request(url)
     elif len(sys.argv) < 3:
         url = sys.argv[1]

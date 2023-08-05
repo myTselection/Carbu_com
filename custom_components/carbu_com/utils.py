@@ -146,6 +146,8 @@ class ComponentSession(object):
     @sleep_and_retry
     @limits(calls=1, period=1)
     def getFuelPrices(self, postalcode, country, town, locationinfo, fueltype: FuelType, single):
+        self.s = requests.Session()
+        self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
         if country.lower() == 'de':
             return self.getFuelPricesDE(postalcode,country,town,locationinfo, fueltype, single)
         if country.lower() == 'it':
@@ -159,10 +161,12 @@ class ComponentSession(object):
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # https://carbu.com/belgie//liste-stations-service/GO/Diegem/1831/BE_bf_279
 
-        response = self.s.get(f"https://carbu.com/belgie//liste-stations-service/{fueltype.code}/{town}/{postalcode}/{locationinfo}",headers=header,timeout=50)
+        response = self.s.get(f"https://carbu.com/belgie//liste-stations-service/{fueltype.code}/{town}/{postalcode}/{locationinfo}",headers=header,timeout=10)
         if response.status_code != 200:
             _LOGGER.error(f"ERROR: {response.text}")
         assert response.status_code == 200
+
+        _LOGGER.info(f"New carbu prices retrieved")
         
         
         stationdetails = []
@@ -572,7 +576,7 @@ class ComponentSession(object):
 
 
     @sleep_and_retry
-    @limits(calls=1, period=5)
+    @limits(calls=10, period=5)
     def getStationInfo(self, postalcode, country, fuel_type: FuelType, town="", max_distance=0, filter=""):
         town = None
         locationinfo = None
@@ -622,8 +626,6 @@ class ComponentSession(object):
         return self.getStationInfoFromPriceInfo(price_info, postal_code_country[0], fuel_type, max_distance, filter)
         
 
-    @sleep_and_retry
-    @limits(calls=1, period=1)
     def getStationInfoFromPriceInfo(self,price_info, postalcode, fuel_type: FuelType, max_distance=0, filter=""):
         data = {
             "price" : None,
