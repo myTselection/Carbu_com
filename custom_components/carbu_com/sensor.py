@@ -50,6 +50,8 @@ async def dry_setup(hass, config_entry, async_add_devices):
     postalcode = config.get("postalcode")
     town = config.get("town")
     filter = config.get("filter")
+    individualstation = config.get("individualstation", False)
+    station = config.get("station","")
     super95 = config.get(FuelType.SUPER95.name_lowercase)
     super98 = config.get(FuelType.SUPER98.name_lowercase)
     diesel = config.get(FuelType.DIESEL.name_lowercase)
@@ -66,20 +68,23 @@ async def dry_setup(hass, config_entry, async_add_devices):
     )
     await componentData._forced_update()
     assert componentData._price_info is not None
-    
+
+    # _LOGGER.debug(f"postalcode {postalcode} station: {station} individualstation {individualstation}")
+
     if super95:
-        sensorSuper95 = ComponentPriceSensor(componentData, FuelType.SUPER95, postalcode, False, 0)
+        sensorSuper95 = ComponentPriceSensor(componentData, FuelType.SUPER95, postalcode, False, 0, station)
         # await sensorSuper95.async_update()
         sensors.append(sensorSuper95)
         
-        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 5)
-        # await sensorSuper95Neigh.async_update()
-        sensors.append(sensorSuper95Neigh)
-        
-        sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 10)
-        # await sensorSuper95Neigh.async_update()
-        sensors.append(sensorSuper95Neigh)
-        
+        if not individualstation:
+                sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 5)
+                # await sensorSuper95Neigh.async_update()
+                sensors.append(sensorSuper95Neigh)
+                
+                sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95, postalcode, 10)
+                # await sensorSuper95Neigh.async_update()
+                sensors.append(sensorSuper95Neigh)
+                
         if country.lower() in ['be','fr','lu']:
             sensorSuper95Prediction = ComponentFuelPredictionSensor(componentData, FuelType.SUPER95_Prediction)
             # await sensorSuper95Prediction.async_update()
@@ -87,36 +92,38 @@ async def dry_setup(hass, config_entry, async_add_devices):
     
     
     if super98:
-        sensorSuper98 = ComponentPriceSensor(componentData, FuelType.SUPER98, postalcode, False, 0)
+        sensorSuper98 = ComponentPriceSensor(componentData, FuelType.SUPER98, postalcode, False, 0, station)
         # await sensorSuper95.async_update()
         sensors.append(sensorSuper98)
         
-        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 5)
-        # await sensorSuper95Neigh.async_update()
-        sensors.append(sensorSuper98Neigh)
-        
-        sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 10)
-        # await sensorSuper95Neigh.async_update()
-        sensors.append(sensorSuper98Neigh)
+        if not individualstation:
+            sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 5)
+            # await sensorSuper95Neigh.async_update()
+            sensors.append(sensorSuper98Neigh)
+            
+            sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 10)
+            # await sensorSuper95Neigh.async_update()
+            sensors.append(sensorSuper98Neigh)
 
     if diesel:
-        sensorDiesel = ComponentPriceSensor(componentData, FuelType.DIESEL, postalcode, False, 0)
+        sensorDiesel = ComponentPriceSensor(componentData, FuelType.DIESEL, postalcode, False, 0, station)
         # await sensorDiesel.async_update()
         sensors.append(sensorDiesel)
         
-        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 5)
-        # await sensorDieselNeigh.async_update()
-        sensors.append(sensorDieselNeigh)
+        if not individualstation:
+            sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 5)
+            # await sensorDieselNeigh.async_update()
+            sensors.append(sensorDieselNeigh)
+            
+            sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 10)
+            # await sensorDieselNeigh.async_update()
+            sensors.append(sensorDieselNeigh)
         
-        sensorDieselNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.DIESEL, postalcode, 10)
-        # await sensorDieselNeigh.async_update()
-        sensors.append(sensorDieselNeigh)
-    
         if country.lower() in ['be','fr','lu']:
             sensorDieselPrediction = ComponentFuelPredictionSensor(componentData, FuelType.DIESEL_Prediction)
             # await sensorDieselPrediction.async_update()
             sensors.append(sensorDieselPrediction)
-    
+        
     if oilstd and country.lower() in ['be','fr','lu']:
         sensorOilstd = ComponentPriceSensor(componentData, FuelType.OILSTD, postalcode, True, quantity)
         # await sensorOilstd.async_update()
@@ -229,8 +236,8 @@ class ComponentData:
         self._price_info[FuelType.OILEXTRA_Prediction] = prediction_info
         _LOGGER.debug(f"{NAME} prediction_info oilPrediction {prediction_info}")
 
-    async def getStationInfoFromPriceInfo(self, priceinfo, postalcode, fueltype, max_distance, filter):
-        stationInfo =  await self._hass.async_add_executor_job(lambda: self._session.getStationInfoFromPriceInfo(priceinfo, postalcode, fueltype, max_distance, filter))
+    async def getStationInfoFromPriceInfo(self, priceinfo, postalcode, fueltype, max_distance, filter, individual_station=""):
+        stationInfo =  await self._hass.async_add_executor_job(lambda: self._session.getStationInfoFromPriceInfo(priceinfo, postalcode, fueltype, max_distance, filter, individual_station))
         return stationInfo
     
         
@@ -304,12 +311,13 @@ class ComponentData:
 
 
 class ComponentPriceSensor(Entity):
-    def __init__(self, data, fueltype: FuelType, postalcode, isOil, quantity):
+    def __init__(self, data, fueltype: FuelType, postalcode, isOil, quantity, individual_station = ""):
         self._data = data
         self._fueltype = fueltype
         self._postalcode = postalcode
         self._isOil = isOil
         self._quantity = quantity
+        self._individual_station = individual_station
         
         self._last_update = None
         self._price = None
@@ -326,6 +334,7 @@ class ComponentPriceSensor(Entity):
         self._date = None
         self._score = None
         self._country = data._country
+        self._id = None
 
     @property
     def state(self):
@@ -353,7 +362,8 @@ class ComponentPriceSensor(Entity):
             self._date = self._priceinfo.get("data")[0].get("available").get("visible")# x.data[0].available.visible
             # self._quantity = self._priceinfo.get("data")[0].get("quantity")
         else:
-            stationInfo = await self._data.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter)
+            # _LOGGER.debug(f'indiv. station: {self._individual_station}')
+            stationInfo = await self._data.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter, self._individual_station)
             # stationInfo = await self._data._hass.async_add_executor_job(lambda: self._data._session.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter))
             self._price = stationInfo.get("price") 
             self._supplier  = stationInfo.get("supplier")
@@ -419,7 +429,8 @@ class ComponentPriceSensor(Entity):
             "quantity": self._quantity,
             "score": self._score,
             "filter": self._data._filter,
-            "country": self._country
+            "country": self._country,
+            "id": self._id
             # "suppliers": self._priceinfo
         }
 

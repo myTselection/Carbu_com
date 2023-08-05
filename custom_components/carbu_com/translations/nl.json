@@ -15,10 +15,22 @@
             },
             "town": {
                 "data": {
+                    "town": "Stad"
+                }
+            },
+            "town_carbu": {
+                "data": {
                     "town": "Stad",
+                    "individualstation": "Selecteer een individueel tankstation",
 					"oilstd": "Standaard Mazout Verwarmingsolie (50S)",
 					"oilextra": "Extra Mazout Verwarmingsolie",
 					"quantity": "Hoeveelheid Mazout Verwarmingsolie (liters)"
+                }
+            },
+            "station_carbu": {
+                "description": "Selecteer een individueel tankstation",
+                "data": {
+                    "station": "Tank station"
                 }
             },
             "edit": {

@@ -350,7 +350,7 @@ class ComponentSession(object):
             nl_prices = response.json()
             all_stations.extend(nl_prices)
 
-        _LOGGER.debug(f"NL All station data retrieved: {all_stations}")
+        # _LOGGER.debug(f"NL All station data retrieved: {all_stations}")
 
         stationdetails = []
         for block in all_stations:
@@ -539,6 +539,7 @@ class ComponentSession(object):
         namespace = api_details.get("api").get("namespace")
         offers = api_details.get("api").get("routes").get("offers") #x.api.routes.offers
         oildetails_url = f"{url}{namespace}{offers}?api_key={api_key}&sk={sk}&areaCode={locationinfo}&productId={oiltypecode}&quantity={volume}&locale=nl-BE"
+        _LOGGER.debug(f"oildetails_url: {oildetails_url}")
         
         response = self.s.get(oildetails_url,headers=header,timeout=30, verify=False)
         if response.status_code != 200:
@@ -628,7 +629,7 @@ class ComponentSession(object):
         return self.getStationInfoFromPriceInfo(price_info, postal_code_country[0], fuel_type, max_distance, filter)
         
 
-    def getStationInfoFromPriceInfo(self,price_info, postalcode, fuel_type: FuelType, max_distance=0, filter=""):
+    def getStationInfoFromPriceInfo(self,price_info, postalcode, fuel_type: FuelType, max_distance=0, filter="", individual_station=""):
         data = {
             "price" : None,
             "distance" : 0,
@@ -650,7 +651,8 @@ class ComponentSession(object):
             "fuelname" : None,
             "fueltype" : fuel_type,
             "date" : None,
-            "country": None
+            "country": None,
+            "id": None
         }
         # _LOGGER.debug(f"getStationInfoFromPriceInfo {fuel_type.name}, postalcode: {postalcode}, max_distance : {max_distance}, filter: {filter}, price_info: {price_info}")
 
@@ -664,6 +666,11 @@ class ComponentSession(object):
                 match = re.search(filterSet, station.get("brand").lower())
                 if not match:
                     continue
+            if individual_station != "":
+                # _LOGGER.debug(f"utils individual_station: {station.get('name')}, {station.get('address')}")
+                if f"{station.get('name')}, {station.get('address')}" != individual_station:
+                    continue
+                
             # if max_distance == 0 and str(postalcode) not in station.get("address"):
             #     break
             try:
@@ -692,6 +699,7 @@ class ComponentSession(object):
                 if data["postalcode"] not in data["postalcodes"]:
                     data["postalcodes"].append(data["postalcode"])
                 data['country'] = station.get('country')
+                data['id'] = station.get('id')
                 # _LOGGER.debug(f"before break {max_distance}, country: {station.get('country') }, postalcode: {station.get('postalcode')} required postalcode {postalcode}")
                 if max_distance == 0:
                         # _LOGGER.debug(f"break {max_distance}, country: {station.get('country') }, postalcode: {station.get('postalcode')} required postalcode {postalcode}")

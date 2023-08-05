@@ -15,10 +15,22 @@
             },
             "town": {
                 "data": {
+                    "town": "Town"
+                }
+            },
+            "town_carbu": {
+                "data": {
                     "town": "Town",
+                    "individualstation": "Select an individual gas station",
 					"oilstd": "Mazout Heating Oil standard (50S)",
 					"oilextra": "Mazout Heating Oil extra",
 					"quantity": "Mazout Heating Oil quanitity (liters)"
+                }
+            },
+            "station_carbu": {
+                "description": "Select an individual gas station",
+                "data": {
+                    "station": "Fuel station"
                 }
             },
             "edit": {

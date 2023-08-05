@@ -15,10 +15,22 @@
             },
             "town": {
                 "data": {
+                    "town": "Ville"
+                }
+            },
+            "town_carbu": {
+                "data": {
                     "town": "Ville",
+                    "individualstation": "Sélectionnez une station-service individuelle",
 					"oilstd": "Fioul Standard (50S)",
 					"oilextra": "Fioul Extra",
 					"quantity": "Quantité Fioul (liters)"
+                }
+            },
+            "station_carbu": {
+                "description": "Sélectionnez une station-service individuelle",
+                "data": {
+                    "station": "Fuel station"
                 }
             },
             "edit": {
