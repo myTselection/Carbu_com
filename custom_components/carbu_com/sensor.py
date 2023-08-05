@@ -381,6 +381,7 @@ class ComponentPriceSensor(Entity):
             self._distance = stationInfo.get("distance")
             self._date = stationInfo.get("date")
             self._country = stationInfo.get("country")
+            self._id = stationInfo.get("id")
             
         
     async def async_will_remove_from_hass(self):
@@ -487,6 +488,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
         self._diff30 = None
         self._diffPct = None
         self._country = data._country
+        self._id = None
 
     @property
     def state(self):
@@ -520,6 +522,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
         self._distance = stationInfo.get("distance")
         self._date = stationInfo.get("date")
         self._country = stationInfo.get("country")
+        self._id = stationInfo.get("id")
         
     async def async_will_remove_from_hass(self):
         """Clean up after entity before removal."""
@@ -567,7 +570,8 @@ class ComponentPriceNeighborhoodSensor(Entity):
             "date": self._date,
             "score": self._score,
             "filter": self._data._filter,
-            "country": self._country
+            "country": self._country,
+            "id": self._id
         }
 
     @property

@@ -15,7 +15,8 @@
             },
             "town": {
                 "data": {
-                    "town": "Ville"
+                    "town": "Ville",
+                    "individualstation": "Sélectionnez une station-service individuelle"
                 }
             },
             "town_carbu": {
@@ -27,10 +28,10 @@
 					"quantity": "Quantité Fioul (liters)"
                 }
             },
-            "station_carbu": {
+            "station": {
                 "description": "Sélectionnez une station-service individuelle",
                 "data": {
-                    "station": "Fuel station"
+                    "station": "Station-service"
                 }
             },
             "edit": {

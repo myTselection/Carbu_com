@@ -15,7 +15,8 @@
             },
             "town": {
                 "data": {
-                    "town": "Stad"
+                    "town": "Stad",
+                    "individualstation": "Selecteer een individueel tankstation"
                 }
             },
             "town_carbu": {
@@ -27,10 +28,10 @@
 					"quantity": "Hoeveelheid Mazout Verwarmingsolie (liters)"
                 }
             },
-            "station_carbu": {
+            "station": {
                 "description": "Selecteer een individueel tankstation",
                 "data": {
-                    "station": "Tank station"
+                    "station": "Tankstation"
                 }
             },
             "edit": {

@@ -30,7 +30,7 @@ For electricity price expectations [this Entso-E HACS integration](https://githu
 - Add 'Carbu.com' integration via HA Settings > 'Devices and Services' > 'Integrations'
 - Provide country, postal code and select the desired sensors
    - The name of the town can be selected from the dropdown in the next step of the setup config flow. See [carbu.com](https://carbu.com) website for known towns and postal codes. (Only for BE/FR/LU)
-   - For BE/FR/LU: an extra checkbox can be set to select a specific individual gas station. If set, a station can be selected in a dropdown with known gas stations close to the provided postalcode and town. No sensor for 5km and 10km will be made available, only the price sensor for the individual selected station.
+   - An extra checkbox can be set to select a specific individual gas station. If set, a station can be selected in a dropdown with known gas stations close to the provided postalcode and town. No sensor for 5km and 10km will be made available, only the price sensor for the individual selected station.
    - For Italy & Netherlands, the town will be requested in the second step of the config flow
    - A filter on supplier brand name can be set (optional). If the filter match, the fuel station will be considered, else next will be searched. A python regex filter value be set
 

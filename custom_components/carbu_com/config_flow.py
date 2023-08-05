@@ -87,7 +87,7 @@ def create_town_carbu_schema(towns):
                 }
             })
     data_schema[
-        vol.Optional("individualstation", default=False, description="Select an individual station")
+        vol.Optional("individualstation", default=False, description="Select an individual gas station")
     ] = bool
     data_schema[
         vol.Optional(FuelType.OILSTD.name_lowercase, default=default_oilstd, description="Standard oil sensors")
@@ -108,7 +108,7 @@ def create_station_carbu_schema(stations):
     """
     data_schema = OrderedDict()
     data_schema[
-        vol.Required("station", description="Fuel station")
+        vol.Required("station", description="Gas station")
     ] = selector({
                 "select": {
                     "options": [f"{item['name']}, {item['address']}" for item in stations],
@@ -127,6 +127,9 @@ def create_town_schema():
     data_schema[
         vol.Required("town", default="", description="Town")
     ] = str
+    data_schema[
+        vol.Optional("individualstation", default=False, description="Select an individual gas station")
+    ] = bool
 
     return data_schema
 
@@ -153,8 +156,6 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._init_info = user_input
             if not(self._session):
                 self._session = ComponentSession()
-            if user_input.get('country') == 'DE':
-                return self.async_create_entry(title=NAME, data=self._init_info)
             if user_input.get('country') in ['BE','FR','LU']:
                 self._towns = []
                 carbuLocationInfo = await self.hass.async_add_executor_job(lambda: self._session.convertPostalCodeMultiMatch(user_input.get('postalcode'), user_input.get('country')))
@@ -187,12 +188,12 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             # _LOGGER.debug(f"individualstation: {user_input.get('individualstation')}")
             if user_input.get('individualstation') == True:
                 town = self.find_town_by_name(user_input.get('town'))
-                self._stations = []
-                carbuStationInfo = await self.hass.async_add_executor_job(lambda: self._session.getFuelPrices(self._init_info.get('postalcode'), self._init_info.get('country'), self._init_info.get('town'), town.get('id'), FuelType.DIESEL, False))
-                for station in carbuStationInfo:
-                    self._stations.append(station)
-                _LOGGER.debug(f"stations: {self._stations}")
-                return await self.async_step_station_carbu()
+                # self._stations = []
+                self._stations = await self.hass.async_add_executor_job(lambda: self._session.getFuelPrices(self._init_info.get('postalcode'), self._init_info.get('country'), self._init_info.get('town'), town.get('id'), FuelType.DIESEL, False))
+                # for station in carbuStationInfo:
+                    # self._stations.append(station)
+                # _LOGGER.debug(f"stations: {self._stations}")
+                return await self.async_step_station()
             return self.async_create_entry(title=NAME, data=self._init_info)
 
         return await self._show_town_carbu_config_form(self._towns)
@@ -204,25 +205,35 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="town_carbu", data_schema=vol.Schema(data_schema), errors=self._errors
         )
 
-    async def async_step_station_carbu(self, user_input=None):  # pylint: disable=dangerous-default-value
+    async def async_step_station(self, user_input=None):  # pylint: disable=dangerous-default-value
         """Handle a flow initialized by the user."""
         if user_input is not None:
             self._init_info.update(user_input)
             return self.async_create_entry(title=NAME, data=self._init_info)
 
-        return await self._show_station_carbu_config_form(self._stations)
+        return await self._show_station_config_form(self._stations)
 
-    async def _show_station_carbu_config_form(self, stations):
+    async def _show_station_config_form(self, stations):
         """Show the configuration form to edit location data."""
         data_schema = create_station_carbu_schema(stations)
         return self.async_show_form(
-            step_id="station_carbu", data_schema=vol.Schema(data_schema), errors=self._errors
+            step_id="station", data_schema=vol.Schema(data_schema), errors=self._errors
         )
 
     async def async_step_town(self, user_input=None):  # pylint: disable=dangerous-default-value
         """Handle a flow initialized by the user."""
         if user_input is not None:
             self._init_info.update(user_input)
+            if user_input.get('individualstation') == True:
+                boundingboxLocationInfo = None
+                if self._init_info.get('country').lower() in ['it','nl']:
+                    boundingboxLocationInfo = await self.hass.async_add_executor_job(lambda: self._session.convertLocationBoundingBox(self._init_info.get('postalcode'), self._init_info.get('country'), self._init_info.get('town')))
+                # self._stations = []
+                self._stations  = await self.hass.async_add_executor_job(lambda: self._session.getFuelPrices(self._init_info.get('postalcode'), self._init_info.get('country'), self._init_info.get('town'), boundingboxLocationInfo, FuelType.DIESEL, False))
+                # for station in stationInfo:
+                    # self._stations.append(station)
+                _LOGGER.debug(f"stations: {self._stations}")
+                return await self.async_step_station()
             return self.async_create_entry(title=NAME, data=self._init_info)
         return await self._show_town_config_form(self._towns)
 

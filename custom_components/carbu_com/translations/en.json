@@ -15,7 +15,8 @@
             },
             "town": {
                 "data": {
-                    "town": "Town"
+                    "town": "Town",
+                    "individualstation": "Select an individual gas station"
                 }
             },
             "town_carbu": {
@@ -27,10 +28,10 @@
 					"quantity": "Mazout Heating Oil quanitity (liters)"
                 }
             },
-            "station_carbu": {
+            "station": {
                 "description": "Select an individual gas station",
                 "data": {
-                    "station": "Fuel station"
+                    "station": "Gas station"
                 }
             },
             "edit": {
