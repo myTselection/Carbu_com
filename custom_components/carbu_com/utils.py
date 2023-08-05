@@ -132,7 +132,7 @@ class ComponentSession(object):
         if orig_location is None:
             return []
         orig_boundingbox = orig_location.get('boundingbox')
-        boundingboxes = [orig_boundingbox, [float(orig_boundingbox[0])-0.045, float(orig_boundingbox[1])+0.045, float(orig_boundingbox[2])-0.045, float(orig_boundingbox[3])+0.045], [float(orig_boundingbox[0])-0.09, float(orig_boundingbox[1])+0.09, float(orig_boundingbox[2])-0.09, float(orig_boundingbox[3])+0.09]]
+        boundingboxes = {"lat": orig_location.get('lat'), "lon": orig_location.get('lon'), "boundingbox": [orig_boundingbox, [float(orig_boundingbox[0])-0.045, float(orig_boundingbox[1])+0.045, float(orig_boundingbox[2])-0.045, float(orig_boundingbox[3])+0.045], [float(orig_boundingbox[0])-0.09, float(orig_boundingbox[1])+0.09, float(orig_boundingbox[2])-0.09, float(orig_boundingbox[3])+0.09]]}
         return boundingboxes
     
     
@@ -335,10 +335,11 @@ class ComponentSession(object):
         # https://www.brandstof-zoeker.nl/ajax/stations/?pageType=geo%2FpostalCode&type=diesel&latitude=51.9487915&longitude=5.8837565&radius=0.008
         
         all_stations = []
-        radius = 0.023
-        for boundingbox in locationinfo:
+        radius = 0.008
+        for boundingbox in locationinfo.get('boundingbox'):
             #TODO check if needs to be retrieved 3 times 0, 5 & 10km or radius can be set to 0.09 to get all at once
-            nl_url = f"https://www.brandstof-zoeker.nl/ajax/stations/?pageType=geo%2FpostalCode&type={fueltype.nl_name}&latitude={locationinfo[0][0]}&longitude={locationinfo[0][2]}&radius={radius}"
+            # _LOGGER.debug(f"Retrieving brandstof-zoeker data: https://www.brandstof-zoeker.nl/ajax/stations/?pageType=geo%2FpostalCode&type={fueltype.nl_name}&latitude={locationinfo.get('lat')}&longitude={locationinfo.get('lon')}&radius={radius}")
+            nl_url = f"https://www.brandstof-zoeker.nl/ajax/stations/?pageType=geo%2FpostalCode&type={fueltype.nl_name}&latitude={locationinfo.get('lat')}&longitude={locationinfo.get('lon')}&radius={radius}"
             # _LOGGER.debug(f"NL URL: {nl_url}")
             response = self.s.get(nl_url,headers=header,timeout=50)
             if response.status_code != 200:
@@ -349,6 +350,7 @@ class ComponentSession(object):
             nl_prices = response.json()
             all_stations.extend(nl_prices)
 
+        _LOGGER.debug(f"NL All station data retrieved: {all_stations}")
 
         stationdetails = []
         for block in all_stations:
@@ -396,7 +398,7 @@ class ComponentSession(object):
         
         all_stations = dict()
         curr_dist = 0
-        for boundingbox in locationinfo:
+        for boundingbox in locationinfo.get('boundingbox'):
             response = self.s.get(f"https://api3.prezzibenzina.it/?do=pb_get_prices&output=json&os=android&appname=AndroidFuel&sdk=33&platform=SM-S906B&udid=dlwHryfCRXy-zJWX6mMN22&appversion=3.22.08.14&loc_perm=foreground&network=mobile&limit=5000&offset=1&min_lat={boundingbox[0]}&max_lat={boundingbox[1]}&min_long={boundingbox[2]}&max_long={boundingbox[3]}",headers=header,timeout=50)
             if response.status_code != 200:
                 _LOGGER.error(f"ERROR: {response.text}")
@@ -603,7 +605,7 @@ class ComponentSession(object):
     @sleep_and_retry
     @limits(calls=1, period=1)
     def getStationInfoLatLon(self,latitude, longitude, fuel_type: FuelType, max_distance=0, filter=""):
-        postal_code_country = self.reverseGeocodeOSM((longitude, latitude))
+        postal_code_country = self.reverseGeocodeOSM(longitude, latitude)
         town = None
         locationinfo = None
         if postal_code_country[1].lower() in ["be","fr","lu"]:        
@@ -615,9 +617,9 @@ class ComponentSession(object):
             countryname = carbuLocationInfo.get("cn")
             locationinfo = carbuLocationInfo.get("id")
             _LOGGER.debug(f"convertPostalCode postalcode: {postal_code_country[0]}, town: {town}, city: {city}, countryname: {countryname}, locationinfo: {locationinfo}")
-        if postal_code_country[1].lower() in ["it"]: 
+        if postal_code_country[1].lower() in ["it","nl"]: 
             #TODO calc boudingboxes for known lat lon
-            postal_code_country = self.reverseGeocodeOSM((longitude, latitude))
+            postal_code_country = self.reverseGeocodeOSM(longitude, latitude)
             town = postal_code_country[2]
             itLocationInfo = self.convertLocationBoundingBox(postal_code_country[0], postal_code_country[1], town)
             locationinfo = itLocationInfo
@@ -789,7 +791,7 @@ class ComponentSession(object):
 
         for i in range(0, len(route), step_size):
             _LOGGER.debug(f"point: {route[i]}, step_size {step_size} of len(route): {len(route)}")
-            postal_code_country = self.reverseGeocodeOSM((route[i]['maneuver']['location'][0], route[i]['maneuver']['location'][1]))
+            postal_code_country = self.reverseGeocodeOSM(route[i]['maneuver']['location'][0], route[i]['maneuver']['location'][1])
             if postal_code_country[0] is not None and postal_code_country[0] not in processedPostalCodes:
                 _LOGGER.debug(f"Get route postalcode {postal_code_country[0]}, processedPostalCodes {processedPostalCodes}")
                 bestAroundPostalCode = self.getStationInfo(postal_code_country[0], postal_code_country[1], fuel_type, postal_code_country[2], 3, filter)
@@ -884,6 +886,9 @@ class ComponentSession(object):
     @sleep_and_retry
     @limits(calls=1, period=2)
     def searchGeocodeOSM(self, postalcode, city, country):
+
+        # https://nominatim.openstreetmap.org/search?postalcode=1212VG&city=Hilversum&country=Netherlands&format=json
+        # [{"place_id":351015506,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. https://osm.org/copyright","osm_type":"relation","osm_id":271108,"boundingbox":["52.1776807","52.2855452","5.1020133","5.2189603"],"lat":"52.2241375","lon":"5.1719396","display_name":"Hilversum, North Holland, Netherlands","class":"boundary","type":"administrative","importance":0.7750020206490176,"icon":"https://nominatim.openstreetmap.org/ui/mapicons/poi_boundary_administrative.p.20.png"},{"place_id":351015507,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. https://osm.org/copyright","osm_type":"relation","osm_id":419190,"boundingbox":["52.1776807","52.2855452","5.1020133","5.2189603"],"lat":"52.23158695","lon":"5.173493524521531","display_name":"Hilversum, North Holland, Netherlands","class":"boundary","type":"administrative","importance":0.7750020206490176,"icon":"https://nominatim.openstreetmap.org/ui/mapicons/poi_boundary_administrative.p.20.png"}]
         nominatim_url = f"https://nominatim.openstreetmap.org/search?postalcode={postalcode}&city={city}&country={country}&format=json"
         nominatim_response = requests.get(nominatim_url)
         nominatim_data = nominatim_response.json()
@@ -902,8 +907,8 @@ class ComponentSession(object):
     
     @sleep_and_retry
     @limits(calls=1, period=2)
-    def reverseGeocodeOSM(self, location):
-        nominatim_url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={location[1]}&lon={location[0]}"
+    def reverseGeocodeOSM(self, longitude, latitude):
+        nominatim_url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={latitude}&lon={longitude}"
         nominatim_response = requests.get(nominatim_url)
         nominatim_data = nominatim_response.json()
         _LOGGER.debug(f"nominatim_data {nominatim_data}")

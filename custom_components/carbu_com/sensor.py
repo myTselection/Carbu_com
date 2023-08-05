@@ -499,7 +499,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
         # self._supplier_brand  = stationInfo.get("supplier_brand")
         self._supplier_brand  = stationInfo.get("supplier_brand") if stationInfo.get("supplier_brand") != None and len(stationInfo.get("supplier_brand")) > 1 else f'{stationInfo.get("supplier_brand")}  '
         # self._logourl = stationInfo.get("entity_picture")
-        self._logourl = f"https://www.prezzibenzina.it/www2/marker.php?brand={self._supplier_brand[:2].upper()}&status=AP&price={stationInfo.get('price')}&certified=0&marker_type=1"
+        self._logourl = f"https://www.prezzibenzina.it/www2/marker.php?brand={self._supplier_brand[:2].upper()}&status=AP&price={stationInfo.get('price')}&certified=0&marker_type={2 if self._max_distance == 5 else 3}"
         self._address = stationInfo.get("address")
         self._postalcode = stationInfo.get("postalcode")
         self._city = stationInfo.get("city")
