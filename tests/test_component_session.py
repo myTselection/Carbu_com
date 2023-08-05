@@ -23,9 +23,6 @@ class TestComponentSession(unittest.TestCase):
         self.locationinfo = None
         
     # def test_crc(self):
-        # filename = "C:\\Users\\Sil\\Documents\\Tweaks\\IoT\\HA_CustomComponent\\Carbu.com\\main-e91191c6b0.js"
-        # filename = "C:\\Users\\Sil\\Documents\\Tweaks\\IoT\\HA_CustomComponent\\Carbu.com\\test.html"
-        # filename = "C:\\Users\\Sil\\Documents\\Tweaks\\IoT\\HA_CustomComponent\\Carbu.com\\rc-consent-67d63bd6fd.js"
         # # replace with the name of your file
         # with open(filename, "rb") as f:
             # file_content = f.read()
@@ -63,6 +60,20 @@ class TestComponentSession(unittest.TestCase):
     def test_getFuelPredictionE95(self):
         # Test successful login
         priceinfo = self.session.getFuelPrediction("E95")
+        _LOGGER.debug(f"priceinfo {priceinfo}")
+        self.assertIsNotNone(priceinfo)
+        
+    def test_getFuelPricesIT(self):
+        # Test successful login
+        locationinfo= self.session.convertLocationBoundingBox("07021", "IT", "Arzachena")
+        priceinfo = self.session.getFuelPrices("07021", "IT", "Arzachena", locationinfo, FuelType.DIESEL, False)
+        _LOGGER.debug(f"priceinfo {priceinfo}")
+        self.assertIsNotNone(priceinfo)
+        
+    def test_getFuelPricesNL(self):
+        # Test successful login
+        locationinfo= self.session.convertLocationBoundingBox("2627AR", "NL", "Delft")
+        priceinfo = self.session.getFuelPrices("2627AR", "NL", "Delft", locationinfo, FuelType.DIESEL, False)
         _LOGGER.debug(f"priceinfo {priceinfo}")
         self.assertIsNotNone(priceinfo)
         
