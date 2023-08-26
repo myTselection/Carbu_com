@@ -181,6 +181,7 @@ class ComponentData:
         self._postalcode = config.get("postalcode")
         self._town = config.get("town")
         self._filter = config.get("filter")
+        self._logo_with_price = config.get("logo_with_price")
         self._price_info = dict()
         
         self._carbuLocationInfo = None
@@ -318,6 +319,7 @@ class ComponentPriceSensor(Entity):
         self._isOil = isOil
         self._quantity = quantity
         self._individual_station = individual_station
+        self._logo_with_price = data._logo_with_price
         
         self._last_update = None
         self._price = None
@@ -370,8 +372,10 @@ class ComponentPriceSensor(Entity):
             # self._supplier_brand  = stationInfo.get("supplier_brand")
             self._supplier_brand  = stationInfo.get("supplier_brand") if stationInfo.get("supplier_brand") != None and len(stationInfo.get("supplier_brand")) > 1 else f'{stationInfo.get("supplier_brand")}  '
             self._url   = stationInfo.get("url")
-            # self._logourl = stationInfo.get("entity_picture")
-            self._logourl = f"https://www.prezzibenzina.it/www2/marker.php?brand={self._supplier_brand[:2].upper()}&status=AP&price={stationInfo.get('price')}&certified=0&marker_type=1"
+            if self._logo_with_price or self._logo_with_price is None:
+                self._logourl = f"https://www.prezzibenzina.it/www2/marker.php?brand={self._supplier_brand[:2].upper()}&status=AP&price={stationInfo.get('price')}&certified=0&marker_type=1"
+            else:
+                self._logourl = stationInfo.get("entity_picture")
             self._address = stationInfo.get("address")
             self._postalcode = stationInfo.get("postalcode")
             self._city = stationInfo.get("city")
@@ -470,6 +474,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
         self._fueltype = fueltype
         self._postalcode = postalcode
         self._max_distance = max_distance
+        self._logo_with_price = data._logo_with_price
         
         self._last_update = None
         self._price = None
@@ -514,8 +519,10 @@ class ComponentPriceNeighborhoodSensor(Entity):
         # self._supplier_brand  = stationInfo.get("supplier_brand")
         self._supplier_brand  = stationInfo.get("supplier_brand") if stationInfo.get("supplier_brand") != None and len(stationInfo.get("supplier_brand")) > 1 else f'{stationInfo.get("supplier_brand")}  '
         self._url   = stationInfo.get("url")
-        # self._logourl = stationInfo.get("entity_picture")
-        self._logourl = f"https://www.prezzibenzina.it/www2/marker.php?brand={self._supplier_brand[:2].upper()}&status=AP&price={stationInfo.get('price')}&certified=0&marker_type={2 if self._max_distance == 5 else 3}"
+        if self._logo_with_price or self._logo_with_price is None:
+            self._logourl = f"https://www.prezzibenzina.it/www2/marker.php?brand={self._supplier_brand[:2].upper()}&status=AP&price={stationInfo.get('price')}&certified=0&marker_type={2 if self._max_distance == 5 else 3}"
+        else:
+            self._logourl = stationInfo.get("entity_picture")
         self._address = stationInfo.get("address")
         self._postalcode = stationInfo.get("postalcode")
         self._city = stationInfo.get("city")

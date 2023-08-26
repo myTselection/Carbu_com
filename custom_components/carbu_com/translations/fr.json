@@ -10,7 +10,8 @@
                     "filter": "Filtre marque fournisseur (facultatif)",
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
-					"diesel": "Diesel (B7)"
+					"diesel": "Diesel (B7)",
+                    "logo_with_price": "Logo avec prix"
                 }
             },
             "town": {
@@ -46,7 +47,8 @@
 					"diesel": "Diesel (B7)",
 					"oilstd": "Fioul Standard (50S)",
 					"oilextra": "Fioul Extra",
-					"quantity": "Quantité Fioul (litres)"
+					"quantity": "Quantité Fioul (litres)",
+                    "logo_with_price": "Logo avec prix"
                 }
             }
 
@@ -72,7 +74,8 @@
 					"diesel": "Diesel (B7)",
 					"oilstd": "Fioul Standard (50S)",
 					"oilextra": "Fioul Extra",
-					"quantity": "Quantité Fioul (litres)"
+					"quantity": "Quantité Fioul (litres)",
+                    "logo_with_price": "Logo avec prix"
                 }
             }
         },

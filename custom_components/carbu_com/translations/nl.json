@@ -10,7 +10,8 @@
                     "filter": "Filter voor leveranciersmerk (optioneel)",
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
-					"diesel": "Diesel (B7)"
+					"diesel": "Diesel (B7)",
+                    "logo_with_price": "Logo met prijs"
                 }
             },
             "town": {
@@ -46,7 +47,8 @@
 					"diesel": "Diesel (B7)",
 					"oilstd": "Standaard Mazout Verwarmingsolie (50S)",
 					"oilextra": "Extra Mazout Verwarmingsolie",
-					"quantity": "Hoeveelheid Mazout Verwarmingsolie (liters)"
+					"quantity": "Hoeveelheid Mazout Verwarmingsolie (liters)",
+                    "logo_with_price": "Logo met prijs"
                 }
             }
         },
@@ -71,7 +73,8 @@
 					"diesel": "Diesel (B7)",
 					"oilstd": "Standaard Mazout Verwarmingsolie (50S)",
 					"oilextra": "Extra Mazout Verwarmingsolie",
-					"quantity": "Hoeveelheid Mazout Verwarmingsolie (liters)"
+					"quantity": "Hoeveelheid Mazout Verwarmingsolie (liters)",
+                    "logo_with_price": "Logo met prijs"
                 }
             }
         },

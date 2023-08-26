@@ -34,6 +34,7 @@ def create_schema(entry, option=False):
         default_super95 = entry.data.get("super95", True)
         default_super98 = entry.data.get("super98", True)
         default_diesel = entry.data.get("diesel", True)
+        default_logo_with_price = entry.data.get("default_logo_with_price", True)
     else:
         default_country = "BE"
         default_postalcode = ""
@@ -41,6 +42,7 @@ def create_schema(entry, option=False):
         default_super95 = True
         default_super98 = True
         default_diesel = True
+        default_logo_with_price = True
 
     data_schema = OrderedDict()
     data_schema[
@@ -65,6 +67,9 @@ def create_schema(entry, option=False):
     ] = bool
     data_schema[
         vol.Optional(FuelType.DIESEL.name_lowercase, default=default_diesel, description="Diesel sensors")
+    ] = bool
+    data_schema[
+        vol.Optional("logo_with_price", default=default_logo_with_price, description="Logo with price")
     ] = bool
 
     return data_schema

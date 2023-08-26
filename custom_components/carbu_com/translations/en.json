@@ -10,7 +10,8 @@
                     "filter": "Supplier brand filter (optional)",
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
-					"diesel": "Diesel (B7)"
+					"diesel": "Diesel (B7)",
+                    "logo_with_price": "Logo with price"
                 }
             },
             "town": {
@@ -46,7 +47,8 @@
 					"diesel": "Diesel (B7)",
 					"oilstd": "Mazout Heating Oil standard (50S)",
 					"oilextra": "Mazout Heating Oil extra",
-					"quantity": "Mazout Heating Oil quanitity (liters)"
+					"quantity": "Mazout Heating Oil quanitity (liters)",
+                    "logo_with_price": "Logo with price"
                 }
             }
 
@@ -72,7 +74,8 @@
 					"diesel": "Diesel (B7)",
 					"oilstd": "Mazout Heating Oil standard (50S)",
 					"oilextra": "Mazout Heating Oil extra",
-					"quantity": "Mazout Heating Oil quanitity (liters)"
+					"quantity": "Mazout Heating Oil quanitity (liters)",
+                    "logo_with_price": "Logo with price"
                 }
             }
         },
