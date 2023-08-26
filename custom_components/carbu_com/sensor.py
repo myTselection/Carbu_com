@@ -401,6 +401,8 @@ class ComponentPriceSensor(Entity):
         name = f"{NAME} {self._fueltype.name_lowercase} {self._postalcode}"
         if self._quantity != 0:
             name += f" {self._quantity}l"
+        if self._individual_station != "":
+            name += f" {self._individual_station.split(',')[0]}"
         name += " price"
         return (name)
 

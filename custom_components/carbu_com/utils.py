@@ -156,6 +156,9 @@ class ComponentSession(object):
             return self.getFuelPricesNL(postalcode,country,town,locationinfo, fueltype, single)
         if country.lower() == 'at':
             return self.getFuelPricesAT(postalcode,country,town,locationinfo, fueltype, single)
+        if country.lower() not in ['be','fr','lu']:
+            _LOGGER.info(f"Not supported country: {country}")
+            return []
         
         #CARU.COM BE / FR / LU:
         header = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -236,7 +239,9 @@ class ComponentSession(object):
                 except AttributeError:
                     date = ""
                 
-                stationdetails.append({"id":stationid,"name":name,"url":url,"logo_url":logo_url,"brand":brand,"address":', '.join(el for el in address),"postalcode": address_postalcode, "locality":locality,"price":price,"lat":lat,"lon":lng,"fuelname":fuelname,"distance":distance,"date":date, "country": country})
+                stationdetail = {"id":stationid,"name":name,"url":url,"logo_url":logo_url,"brand":brand,"address":', '.join(el for el in address),"postalcode": address_postalcode, "locality":locality,"price":price,"lat":lat,"lon":lng,"fuelname":fuelname,"distance":distance,"date":date, "country": country}
+                if price != None and price != "":
+                    stationdetails.append(stationdetail)
                 
                 # _LOGGER.debug(f"stationdetails: {stationdetails}")
                 if single:
@@ -667,8 +672,9 @@ class ComponentSession(object):
                 if not match:
                     continue
             if individual_station != "":
-                # _LOGGER.debug(f"utils individual_station: {station.get('name')}, {station.get('address')}")
+                # _LOGGER.debug(f"utils individual_station {individual_station}: {station.get('name')}, {station.get('address')}")
                 if f"{station.get('name')}, {station.get('address')}" != individual_station:
+                    # _LOGGER.debug(f"No match found for individual station, checking next")
                     continue
                 
             # if max_distance == 0 and str(postalcode) not in station.get("address"):
