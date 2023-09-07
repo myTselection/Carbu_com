@@ -11,6 +11,7 @@
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
+					"lpg": "LPG",
                     "logo_with_price": "Logo met prijs"
                 }
             },
@@ -45,6 +46,7 @@
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
+					"lpg": "LPG",
 					"oilstd": "Standaard Mazout Verwarmingsolie (50S)",
 					"oilextra": "Extra Mazout Verwarmingsolie",
 					"quantity": "Hoeveelheid Mazout Verwarmingsolie (liters)",
@@ -71,6 +73,7 @@
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
+					"lpg": "LPG",
 					"oilstd": "Standaard Mazout Verwarmingsolie (50S)",
 					"oilextra": "Extra Mazout Verwarmingsolie",
 					"quantity": "Hoeveelheid Mazout Verwarmingsolie (liters)",
@@ -92,7 +95,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98 of diesel"
+                    "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98, diesel of lpg"
                 },
                 "country": {
                     "name": "country",
@@ -122,7 +125,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98 of diesel"
+                    "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98, diesel of lpg"
                 },
                 "latitude": {
                     "name": "latitude",
@@ -148,7 +151,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98 of diesel"
+                    "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98, diesel of lpg"
                 },
                 "country": {
                     "name": "country",
@@ -178,7 +181,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98 of diesel"
+                    "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98, diesel of lpg"
                 },
                 "from_latitude": {
                     "name": "from_latitude",

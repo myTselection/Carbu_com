@@ -11,6 +11,7 @@
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
+					"lpg": "LPG",
                     "logo_with_price": "Logo with price"
                 }
             },
@@ -45,6 +46,7 @@
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
+					"lpg": "LPG",
 					"oilstd": "Mazout Heating Oil standard (50S)",
 					"oilextra": "Mazout Heating Oil extra",
 					"quantity": "Mazout Heating Oil quanitity (liters)",
@@ -72,6 +74,7 @@
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
+					"lpg": "LPG",
 					"oilstd": "Mazout Heating Oil standard (50S)",
 					"oilextra": "Mazout Heating Oil extra",
 					"quantity": "Mazout Heating Oil quanitity (liters)",
@@ -93,7 +96,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "The type of fuel to look for, supported options: super95, super98 or diesel"
+                    "description": "The type of fuel to look for, supported options: super95, super98, diesel or lpg"
                 },
                 "country": {
                     "name": "country",
@@ -123,7 +126,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "The type of fuel to look for, supported options: super95, super98 or diesel"
+                    "description": "The type of fuel to look for, supported options: super95, super98, diesel or lpg"
                 },
                 "latitude": {
                     "name": "latitude",
@@ -149,7 +152,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "The type of fuel to look for, supported options: super95, super98 or diesel"
+                    "description": "The type of fuel to look for, supported options: super95, super98, diesel or lpg"
                 },
                 "country": {
                     "name": "country",
@@ -179,7 +182,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "The type of fuel to look for, supported options: super95, super98 or diesel"
+                    "description": "The type of fuel to look for, supported options: super95, super98, diesel or lpg"
                 },
                 "from_latitude": {
                     "name": "from_latitude",

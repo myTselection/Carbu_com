@@ -11,6 +11,7 @@
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
+					"lpg": "LPG",
                     "logo_with_price": "Logo avec prix"
                 }
             },
@@ -45,6 +46,7 @@
 					"super95": "SP 95 (E10)",
 					"super98": "SP 98 (E5)",
 					"diesel": "Diesel (B7)",
+					"lpg": "LPG",
 					"oilstd": "Fioul Standard (50S)",
 					"oilextra": "Fioul Extra",
 					"quantity": "Quantité Fioul (litres)",
@@ -72,6 +74,7 @@
 					"super95": "SP 95 (E10)",
 					"super98": "SP 98 (E5)",
 					"diesel": "Diesel (B7)",
+					"lpg": "LPG",
 					"oilstd": "Fioul Standard (50S)",
 					"oilextra": "Fioul Extra",
 					"quantity": "Quantité Fioul (litres)",
@@ -93,7 +96,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98 ou diesel"
+                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98, diesel ou lpg"
                 },
                 "country": {
                     "name": "country",
@@ -123,7 +126,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98 ou diesel"
+                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98, diesel ou lpg"
                 },
                 "latitude": {
                     "name": "latitude",
@@ -149,7 +152,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98 ou diesel"
+                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98, diesel ou lpg"
                 },
                 "country": {
                     "name": "country",
@@ -179,7 +182,7 @@
             "fields": {
                 "fuel_type": {
                     "name": "fuel_type",
-                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98 ou diesel"
+                    "description": "Le type de carburant à rechercher, options prises en charge : super95, super98, diesel ou lpg"
                 },
                 "from_latitude": {
                     "name": "from_latitude",

@@ -34,6 +34,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(FuelType.SUPER95.name_lowercase, default=True): cv.boolean,
         vol.Optional(FuelType.SUPER98.name_lowercase, default=True): cv.boolean,
         vol.Optional(FuelType.DIESEL.name_lowercase, default=True): cv.boolean,
+        vol.Optional(FuelType.LPG.name_lowercase, default=True): cv.boolean,
         vol.Optional(FuelType.OILSTD.name_lowercase, default=True): cv.boolean,
         vol.Optional(FuelType.OILEXTRA.name_lowercase, default=True): cv.boolean,
         vol.Optional("quantity", default=1000): cv.positive_int,
@@ -55,6 +56,7 @@ async def dry_setup(hass, config_entry, async_add_devices):
     super95 = config.get(FuelType.SUPER95.name_lowercase)
     super98 = config.get(FuelType.SUPER98.name_lowercase)
     diesel = config.get(FuelType.DIESEL.name_lowercase)
+    lpg = config.get(FuelType.LPG.name_lowercase)
     oilstd = config.get(FuelType.OILSTD.name_lowercase)
     oilextra = config.get(FuelType.OILEXTRA.name_lowercase)
     quantity = config.get("quantity")
@@ -123,6 +125,20 @@ async def dry_setup(hass, config_entry, async_add_devices):
             sensorDieselPrediction = ComponentFuelPredictionSensor(componentData, FuelType.DIESEL_Prediction)
             # await sensorDieselPrediction.async_update()
             sensors.append(sensorDieselPrediction)
+
+    if lpg:
+        sensorLpg = ComponentPriceSensor(componentData, FuelType.LPG, postalcode, False, 0, station)
+        # await sensorDiesel.async_update()
+        sensors.append(sensorLpg)
+        
+        if not individualstation:
+            sensorLpgNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.LPG, postalcode, 5)
+            # await sensorLpgNeigh.async_update()
+            sensors.append(sensorLpgNeigh)
+            
+            sensorLpgNeigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.LPG, postalcode, 10)
+            # await sensorLpgNeigh.async_update()
+            sensors.append(sensorLpgNeigh)
         
     if oilstd and country.lower() in ['be','fr','lu']:
         sensorOilstd = ComponentPriceSensor(componentData, FuelType.OILSTD, postalcode, True, quantity)
@@ -193,6 +209,7 @@ class ComponentData:
         self._super95 = config.get(FuelType.SUPER95.name_lowercase)
         self._super98 = config.get(FuelType.SUPER98.name_lowercase)
         self._diesel = config.get(FuelType.DIESEL.name_lowercase)
+        self._lpg = config.get(FuelType.LPG.name_lowercase)
         self._oilstd = config.get(FuelType.OILSTD.name_lowercase)
         self._oilextra = config.get(FuelType.OILEXTRA.name_lowercase)
             
@@ -272,6 +289,9 @@ class ComponentData:
                 await self.get_fuel_price_info(FuelType.DIESEL)  
                 if self._country.lower() in ['be','fr','lu']:
                     await self.get_fuel_price_prediction_info(FuelType.DIESEL_Prediction)
+                
+            if self._lpg:
+                await self.get_fuel_price_info(FuelType.LPG)
                 
             if self._oilstd and self._country.lower() in ['be','fr','lu']:
                 await self.get_oil_price_info(FuelType.OILSTD)  

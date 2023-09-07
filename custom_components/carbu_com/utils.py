@@ -41,6 +41,7 @@ class FuelType(Enum):
     OILSTD_Prediction = ("mazout50s")
     OILEXTRA = ("2")
     OILEXTRA_Prediction = ("extra")
+    LPG = ("GPL", 1, "gpl","lpg")
     
     def __init__(self, code, de_code=0, it_name="",nl_name=""):
         self.code = code
@@ -420,8 +421,9 @@ class ComponentSession(object):
             sorted_diesel_items = sorted(diesel_items, key=lambda x: float(x["price"]))
 
             # Extract all the station IDs into a list
-            station_ids = [item["station"] for item in sorted_diesel_items]
-            comma_separated_station_ids = ",".join(station_ids)
+            sorted_diesel_items_dict = {item.get('station'): item for item in sorted_diesel_items}
+            # station_ids = [item["station"] for item in sorted_diesel_items]
+            comma_separated_station_ids = ",".join(sorted_diesel_items_dict.keys())
             
             response = self.s.get(f"https://api3.prezzibenzina.it/?do=pb_get_stations&output=json&appname=PrezziBenzinaWidget&ids={comma_separated_station_ids}&prices=on&minprice=1&fuels=d&apiversion=3.1",headers=header,timeout=50)
             if response.status_code != 200:
@@ -431,6 +433,9 @@ class ComponentSession(object):
             stationdetails_prezzibenzina = response.json()
             stationdetails_prezzibenzina = stationdetails_prezzibenzina.get('pb_get_stations')
             stationdetails_prezzibenzina_stations = stationdetails_prezzibenzina.get("stations").get("station")
+            for station_details in stationdetails_prezzibenzina_stations:
+                station_details['price'] = (sorted_diesel_items_dict.get(station_details.get('id'))).get('price')
+                station_details['date'] = (sorted_diesel_items_dict.get(station_details.get('id'))).get('date')
             all_stations[str(curr_dist)] = stationdetails_prezzibenzina_stations
             curr_dist = curr_dist + 5
 
@@ -443,18 +448,24 @@ class ComponentSession(object):
                     continue
                 fuel_price_items = [item for item in block.get('reports').get('report') if fueltype.it_name in item["fuel"].lower()]
                 if len(fuel_price_items) == 0:
-                    continue
+                    fuel_price = block.get('price')
+                    fuel_price_date = block.get('date')
+                    if fuel_price is None:
+                        continue
+                else:
+                    fuel_price = fuel_price_items[0].get('price')
+                    fuel_price_date = fuel_price_items[0].get('date')
                 block_data = {
                     'id': block.get('id'),
                     'name': block.get('name'),
                     'url': block.get('url'),
-                    'logo_url': f"https://www.prezzibenzina.it/www2/marker.php?brand={block.get('co')}&status=AP&price={fuel_price_items[0].get('price')}&certified=0&marker_type=1",
+                    'logo_url': f"https://www.prezzibenzina.it/www2/marker.php?brand={block.get('co')}&status=AP&price={fuel_price}&certified=0&marker_type=1",
                     'brand': block.get('co_name'),
                     'address': block.get('address'),
                     'postalcode': block.get('zip'),
                     'locality': block.get('city_name'),
-                    'price': fuel_price_items[0].get('price'),
-                    'price_changed': fuel_price_items[0].get('date'),
+                    'price': fuel_price,
+                    'price_changed': fuel_price_date,
                     'lat': block.get('lat'),
                     'lon': block.get('lng'),
                     'fuelname': fueltype.name,
@@ -661,9 +672,13 @@ class ComponentSession(object):
         }
         # _LOGGER.debug(f"getStationInfoFromPriceInfo {fuel_type.name}, postalcode: {postalcode}, max_distance : {max_distance}, filter: {filter}, price_info: {price_info}")
 
+        if price_info is None or len(price_info) == 0:
+            return data
+        
         filterSet = False
         if filter is not None and filter.strip() != "":
             filterSet = filter.strip().lower()
+
 
         for station in price_info:
             # _LOGGER.debug(f"getStationInfoFromPriceInfo station: {station}")
@@ -684,7 +699,7 @@ class ComponentSession(object):
                 currPrice = float(station.get("price"))
             except ValueError:
                 continue
-            if (max_distance == 0 or currDistance <= max_distance) and (data.get("price") is None or currPrice < data.get("price")):
+            if ((max_distance == 0 and (currDistance <= 5 or postalcode == station.get("postalcode"))) or currDistance <= max_distance) and (data.get("price") is None or currPrice < data.get("price")):
                 data["distance"] = float(station.get("distance"))
                 data["price"] = 0 if station.get("price") == '' else float(station.get("price"))
                 data["localPrice"] = 0 if price_info[0].get("price") == '' else float(price_info[0].get("price"))
@@ -988,10 +1003,14 @@ class ComponentSession(object):
         _LOGGER.debug(f"waypoints {waypoints}")
         return waypoints
     
-session = ComponentSession()
+#test
+# session = ComponentSession()
+# #test BE
+# locationinfo= session.convertPostalCode("3300", "BE", "Bost")
+# print(session.getFuelPrices("3300", "BE", "Bost", locationinfo.get("id"), FuelType.LPG, False))
 # test IT
 # locationinfo= session.convertLocationBoundingBox("07021", "IT", "Arzachena")
-# session.getFuelPrices("07021", "IT", "Arzachena", locationinfo, FuelType.DIESEL, False)
+# print(session.getFuelPrices("07021", "IT", "Arzachena", locationinfo, FuelType.LPG, False))
 # test NL
 # locationinfo= session.convertLocationBoundingBox("2627AR", "NL", "Delft")
-# session.getFuelPrices("2627AR", "NL", "Delft", locationinfo, FuelType.DIESEL, False)
+# print(session.getFuelPrices("2627AR", "NL", "Delft", locationinfo, FuelType.LPG, False))
