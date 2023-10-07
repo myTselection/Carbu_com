@@ -21,11 +21,14 @@ Some discussion on this topic can be found within [the Home Assistant community 
 
 For electricity price expectations [this Entso-E HACS integration](https://github.com/JaccoR/hass-entso-e) can be used.
 
+For Belgian gas and electricity contracts, prices and promotions, please check out my other integration [MyEnergy](https://github.com/myTselection/MyEnergy)
+
 <p align="center"><img src="https://raw.githubusercontent.com/myTselection/carbu_com/master/icon.png"/></p>
 
 
 ## Installation
 - [HACS](https://hacs.xyz/): add url https://github.com/myTselection/carbu_com as custom repository (HACS > Integration > option: Custom Repositories)
+   -    [![Open your Home Assistant instance and open the repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg?style=flat-square)](https://my.home-assistant.io/redirect/hacs_repository/?owner=myTselection&repository=Carbu_com&category=integration)
 - Restart Home Assistant
 - Add 'Carbu.com' integration via HA Settings > 'Devices and Services' > 'Integrations'
 - Provide country, postal code and select the desired sensors
