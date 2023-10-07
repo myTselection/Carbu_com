@@ -20,6 +20,7 @@ Since R7.0, beta support for fuel prices in Netherlands (NL) has been added. Pos
 Some discussion on this topic can be found within [the Home Assistant community forum](https://community.home-assistant.io/t/rest-sensor-needs-to-get-latest-element-of-list/404882/4).
 
 For electricity price expectations [this Entso-E HACS integration](https://github.com/JaccoR/hass-entso-e) can be used.
+
 For Belgian gas and electricity contracts, prices and promotions, please check out my other integration [MyEnergy](https://github.com/myTselection/MyEnergy)
 
 <p align="center"><img src="https://raw.githubusercontent.com/myTselection/carbu_com/master/icon.png"/></p>
