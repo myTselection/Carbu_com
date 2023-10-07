@@ -9,7 +9,7 @@ import voluptuous as vol
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity, SensorDeviceClass
 from homeassistant.const import ATTR_ATTRIBUTION
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import Entity,DeviceInfo
 from homeassistant.util import Throttle
 from homeassistant.const import (
     CONF_NAME,
@@ -330,6 +330,14 @@ class ComponentData:
         self._session : None
 
 
+    @property
+    def unique_id(self):
+        return f"{NAME} {self._postalcode}"
+    @property
+    def name(self) -> str:
+        """Return the name of the sensor."""
+        return self.unique_id
+
 
 class ComponentPriceSensor(Entity):
     def __init__(self, data, fueltype: FuelType, postalcode, isOil, quantity, individual_station = ""):
@@ -432,7 +440,7 @@ class ComponentPriceSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id
+        return self.unique_id.replace(f"{NAME} ","").capitalize()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -461,15 +469,18 @@ class ComponentPriceSensor(Entity):
             # "suppliers": self._priceinfo
         }
 
-    @property
-    def device_info(self) -> dict:
-        """I can't remember why this was needed :D"""
-        return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self.name,
-            "manufacturer": DOMAIN,
-        }
 
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                # Serial numbers are unique identifiers within a specific domain
+                (NAME, self._data.unique_id)
+            },
+            name=self._data.name,
+            manufacturer= NAME
+        )
     @property
     def unit(self) -> int:
         """Unit"""
@@ -573,7 +584,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id
+        return self.unique_id.replace(f"{NAME} ","").capitalize()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -604,14 +615,18 @@ class ComponentPriceNeighborhoodSensor(Entity):
             "id": self._id
         }
 
+   
     @property
-    def device_info(self) -> dict:
-        """I can't remember why this was needed :D"""
-        return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self.name,
-            "manufacturer": DOMAIN,
-        }
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                # Serial numbers are unique identifiers within a specific domain
+                (NAME, self._data.unique_id)
+            },
+            name=self._data.name,
+            manufacturer= NAME
+        )
 
     @property
     def unit(self) -> int:
@@ -681,7 +696,7 @@ class ComponentFuelPredictionSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id
+        return self.unique_id.replace(f"{NAME} ","").capitalize()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -694,14 +709,18 @@ class ComponentFuelPredictionSensor(Entity):
             "date": self._date
         }
 
+   
     @property
-    def device_info(self) -> dict:
-        """I can't remember why this was needed :D"""
-        return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self.name,
-            "manufacturer": DOMAIN,
-        }
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                # Serial numbers are unique identifiers within a specific domain
+                (NAME, self._data.unique_id)
+            },
+            name=self._data.name,
+            manufacturer= NAME
+        )
 
     @property
     def unit(self) -> int:
@@ -801,7 +820,7 @@ class ComponentOilPredictionSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id
+        return self.unique_id.replace(f"{NAME} ","").capitalize()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -816,14 +835,18 @@ class ComponentOilPredictionSensor(Entity):
             "quantity": self._quantity
         }
 
+   
     @property
-    def device_info(self) -> dict:
-        """I can't remember why this was needed :D"""
-        return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self.name,
-            "manufacturer": DOMAIN,
-        }
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                # Serial numbers are unique identifiers within a specific domain
+                (NAME, self._data.unique_id)
+            },
+            name=self._data.name,
+            manufacturer= NAME
+        )
 
     @property
     def unit(self) -> int:
