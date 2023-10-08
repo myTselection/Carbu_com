@@ -440,7 +440,7 @@ class ComponentPriceSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id.replace(f"{NAME} ","").capitalize()
+        return self.unique_id
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -584,7 +584,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id.replace(f"{NAME} ","").capitalize()
+        return self.unique_id
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -696,7 +696,7 @@ class ComponentFuelPredictionSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id.replace(f"{NAME} ","").capitalize()
+        return self.unique_id
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -820,7 +820,7 @@ class ComponentOilPredictionSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id.replace(f"{NAME} ","").capitalize()
+        return self.unique_id
 
     @property
     def extra_state_attributes(self) -> dict:
