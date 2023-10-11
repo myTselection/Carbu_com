@@ -496,7 +496,7 @@ class ComponentSession(object):
         if country.lower() != 'sp':
             return self.getFuelPrices(postalcode,country,town,locationinfo, fueltype, single)
 
-        sp_stations = GasStationApi.get_gas_stations(locationinfo, fueltype.sp_code)
+        sp_stations = GasStationApi.get_gas_stations_provincia(locationinfo, fueltype.sp_code)
         _LOGGER.debug(f"sp_stations: {sp_stations}")
 
 
@@ -1105,10 +1105,18 @@ class ComponentSession(object):
 #test
 session = ComponentSession()
 # #test SP
-
+#TODO:
+#add prov and city calls in 
+#get bounding box for search city
+#search all stations in province
+#add disstance for each location to search city
+#sort by distance and price
 prov = GasStationApi.get_provinces()
 city = GasStationApi.get_municipalities(prov[8].id)
-print(session.getFuelPrices("3300", "SP", "Bost", city[20].id, FuelType.DIESEL, False))
+# print(session.getFuelPrices("3300", "SP", "Bost", city[20].id, FuelType.DIESEL, False))
+prov = GasStationApi.get_provinces()
+city = GasStationApi.get_municipalities(prov[8].id)
+print(session.getFuelPrices("3300", "SP", "Bost", prov[8].id, FuelType.DIESEL, False))
 
 # #test BE
 # locationinfo= session.convertPostalCode("3300", "BE", "Bost")

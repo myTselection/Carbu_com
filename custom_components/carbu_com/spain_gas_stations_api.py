@@ -71,6 +71,23 @@ class GasStationApi:
 
         # stations.sort(key=lambda x: x.name)
         return json
+    
+    @staticmethod
+    def get_gas_stations_provincia(provincia_id, product_id):
+        session = requests.Session()
+        response = session.get(f"{spain_const.GAS_STATION_ENDPOINT_PROVINCIA}{provincia_id}/{product_id}")
+        json = response.json()
+        session.close()
+        # product_name = next(filter(lambda p: p.id == product_id, GasStationApi.get_products()), None).id
+        # stations = list(map(lambda s:
+        #                     GasStation(name=s["Rótulo"].title(),
+        #                                address=s["Dirección"].title(),
+        #                                id=s["IDEESS"],
+        #                                product_name=product_name),
+        #                     json['ListaEESSPrecio']))
+
+        # stations.sort(key=lambda x: x.name)
+        return json
 
     @staticmethod
     def get_gas_price(station_id, municipality_id, product_id):
