@@ -7,6 +7,7 @@ from ratelimit import limits, sleep_and_retry
 from datetime import date
 import urllib.parse
 from enum import Enum
+from spain_gas_stations_api import GasStationApi
 
 import voluptuous as vol
 
@@ -32,22 +33,23 @@ def check_settings(config, hass):
         
 
 class FuelType(Enum):
-    SUPER95 = ("E10", 5, "benzina", "euro95")
+    SUPER95 = ("E10", 5, "benzina", "euro95","23")
     SUPER95_Prediction = ("E95")
-    SUPER98 = ("SP98", 6, "benzina","superplus")
-    DIESEL = ("GO",3,"diesel","diesel")
+    SUPER98 = ("SP98", 6, "benzina","superplus", "3")
+    DIESEL = ("GO",3,"diesel","diesel","4")
     DIESEL_Prediction = ("D")
     OILSTD = ("7")
     OILSTD_Prediction = ("mazout50s")
     OILEXTRA = ("2")
     OILEXTRA_Prediction = ("extra")
-    LPG = ("GPL", 1, "gpl","lpg")
+    LPG = ("GPL", 1, "gpl","lpg","17")
     
-    def __init__(self, code, de_code=0, it_name="",nl_name=""):
+    def __init__(self, code, de_code=0, it_name="",nl_name="", sp_code=""):
         self.code = code
         self.de_code = de_code
         self.it_name = it_name
         self.nl_name = nl_name
+        self.sp_code = sp_code
 
     @property
     def name_lowercase(self):
@@ -157,6 +159,8 @@ class ComponentSession(object):
             return self.getFuelPricesNL(postalcode,country,town,locationinfo, fueltype, single)
         if country.lower() == 'at':
             return self.getFuelPricesAT(postalcode,country,town,locationinfo, fueltype, single)
+        if country.lower() == 'sp':
+            return self.getFuelPricesSP(postalcode,country,town,locationinfo, fueltype, single)
         if country.lower() not in ['be','fr','lu']:
             _LOGGER.info(f"Not supported country: {country}")
             return []
@@ -479,6 +483,65 @@ class ComponentSession(object):
                         return stationdetails
                 else:
                     stationdetails.append(block_data)
+        return stationdetails
+    
+    
+    
+    @sleep_and_retry
+    @limits(calls=1, period=1)
+    def getFuelPricesSP(self, postalcode, country, town, locationinfo, fueltype: FuelType, single):
+        if country.lower() != 'sp':
+            return self.getFuelPrices(postalcode,country,town,locationinfo, fueltype, single)
+
+        sp_stations = GasStationApi.get_gas_stations(locationinfo, fueltype.sp_code)
+        _LOGGER.debug(f"sp_stations: {sp_stations}")
+
+
+        stationdetails = []
+        for block in sp_stations:
+            url = block['href']
+            station_id = url.split('/')[-1]
+            station_name = block.find('span', class_='fuel-station-location-name').text.strip()
+            station_street = block.find('div', class_='fuel-station-location-street').text.strip()
+            station_city = block.find('div', class_='fuel-station-location-city').text.strip()
+            station_postalcode, station_locality = station_city.split(maxsplit=1)
+            price_text = block.find('div', class_='price-text')
+            if price_text != None:
+                price_text = price_text.text.strip()
+            else:
+                continue
+            price_changed = [span.text.strip() for span in block.find_all('span', class_='price-changed')]
+            logo_url = block.find('img', class_='mtsk-logo')['src']
+            distance = float(block.find('div', class_='fuel-station-location-distance').text.strip().replace(' km',''))
+            today = date.today()
+            current_date = today.strftime("%Y-%m-%d")
+            # _LOGGER.debug(f"blocks id : {station_id}, postalcode: {station_postalcode}")
+
+
+            block_data = {
+                'id': station_id,
+                'name': station_name,
+                'url': f"https://www.clever-tanken.de{url}",
+                'logo_url': f"https://www.clever-tanken.de/{logo_url}",
+                'brand': station_name,
+                'address': f"{station_street}, {station_city}",
+                'postalcode': station_postalcode,
+                'locality': station_locality,
+                'price': price_text,
+                'price_changed': price_changed,
+                'lat': 0,
+                'lon': 0,
+                'fuelname': fueltype.name,
+                'distance': distance,
+                'date': current_date, 
+                'country': country
+            }
+            if single:
+                if postalcode == station_postalcode:
+                    stationdetails.append(block_data)
+                    return stationdetails
+            else:
+                stationdetails.append(block_data)
         return stationdetails
         
     @sleep_and_retry
@@ -1004,7 +1067,13 @@ class ComponentSession(object):
         return waypoints
     
 #test
-# session = ComponentSession()
+session = ComponentSession()
+# #test SP
+
+prov = GasStationApi.get_provinces()
+city = GasStationApi.get_municipalities(prov[8].id)
+print(session.getFuelPrices("3300", "SP", "Bost", city[20].id, FuelType.DIESEL, False))
+
 # #test BE
 # locationinfo= session.convertPostalCode("3300", "BE", "Bost")
 # print(session.getFuelPrices("3300", "BE", "Bost", locationinfo.get("id"), FuelType.LPG, False))
