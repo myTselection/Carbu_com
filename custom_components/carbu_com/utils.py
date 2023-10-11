@@ -2,6 +2,7 @@ import json
 import logging
 import requests
 import re
+import math
 from bs4 import BeautifulSoup
 from ratelimit import limits, sleep_and_retry
 from datetime import date
@@ -131,6 +132,8 @@ class ComponentSession(object):
             country_name = "Italy"
         if country.lower() == 'nl':
             country_name = "Netherlands"
+        if country.lower() == 'sp':
+            country_name = "Spain"
         orig_location = self.searchGeocodeOSM(postalcode, town, country_name)
         if orig_location is None:
             return []
@@ -672,9 +675,9 @@ class ComponentSession(object):
             countryname = carbuLocationInfo.get("cn")
             locationinfo = carbuLocationInfo.get("id")
             _LOGGER.debug(f"convertPostalCode postalcode: {postalcode}, town: {town}, city: {city}, countryname: {countryname}, locationinfo: {locationinfo}")
-        if country.lower() in ["it","nl"]:
-            itLocationInfo = self.convertLocationBoundingBox(postalcode, country, town)
-            locationinfo = itLocationInfo
+        if country.lower() in ["it","nl","sp"]:
+            boundingBoxLocationInfo = self.convertLocationBoundingBox(postalcode, country, town)
+            locationinfo = boundingBoxLocationInfo
 
         price_info = self.getFuelPrices(postalcode, country, town, locationinfo, fuel_type, single)
         # _LOGGER.debug(f"price_info {fuel_type.name} {price_info}")
@@ -1065,6 +1068,39 @@ class ComponentSession(object):
         
         _LOGGER.debug(f"waypoints {waypoints}")
         return waypoints
+    
+
+
+    def haversine_distance(lat1, lon1, lat2, lon2):
+        # Radius of the Earth in kilometers
+        earth_radius = 6371
+
+        # Convert latitude and longitude from degrees to radians
+        lat1 = math.radians(lat1)
+        lon1 = math.radians(lon1)
+        lat2 = math.radians(lat2)
+        lon2 = math.radians(lon2)
+
+        # Haversine formula
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+        # Calculate the distance
+        distance = earth_radius * c
+
+        return distance
+
+        # # Example usage
+        # lat1 = 52.5200  # Latitude of location 1
+        # lon1 = 13.4050  # Longitude of location 1
+        # lat2 = 48.8566  # Latitude of location 2
+        # lon2 = 2.3522   # Longitude of location 2
+
+        # distance = haversine_distance(lat1, lon1, lat2, lon2)
+        # print(f"Approximate distance: {distance:.2f} km")
+
     
 #test
 session = ComponentSession()
