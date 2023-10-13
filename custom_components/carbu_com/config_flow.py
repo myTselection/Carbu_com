@@ -51,7 +51,7 @@ def create_schema(entry, option=False):
         vol.Required("country", default=default_country, description="Country")
     ] = selector({
                 "select": {
-                    "options": ['BE', 'DE', 'FR', 'IT', 'LU', 'NL'],
+                    "options": ['BE', 'DE', 'FR', 'IT', 'LU', 'NL','ES'],
                     "mode": "dropdown"
                 }
             })
@@ -236,7 +236,7 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._init_info.update(user_input)
             if user_input.get('individualstation') == True:
                 boundingboxLocationInfo = None
-                if self._init_info.get('country').lower() in ['it','nl']:
+                if self._init_info.get('country').lower() in ['it','nl','es']:
                     boundingboxLocationInfo = await self.hass.async_add_executor_job(lambda: self._session.convertLocationBoundingBox(self._init_info.get('postalcode'), self._init_info.get('country'), self._init_info.get('town')))
                 # self._stations = []
                 self._stations  = await self.hass.async_add_executor_job(lambda: self._session.getFuelPrices(self._init_info.get('postalcode'), self._init_info.get('country'), self._init_info.get('town'), boundingboxLocationInfo, FuelType.DIESEL, False))

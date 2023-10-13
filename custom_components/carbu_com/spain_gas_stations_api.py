@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import requests
 
-import spain_const
+from .spain_const import *
 
 
 @dataclass
@@ -42,7 +42,7 @@ class GasStationApi:
     @staticmethod
     def get_provinces() -> list[Province]:
         session = requests.Session()
-        response = session.get(spain_const.PROVINCES_ENDPOINT)
+        response = session.get(PROVINCES_ENDPOINT)
         json = response.json()
         session.close()
         return list(map(lambda p: Province(id=p['IDPovincia'], name=p['Provincia'].title()), json))
@@ -50,7 +50,7 @@ class GasStationApi:
     @staticmethod
     def get_municipalities(province_id):
         session = requests.Session()
-        response = session.get(spain_const.MUNICIPALITIES_ENDPOINT + province_id)
+        response = session.get(MUNICIPALITIES_ENDPOINT + province_id)
         json = response.json()
         session.close()
         return list(map(lambda m: Municipality(id=m['IDMunicipio'], name=m['Municipio']), json))
@@ -58,7 +58,7 @@ class GasStationApi:
     @staticmethod
     def get_gas_stations(municipality_id, product_id):
         session = requests.Session()
-        response = session.get(f"{spain_const.GAS_STATION_ENDPOINT}{municipality_id}/{product_id}")
+        response = session.get(f"{GAS_STATION_ENDPOINT}{municipality_id}/{product_id}")
         json = response.json()
         session.close()
         # product_name = next(filter(lambda p: p.id == product_id, GasStationApi.get_products()), None).id
@@ -75,7 +75,7 @@ class GasStationApi:
     @staticmethod
     def get_gas_stations_provincia(provincia_id, product_id):
         session = requests.Session()
-        response = session.get(f"{spain_const.GAS_STATION_ENDPOINT_PROVINCIA}{provincia_id}/{product_id}")
+        response = session.get(f"{GAS_STATION_ENDPOINT_PROVINCIA}{provincia_id}/{product_id}")
         json = response.json()
         session.close()
         # product_name = next(filter(lambda p: p.id == product_id, GasStationApi.get_products()), None).id
@@ -92,7 +92,7 @@ class GasStationApi:
     @staticmethod
     def get_gas_price(station_id, municipality_id, product_id):
         session = requests.Session()
-        response = session.get(f"{spain_const.GAS_STATION_ENDPOINT}{municipality_id}/{product_id}")
+        response = session.get(f"{GAS_STATION_ENDPOINT}{municipality_id}/{product_id}")
         json = response.json()
         session.close()
         gas_station = next(filter(lambda g: g['IDEESS'] == station_id, json['ListaEESSPrecio']), None)
@@ -108,7 +108,7 @@ class GasStationApi:
     @staticmethod
     def get_station_name(station_id, municipality_id, product_id):
         session = requests.Session()
-        response = session.get(f"{spain_const.GAS_STATION_ENDPOINT}{municipality_id}/{product_id}")
+        response = session.get(f"{GAS_STATION_ENDPOINT}{municipality_id}/{product_id}")
         json = response.json()
         session.close()
         gas_station = next(filter(lambda g: g['IDEESS'] == station_id, json['ListaEESSPrecio']), None)

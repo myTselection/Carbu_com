@@ -8,7 +8,7 @@ from ratelimit import limits, sleep_and_retry
 from datetime import date
 import urllib.parse
 from enum import Enum
-from spain_gas_stations_api import GasStationApi
+from .spain_gas_stations_api import GasStationApi
 
 import voluptuous as vol
 
@@ -132,7 +132,7 @@ class ComponentSession(object):
             country_name = "Italy"
         if country.lower() == 'nl':
             country_name = "Netherlands"
-        if country.lower() == 'sp':
+        if country.lower() == 'es':
             country_name = "Spain"
         orig_location = self.searchGeocodeOSM(postalcode, town, country_name)
         if orig_location is None:
@@ -162,7 +162,7 @@ class ComponentSession(object):
             return self.getFuelPricesNL(postalcode,country,town,locationinfo, fueltype, single)
         if country.lower() == 'at':
             return self.getFuelPricesAT(postalcode,country,town,locationinfo, fueltype, single)
-        if country.lower() == 'sp':
+        if country.lower() == 'es':
             return self.getFuelPricesSP(postalcode,country,town,locationinfo, fueltype, single)
         if country.lower() not in ['be','fr','lu']:
             _LOGGER.info(f"Not supported country: {country}")
@@ -493,58 +493,75 @@ class ComponentSession(object):
     @sleep_and_retry
     @limits(calls=1, period=1)
     def getFuelPricesSP(self, postalcode, country, town, locationinfo, fueltype: FuelType, single):
-        if country.lower() != 'sp':
+        if country.lower() != 'es':
             return self.getFuelPrices(postalcode,country,town,locationinfo, fueltype, single)
 
-        sp_stations = GasStationApi.get_gas_stations_provincia(locationinfo, fueltype.sp_code)
+
+        if len(locationinfo) < 3:
+            return []
+        
+        all_stations = dict()
+        curr_dist = 0
+
+
+        # boundingboxes = {"lat": "lat", 
+        #                  "lon": "lon", 
+        #                  "boundingbox": [["lat","lon"], ["lat", "lon", "lat", "lon"], ["lat", "lon", "lat", "lon"]]}
+        
+        boundingBoxReversed = self.reverseGeocodeOSM(locationinfo.get('lon'), locationinfo.get('lat'))
+
+        requiredProv = boundingBoxReversed[3].get('state', None)
+
+        
+        knownProvinces = GasStationApi.get_provinces()
+        prov_id = next(filter(lambda p: p.name in requiredProv, knownProvinces), None).id
+
+
+        sp_stations = GasStationApi.get_gas_stations_provincia(prov_id, fueltype.sp_code)
+        # Sort the list first by "price" and then by "distance"
+        self.add_station_distance(sp_stations.get('ListaEESSPrecio'), float(locationinfo.get('lat').replace(',','.')), float(locationinfo.get('lon').replace(',','.')))
         _LOGGER.debug(f"sp_stations: {sp_stations}")
+        sorted_stations = sorted(sp_stations.get('ListaEESSPrecio'), key=lambda x: (x['PrecioProducto'], x['distance']))
 
 
         stationdetails = []
-        for block in sp_stations:
-            url = block['href']
-            station_id = url.split('/')[-1]
-            station_name = block.find('span', class_='fuel-station-location-name').text.strip()
-            station_street = block.find('div', class_='fuel-station-location-street').text.strip()
-            station_city = block.find('div', class_='fuel-station-location-city').text.strip()
-            station_postalcode, station_locality = station_city.split(maxsplit=1)
-            price_text = block.find('div', class_='price-text')
-            if price_text != None:
-                price_text = price_text.text.strip()
-            else:
-                continue
-            price_changed = [span.text.strip() for span in block.find_all('span', class_='price-changed')]
-            logo_url = block.find('img', class_='mtsk-logo')['src']
-            distance = float(block.find('div', class_='fuel-station-location-distance').text.strip().replace(' km',''))
-            today = date.today()
-            current_date = today.strftime("%Y-%m-%d")
-            # _LOGGER.debug(f"blocks id : {station_id}, postalcode: {station_postalcode}")
+        for block in sorted_stations:
+            # url = block['href']
+            station_id = block.get('C.P.')
+            station_name = block.get('Rótulo')
+            station_street = block.get('Dirección')
+            station_city = block.get('Provincia')
+            station_postalcode = block.get('IDMunicipio')
+            station_locality = block.get('Localidad')
+            price_text = block.get('PrecioProducto')
+            distance = block.get('distance')
+            date = sp_stations.get('Fecha')
+            lat = block.get('Latitud')
+            lon = block.get('Longitud (WGS84)')
 
 
             block_data = {
                 'id': station_id,
                 'name': station_name,
-                'url': f"https://www.clever-tanken.de{url}",
-                'logo_url': f"https://www.clever-tanken.de/{logo_url}",
+                # 'url': f"https://www.clever-tanken.de{url}",
+                # 'logo_url': f"https://www.clever-tanken.de/{logo_url}",
                 'brand': station_name,
                 'address': f"{station_street}, {station_city}",
                 'postalcode': station_postalcode,
                 'locality': station_locality,
                 'price': price_text,
-                'price_changed': price_changed,
-                'lat': 0,
-                'lon': 0,
+                # 'price_changed': price_changed,
+                'lat': lat,
+                'lon': lon,
                 'fuelname': fueltype.name,
                 'distance': distance,
-                'date': current_date, 
+                'date': date, 
                 'country': country
             }
+            stationdetails.append(block_data)
             if single:
                 if postalcode == station_postalcode:
-                    stationdetails.append(block_data)
                     return stationdetails
-            else:
-                stationdetails.append(block_data)
         return stationdetails
         
     @sleep_and_retry
@@ -675,7 +692,7 @@ class ComponentSession(object):
             countryname = carbuLocationInfo.get("cn")
             locationinfo = carbuLocationInfo.get("id")
             _LOGGER.debug(f"convertPostalCode postalcode: {postalcode}, town: {town}, city: {city}, countryname: {countryname}, locationinfo: {locationinfo}")
-        if country.lower() in ["it","nl","sp"]:
+        if country.lower() in ["it","nl","es"]:
             boundingBoxLocationInfo = self.convertLocationBoundingBox(postalcode, country, town)
             locationinfo = boundingBoxLocationInfo
 
@@ -700,7 +717,7 @@ class ComponentSession(object):
             countryname = carbuLocationInfo.get("cn")
             locationinfo = carbuLocationInfo.get("id")
             _LOGGER.debug(f"convertPostalCode postalcode: {postal_code_country[0]}, town: {town}, city: {city}, countryname: {countryname}, locationinfo: {locationinfo}")
-        if postal_code_country[1].lower() in ["it","nl"]: 
+        if postal_code_country[1].lower() in ["it","nl","es"]: 
             #TODO calc boudingboxes for known lat lon
             postal_code_country = self.reverseGeocodeOSM(longitude, latitude)
             town = postal_code_country[2]
@@ -1012,9 +1029,10 @@ class ComponentSession(object):
         postal_code = nominatim_data['address'].get('postcode', None)
         country_code = nominatim_data['address'].get('country_code', None)
         town = nominatim_data['address'].get('town', None)
+        address = nominatim_data['address']
         _LOGGER.debug(f"nominatim_data postal_code {postal_code}, country_code {country_code}, town {town}")
 
-        return (postal_code, country_code, town)
+        return (postal_code, country_code, town, address)
     
     
     @sleep_and_retry
@@ -1071,7 +1089,7 @@ class ComponentSession(object):
     
 
 
-    def haversine_distance(lat1, lon1, lat2, lon2):
+    def haversine_distance(self, lat1, lon1, lat2, lon2):
         # Radius of the Earth in kilometers
         earth_radius = 6371
 
@@ -1101,9 +1119,14 @@ class ComponentSession(object):
         # distance = haversine_distance(lat1, lon1, lat2, lon2)
         # print(f"Approximate distance: {distance:.2f} km")
 
+    def add_station_distance(self, stations, lat, lon):
+        for station in stations:
+            distance = self.haversine_distance(float(station.get("Latitud").replace(',','.')), float(station.get("Longitud (WGS84)").replace(',','.')), lat, lon)
+            station["distance"] = distance
+
     
 #test
-session = ComponentSession()
+# session = ComponentSession()
 # #test SP
 #TODO:
 #add prov and city calls in 
@@ -1111,12 +1134,12 @@ session = ComponentSession()
 #search all stations in province
 #add disstance for each location to search city
 #sort by distance and price
-prov = GasStationApi.get_provinces()
-city = GasStationApi.get_municipalities(prov[8].id)
+# prov = GasStationApi.get_provinces()
+# city = GasStationApi.get_municipalities(prov[8].id)
 # print(session.getFuelPrices("3300", "SP", "Bost", city[20].id, FuelType.DIESEL, False))
-prov = GasStationApi.get_provinces()
-city = GasStationApi.get_municipalities(prov[8].id)
-print(session.getFuelPrices("3300", "SP", "Bost", prov[8].id, FuelType.DIESEL, False))
+
+# locationinfo= session.convertLocationBoundingBox("28500", "ES", "Madrid")
+# print(session.getFuelPrices("28500", "ES", "Madrid", locationinfo, FuelType.DIESEL, False))
 
 # #test BE
 # locationinfo= session.convertPostalCode("3300", "BE", "Bost")

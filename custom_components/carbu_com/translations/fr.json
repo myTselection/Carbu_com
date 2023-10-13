@@ -5,7 +5,7 @@
             "user": {
                 "description": "Configuration des capteurs Carbu.com et Mazout.com.",
                 "data": {
-                    "country": "Pays (BE/DE/FR/IT/LU/NL)",
+                    "country": "Pays (BE/DE/FR/IT/LU/NL/ES)",
                     "postalcode": "Code postal",
                     "filter": "Filtre marque fournisseur (facultatif)",
 					"super95": "Super 95 (E10)",
@@ -39,7 +39,7 @@
             "edit": {
                 "description": "Configuration des capteurs Carbu.com et Mazout.com.",
                 "data": {
-                    "country": "Pays (BE/DE/FR/IT/LU/NL)",
+                    "country": "Pays (BE/DE/FR/IT/LU/NL/ES)",
                     "postalcode": "Code postal",
                     "town": "Ville",
                     "filter": "Filtrer par marque de fournisseur (facultatif)",

@@ -5,7 +5,7 @@
             "user": {
                 "description": "Configureer Carbu.com en Mazout.com sensoren.",
                 "data": {
-                    "country": "Land (BE/DE/FR/IT/LU/NL)",
+                    "country": "Land (BE/DE/FR/IT/LU/NL/ES)",
                     "postalcode": "Postcode",
                     "filter": "Filter voor leveranciersmerk (optioneel)",
 					"super95": "Super 95 (E10)",
@@ -39,7 +39,7 @@
             "edit": {
                 "description": "Configureer Carbu.com en Mazout.com sensoren.",
                 "data": {
-                    "country": "Land (BE/DE/FR/IT/LU/NL)",
+                    "country": "Land (BE/DE/FR/IT/LU/NL/Es)",
                     "postalcode": "Postcode",
                     "town": "Stad",
                     "filter": "Filter voor leveranciersmerk (optioneel)",
