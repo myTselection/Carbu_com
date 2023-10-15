@@ -16,6 +16,8 @@ Since R6.0, beta support for fuel prices in Italy (IT) has been added. Postalcod
 
 Since R7.0, beta support for fuel prices in Netherlands (NL) has been added. Postalcode and town need to be provided.
 
+Since R8.0, beta support for fuel prices in Spain (ES) has been added. Postalcode and town need to be provided.
+
 
 Some discussion on this topic can be found within [the Home Assistant community forum](https://community.home-assistant.io/t/rest-sensor-needs-to-get-latest-element-of-list/404882/4).
 
