@@ -230,7 +230,7 @@ class ComponentData:
         # </optgroup>
         
     async def get_fuel_price_info(self, fuel_type: FuelType):
-        _LOGGER.debug(f"{NAME} getting fuel price_info {fuel_type.name_lowercase}") 
+        _LOGGER.debug(f"{NAME} getting fuel price_info {fuel_type.name_lowercase} {self._postalcode}, {self._country}, {self._town}, {self._locationinfo}, {fuel_type}") 
         price_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrices(self._postalcode, self._country, self._town, self._locationinfo, fuel_type, False))
         self._price_info[fuel_type] = price_info
         _LOGGER.debug(f"{NAME} price_info {fuel_type.name_lowercase} {price_info}")  
