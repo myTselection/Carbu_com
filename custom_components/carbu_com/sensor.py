@@ -671,9 +671,9 @@ class ComponentFuelPredictionSensor(Entity):
         priceinfo = self._data._price_info.get(self._fueltype)
         
         
-        self._trend = round(priceinfo,3)
+        self._trend = round( priceinfo[0],3)
         
-        self._date = self._data._lastupdate
+        self._date = priceinfo[1]
         
             
         

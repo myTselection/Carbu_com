@@ -625,7 +625,7 @@ class ComponentSession(object):
         except:
             _LOGGER.error(f"Carbu_com Prediction code {fueltype_prediction_code} could not be retrieved")
                 
-        return value
+        return [value,categories[categoriesIndex-1]]
         
     @sleep_and_retry
     @limits(calls=1, period=1)
