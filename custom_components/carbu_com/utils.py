@@ -17,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.0%z"
 
+
 def check_settings(config, hass):
     errors_found = False
     if not any(config.get(i) for i in ["country"]):
@@ -135,6 +136,7 @@ class ComponentSession(object):
         if country.lower() == 'es':
             country_name = "Spain"
         orig_location = self.searchGeocodeOSM(postalcode, town, country_name)
+        _LOGGER.debug(f"searchGeocodeOSM({postalcode}, {town}, {country_name}): {orig_location}")
         if orig_location is None:
             return []
         orig_boundingbox = orig_location.get('boundingbox')
@@ -579,6 +581,7 @@ class ComponentSession(object):
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         # Super 95: https://carbu.com/belgie//index.php/voorspellingen?p=M&C=E95
         # Diesel: https://carbu.com/belgie//index.php/voorspellingen?p=M&C=D
+        _LOGGER.debug(f"https://carbu.com/belgie//index.php/voorspellingen?p=M&C={fueltype_prediction_code}")
 
         response = self.s.get(f"https://carbu.com/belgie//index.php/voorspellingen?p=M&C={fueltype_prediction_code}",headers=header,timeout=30)
         if response.status_code != 200:
@@ -689,7 +692,6 @@ class ComponentSession(object):
     @sleep_and_retry
     @limits(calls=10, period=5)
     def getStationInfo(self, postalcode, country, fuel_type: FuelType, town="", max_distance=0, filter=""):
-        town = None
         locationinfo = None
         single = True if max_distance == 0 else False
         if country.lower() in ["be","fr","lu"]:
