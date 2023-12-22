@@ -9,8 +9,12 @@ from datetime import date
 import urllib.parse
 from enum import Enum
 from .spain_gas_stations_api import GasStationApi
+import urllib3
 
 import voluptuous as vol
+
+# Disable SSL warnings globally
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
@@ -35,23 +39,40 @@ def check_settings(config, hass):
         
 
 class FuelType(Enum):
-    SUPER95 = ("E10", 5, "benzina", "euro95","23")
-    SUPER95_Prediction = ("E95")
-    SUPER98 = ("SP98", 6, "benzina","superplus", "3")
-    DIESEL = ("GO",3,"diesel","diesel","4")
-    DIESEL_Prediction = ("D")
-    OILSTD = ("7")
-    OILSTD_Prediction = ("mazout50s")
-    OILEXTRA = ("2")
-    OILEXTRA_Prediction = ("extra")
-    LPG = ("GPL", 1, "gpl","lpg","17")
+    SUPER95 = "E10", 5, "benzina", "euro95","23"
+    SUPER95_PREDICTION = "E95",0
+    SUPER95_OFFICIAL_E10 = "super95",0,"","Super 95 E10"
+    SUPER98 = "SP98", 6, "benzina","superplus", "3"
+    SUPER98_OFFICIAL_E5 = "super95/98_E5",0,"","Super 98 E5"
+    SUPER98_OFFICIAL_E10 = "super95/98_E10",0,"","Super 98 E10"
+    DIESEL = "GO",3,"diesel","diesel","4"
+    DIESEL_Prediction = "D",0
+    DIESEL_OFFICIAL_B7 = "diesel/b7",0,"","Diesel B7"
+    DIESEL_OFFICIAL_B10 = "diesel/b10",0,"","Diesel B10"
+    DIESEL_OFFICIAL_XTL = "diesel/xtl",0,"","Diesel XTL"
+    OILSTD = "7",0
+    OILSTD_PREDICTION = "mazout50s",0
+    OILEXTRA = "2",0
+    OILEXTRA_PREDICTION = "extra",0
+    LPG = "GPL", 1, "gpl","lpg","17"
     
-    def __init__(self, code, de_code=0, it_name="",nl_name="", sp_code=""):
-        self.code = code
-        self.de_code = de_code
-        self.it_name = it_name
-        self.nl_name = nl_name
-        self.sp_code = sp_code
+    
+    @property
+    def code(self):
+        return self.value[0]
+    
+    @property
+    def de_code(self):
+        return self.value[1]
+    @property
+    def it_name(self):
+        return self.value[2]
+    @property
+    def nl_name(self):
+        return self.value[3]
+    @property
+    def sp_code(self):
+        return self.value[4]
 
     @property
     def name_lowercase(self):
@@ -632,6 +653,53 @@ class ComponentSession(object):
         
     @sleep_and_retry
     @limits(calls=1, period=1)
+    def getFuelOfficial(self, fueltype_prediction_code):
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+
+        # Super 95: https://carbu.com/belgie/super95
+        # Diesel: https://carbu.com/belgie/diesel
+        _LOGGER.debug(f"https://carbu.com/belgie/{fueltype_prediction_code}")
+
+        response = self.s.get(f"https://carbu.com/belgie/{fueltype_prediction_code}",headers=header,timeout=30)
+        if response.status_code != 200:
+            _LOGGER.error(f"ERROR: {response.text}")
+        assert response.status_code == 200
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        official_price_information = soup.find('section', {'id': 'news', 'class': 'bg-news'})
+
+        # Define a function to convert HTML table to JSON
+        def table_to_json(table):
+            data = {}
+            rows = table.find_all('tr')
+            for row in rows:
+                cols = row.find_all(['th', 'td'])
+                cols = [col.text.strip().replace('(','').replace(')','').replace(' â‚¬/l','').replace(' €/l','').replace('= ','').replace('Vandaag','').replace(',','.') for col in cols]
+                if len(cols) > 0:
+                    name = cols[0]
+                    data[name] = cols[1]
+                    if len(cols) > 1:
+                        data[name+"Next"] = cols[2]
+            return data
+
+        # Extract data from the HTML structure
+        # section_data = {
+        #     # 'id': soup.select_one('#news')['id'],
+        #     # 'class': soup.select_one('#news')['class'],
+        #     # 'heading': soup.select_one('#news h1').text.strip(),
+        #     'table': table_to_json(soup.select_one('.prix-officiel')),
+        #     # 'source': soup.select_one('.text-muted').text.strip(),
+        # }
+        html_table = official_price_information.select_one('.prix-officiel')
+        result = {}
+        if html_table is not None:
+            result = table_to_json(html_table)
+
+        return result
+    
+
+    @sleep_and_retry
+    @limits(calls=1, period=1)
     def getOilPrice(self, locationinfo, volume, oiltypecode):
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         header = {"Accept-Language": "nl-BE"}
@@ -1165,3 +1233,10 @@ class ComponentSession(object):
 # test NL
 # locationinfo= session.convertLocationBoundingBox("2627AR", "NL", "Delft")
 # print(session.getFuelPrices("2627AR", "NL", "Delft", locationinfo, FuelType.LPG, False))
+            
+# print(FuelType.DIESEL.code)
+# print(FuelType.SUPER95_PREDICTION.code)
+# print(session.getFuelOfficial(FuelType.DIESEL_OFFICIAL_B10.code))
+# print(session.getFuelOfficial(FuelType.SUPER95_OFFICIAL_E10.code))
+
+# print(FuelType.DIESEL.code)

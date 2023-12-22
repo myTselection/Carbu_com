@@ -88,9 +88,12 @@ async def dry_setup(hass, config_entry, async_add_devices):
                 sensors.append(sensorSuper95Neigh)
                 
         if country.lower() in ['be','fr','lu']:
-            sensorSuper95Prediction = ComponentFuelPredictionSensor(componentData, FuelType.SUPER95_Prediction)
+            sensorSuper95Prediction = ComponentFuelPredictionSensor(componentData, FuelType.SUPER95_PREDICTION)
             # await sensorSuper95Prediction.async_update()
             sensors.append(sensorSuper95Prediction)
+            sensorSuper95Official = ComponentFuelOfficialSensor(componentData, FuelType.SUPER95_OFFICIAL_E10)
+            # await sensorSuper95Official.async_update()
+            sensors.append(sensorSuper95Official)
     
     
     if super98:
@@ -106,6 +109,12 @@ async def dry_setup(hass, config_entry, async_add_devices):
             sensorSuper98Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER98, postalcode, 10)
             # await sensorSuper95Neigh.async_update()
             sensors.append(sensorSuper98Neigh)
+
+        if country.lower() in ['be','fr','lu']:
+            sensorSuper98OfficialE10 = ComponentFuelOfficialSensor(componentData, FuelType.SUPER98_OFFICIAL_E10)
+            sensors.append(sensorSuper98OfficialE10)
+            sensorSuper98OfficialE5 = ComponentFuelOfficialSensor(componentData, FuelType.SUPER98_OFFICIAL_E5)
+            sensors.append(sensorSuper98OfficialE5)
 
     if diesel:
         sensorDiesel = ComponentPriceSensor(componentData, FuelType.DIESEL, postalcode, False, 0, station)
@@ -125,6 +134,12 @@ async def dry_setup(hass, config_entry, async_add_devices):
             sensorDieselPrediction = ComponentFuelPredictionSensor(componentData, FuelType.DIESEL_Prediction)
             # await sensorDieselPrediction.async_update()
             sensors.append(sensorDieselPrediction)
+            sensorDieselfficialB10 = ComponentFuelOfficialSensor(componentData, FuelType.DIESEL_OFFICIAL_B10)
+            sensors.append(sensorDieselfficialB10)
+            sensorDieselfficialB7 = ComponentFuelOfficialSensor(componentData, FuelType.DIESEL_OFFICIAL_B7)
+            sensors.append(sensorDieselfficialB7)
+            sensorDieselfficialXTL = ComponentFuelOfficialSensor(componentData, FuelType.DIESEL_OFFICIAL_XTL)
+            sensors.append(sensorDieselfficialXTL)
 
     if lpg:
         sensorLpg = ComponentPriceSensor(componentData, FuelType.LPG, postalcode, False, 0, station)
@@ -145,7 +160,7 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorOilstd.async_update()
         sensors.append(sensorOilstd)
         
-        sensorOilstdPrediction = ComponentOilPredictionSensor(componentData, FuelType.OILSTD_Prediction, quantity)
+        sensorOilstdPrediction = ComponentOilPredictionSensor(componentData, FuelType.OILSTD_PREDICTION, quantity)
         # await sensorOilstdPrediction.async_update()
         sensors.append(sensorOilstdPrediction)
     
@@ -154,7 +169,7 @@ async def dry_setup(hass, config_entry, async_add_devices):
         # await sensorOilextra.async_update()
         sensors.append(sensorOilextra)    
         
-        sensorOilextraPrediction = ComponentOilPredictionSensor(componentData, FuelType.OILEXTRA_Prediction, quantity)
+        sensorOilextraPrediction = ComponentOilPredictionSensor(componentData, FuelType.OILEXTRA_PREDICTION, quantity)
         # await sensorOilextraPrediction.async_update()
         sensors.append(sensorOilextraPrediction)
     
@@ -245,13 +260,19 @@ class ComponentData:
         _LOGGER.debug(f"{NAME} getting prediction price_info {fuel_type.name_lowercase}") 
         prediction_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrediction(fuel_type.code))
         self._price_info[fuel_type] = prediction_info
-        _LOGGER.debug(f"{NAME} prediction_info {fuel_type.name_lowercase}Prediction {prediction_info}")
+        _LOGGER.debug(f"{NAME} prediction_info {fuel_type.name_lowercase} Prediction {prediction_info}")
+    
+    async def get_fuel_price_official_info(self, fuel_type: FuelType):
+        _LOGGER.debug(f"{NAME} getting official price_info {fuel_type.name_lowercase}") 
+        official_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelOfficial(fuel_type.code))
+        self._price_info[fuel_type] = official_info
+        _LOGGER.debug(f"{NAME} prediction_info {fuel_type.name_lowercase} Official {official_info}")
     
     async def get_oil_price_prediction_info(self):
         _LOGGER.debug(f"{NAME} getting price_info oil prediction") 
         prediction_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrediction())
-        self._price_info[FuelType.OILSTD_Prediction] = prediction_info
-        self._price_info[FuelType.OILEXTRA_Prediction] = prediction_info
+        self._price_info[FuelType.OILSTD_PREDICTION] = prediction_info
+        self._price_info[FuelType.OILEXTRA_PREDICTION] = prediction_info
         _LOGGER.debug(f"{NAME} prediction_info oilPrediction {prediction_info}")
 
     async def getStationInfoFromPriceInfo(self, priceinfo, postalcode, fueltype, max_distance, filter, individual_station=""):
@@ -280,15 +301,22 @@ class ComponentData:
             if self._super95:
                 await self.get_fuel_price_info(FuelType.SUPER95)  
                 if self._country.lower() in ['be','fr','lu']:
-                    await self.get_fuel_price_prediction_info(FuelType.SUPER95_Prediction) 
+                    await self.get_fuel_price_prediction_info(FuelType.SUPER95_PREDICTION) 
+                    await self.get_fuel_price_official_info(FuelType.SUPER95_OFFICIAL_E10)
                 
             if self._super98:
                 await self.get_fuel_price_info(FuelType.SUPER98)  
+                if self._country.lower() in ['be','fr','lu']:
+                    await self.get_fuel_price_official_info(FuelType.SUPER98_OFFICIAL_E10)
+                    await self.get_fuel_price_official_info(FuelType.SUPER98_OFFICIAL_E5)
                 
             if self._diesel:
                 await self.get_fuel_price_info(FuelType.DIESEL)  
                 if self._country.lower() in ['be','fr','lu']:
                     await self.get_fuel_price_prediction_info(FuelType.DIESEL_Prediction)
+                    await self.get_fuel_price_official_info(FuelType.DIESEL_OFFICIAL_B10)
+                    await self.get_fuel_price_official_info(FuelType.DIESEL_OFFICIAL_B7)
+                    await self.get_fuel_price_official_info(FuelType.DIESEL_OFFICIAL_XTL)
                 
             if self._lpg:
                 await self.get_fuel_price_info(FuelType.LPG)
@@ -336,7 +364,7 @@ class ComponentData:
     @property
     def name(self) -> str:
         """Return the name of the sensor."""
-        return self.unique_id
+        return self.unique_id.title()
 
 
 class ComponentPriceSensor(Entity):
@@ -425,6 +453,8 @@ class ComponentPriceSensor(Entity):
     @property
     def icon(self) -> str:
         """Shows the correct icon for container."""
+        if self._isOil:
+            return "mdi:barrel"
         return "mdi:gas-station"
         
     @property
@@ -440,7 +470,7 @@ class ComponentPriceSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id
+        return self.unique_id.title()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -448,7 +478,7 @@ class ComponentPriceSensor(Entity):
         return {
             ATTR_ATTRIBUTION: NAME,
             "last update": self._last_update,
-            "fueltype": self._fueltype.name_lowercase,
+            "fueltype": self._fueltype.name_lowercase.title(),
             "fuelname": self._fuelname,
             "postalcode": self._postalcode,
             "supplier": self._supplier,
@@ -497,7 +527,7 @@ class ComponentPriceSensor(Entity):
 
     @property
     def friendly_name(self) -> str:
-        return self.unique_id
+        return self.unique_id.title()
 
 class ComponentPriceNeighborhoodSensor(Entity):
     def __init__(self, data, fueltype: FuelType, postalcode, max_distance):
@@ -584,7 +614,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id
+        return self.unique_id.title()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -592,7 +622,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
         return {
             ATTR_ATTRIBUTION: self._supplier_brand,
             "last update": self._last_update,
-            "fueltype": self._fueltype.name_lowercase,
+            "fueltype": self._fueltype.name_lowercase.title(),
             "fuelname": self._fuelname,
             "postalcode": self._postalcode,
             "supplier": self._supplier,
@@ -644,7 +674,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
 
     @property
     def friendly_name(self) -> str:
-        return self.unique_id
+        return self.unique_id.title()
       
 
 class ComponentFuelPredictionSensor(Entity):
@@ -696,7 +726,7 @@ class ComponentFuelPredictionSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id
+        return self.unique_id.title()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -704,7 +734,7 @@ class ComponentFuelPredictionSensor(Entity):
         return {
             ATTR_ATTRIBUTION: NAME,
             "last update": self._last_update,
-            "fueltype": self._fueltype.name_lowercase.split('_')[0],
+            "fueltype": self._fueltype.name_lowercase.split('_')[0].title(),
             "trend": f"{self._trend}%",
             "date": self._date
         }
@@ -738,8 +768,7 @@ class ComponentFuelPredictionSensor(Entity):
         
     @property
     def friendly_name(self) -> str:
-        return self.unique_id
-           
+        return self.unique_id.title()     
 
 class ComponentOilPredictionSensor(Entity):
     def __init__(self, data, fueltype: FuelType, quantity):
@@ -753,6 +782,8 @@ class ComponentOilPredictionSensor(Entity):
         self._price = None
         self._trend = None
         self._date = None
+        self._officialPriceToday = None
+        self._officialPriceTodayDate = None
         
 
     @property
@@ -780,7 +811,7 @@ class ComponentOilPredictionSensor(Entity):
         tomorrowPrice = 0
         
         for element in table:
-            if element.get("code") == code:
+            if element.get("code").lower() == code.lower():
                 self._fuelname = element.get("name")
                 if element.get("data")[1]:
                     todayPrice = element.get("data")[1].get("price")
@@ -792,9 +823,13 @@ class ComponentOilPredictionSensor(Entity):
         
         self._price = tomorrowPrice
         
-        self._trend = round(100 * ((tomorrowPrice - todayPrice) / todayPrice),3)
+        if todayPrice != 0:
+            self._trend = round(100 * ((tomorrowPrice - todayPrice) / todayPrice),3)
+            self._officialPriceToday = todayPrice
         
-        self._date = priceinfo.get("data").get("heads")[2].get("name")
+        if len(priceinfo.get("data").get("heads")) > 1:
+            self._date = priceinfo.get("data").get("heads")[2].get("name")
+            self._officialPriceTodayDate = priceinfo.get("data").get("heads")[1].get("name")
         
             
         
@@ -807,7 +842,7 @@ class ComponentOilPredictionSensor(Entity):
     @property
     def icon(self) -> str:
         """Shows the correct icon for container."""
-        return "mdi:gas-station"
+        return "mdi:barrel"
         
     @property
     def unique_id(self) -> str:
@@ -820,7 +855,7 @@ class ComponentOilPredictionSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id
+        return self.unique_id.title()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -828,10 +863,12 @@ class ComponentOilPredictionSensor(Entity):
         return {
             ATTR_ATTRIBUTION: NAME,
             "last update": self._last_update,
-            "fueltype": self._fueltype.name_lowercase.split('_')[0],
+            "fueltype": self._fueltype.name_lowercase.split('_')[0].title(),
             "fuelname": self._fuelname,
             "price": f"{self._price}€",
             "date": self._date,
+            "current official max price": f"{self._officialPriceToday} €/l",
+            "current official max price date": {self._officialPriceTodayDate},
             "quantity": self._quantity
         }
 
@@ -864,5 +901,106 @@ class ComponentOilPredictionSensor(Entity):
         
     @property
     def friendly_name(self) -> str:
-        return self.unique_id
+        return self.unique_id.title()
         
+class ComponentFuelOfficialSensor(Entity):
+    def __init__(self, data, fueltype):
+        self._data = data
+        self._fueltype = fueltype
+        
+        
+        self._fuelname = None
+        self._last_update = None
+        self._price = None
+        self._date = None
+        self._priceNext = None
+        self._dateNext = None
+        
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self._price
+
+    async def async_update(self):
+        await self._data.update()
+        self._last_update =  self._data._lastupdate
+        
+        priceinfo = self._data._price_info.get(self._fueltype)
+        # _LOGGER.debug(f"official priceinfo: {priceinfo}")
+        
+        self._price=priceinfo.get(self._fueltype.nl_name)
+        self._date = priceinfo.get('Brandstof')
+        
+        self._priceNext=priceinfo.get(self._fueltype.nl_name+"Next")
+        self._dateNext = priceinfo.get('BrandstofNext')
+        
+            
+        
+    async def async_will_remove_from_hass(self):
+        """Clean up after entity before removal."""
+        _LOGGER.info("async_will_remove_from_hass " + NAME)
+        self._data.clear_session()
+
+
+    @property
+    def icon(self) -> str:
+        """Shows the correct icon for container."""
+        return "mdi:gas-station"
+        
+    @property
+    def unique_id(self) -> str:
+        """Return the name of the sensor."""
+        name = f"{NAME} {self._fueltype.name_lowercase.replace('_',' ')}"
+        # _LOGGER.debug(f"official name: {name}")
+        return (name)
+
+    @property
+    def name(self) -> str:
+        return self.unique_id.title()
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return the state attributes."""
+        return {
+            ATTR_ATTRIBUTION: NAME,
+            "last update": self._last_update,
+            "fueltype": self._fueltype.name_lowercase.replace('_',' ').replace('Official ','').title(),
+            "price": f"{self._price}",
+            "date": self._date,
+            "price next": f"{self._priceNext}",
+            "date next": f"{self._dateNext}"
+        }
+
+   
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        # _LOGGER.debug(f"official device_info: {self._data.name}")
+        return DeviceInfo(
+            identifiers={
+                # Serial numbers are unique identifiers within a specific domain
+                (NAME, self._data.unique_id)
+            },
+            name=self._data.name,
+            manufacturer= NAME
+        )
+
+    @property
+    def unit(self) -> int:
+        """Unit"""
+        return int
+
+    @property
+    def unit_of_measurement(self) -> str:
+        """Return the unit of measurement this sensor expresses itself in."""
+        return "€/l"
+
+    @property
+    def device_class(self):
+        return SensorDeviceClass.MONETARY
+        
+    @property
+    def friendly_name(self) -> str:
+        return self.unique_id.title()
+           
