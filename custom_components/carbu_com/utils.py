@@ -678,7 +678,7 @@ class ComponentSession(object):
                 if len(cols) > 0:
                     name = cols[0]
                     data[name] = cols[1]
-                    if len(cols) > 1:
+                    if len(cols) > 2:
                         data[name+"Next"] = cols[2]
             return data
 
