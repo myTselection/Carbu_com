@@ -405,20 +405,23 @@ class ComponentPriceSensor(Entity):
         
         self._priceinfo = self._data._price_info.get(self._fueltype)
         if self._isOil:
-            self._price = float(self._priceinfo.get("data")[0].get("unitPrice"))
-            self._supplier  = self._priceinfo.get("data")[0].get("supplier").get("name") #x.data[0].supplier.name
-            oilproductid = self._fueltype.code
-            self._url   = f"https://mazout.com/belgie/offers?areaCode={self._data._locationinfo}&by=quantity&for={self._quantity}&productId={oilproductid}"
-            self._logourl = self._priceinfo.get("data")[0].get("supplier").get("media").get("logo").get("src") #x.data[0].supplier.media.logo.src
-            self._score = self._priceinfo.get("data")[0].get("supplier").get("rating").get("score") #x.data[0].supplier.rating.score
-            # self._address = 
-            # self._city = 
-            # self._lat = 
-            # self._lon = 
-            self._fuelname = self._priceinfo.get("data")[0].get("product").get("name") #x.data[0].product.name
-            # self._distance = 
-            self._date = self._priceinfo.get("data")[0].get("available").get("visible")# x.data[0].available.visible
-            # self._quantity = self._priceinfo.get("data")[0].get("quantity")
+            if len(self._priceinfo.get("data"))>0:
+                self._price = float(self._priceinfo.get("data")[0].get("unitPrice"))
+                self._supplier  = self._priceinfo.get("data")[0].get("supplier").get("name") #x.data[0].supplier.name
+                oilproductid = self._fueltype.code
+                self._url   = f"https://mazout.com/belgie/offers?areaCode={self._data._locationinfo}&by=quantity&for={self._quantity}&productId={oilproductid}"
+                self._logourl = self._priceinfo.get("data")[0].get("supplier").get("media").get("logo").get("src") #x.data[0].supplier.media.logo.src
+                self._score = self._priceinfo.get("data")[0].get("supplier").get("rating").get("score") #x.data[0].supplier.rating.score
+                # self._address = 
+                # self._city = 
+                # self._lat = 
+                # self._lon = 
+                self._fuelname = self._priceinfo.get("data")[0].get("product").get("name") #x.data[0].product.name
+                # self._distance = 
+                self._date = self._priceinfo.get("data")[0].get("available").get("visible")# x.data[0].available.visible
+                # self._quantity = self._priceinfo.get("data")[0].get("quantity")
+            else:
+                _LOGGER.debug(f'No data available in priceinfo')
         else:
             # _LOGGER.debug(f'indiv. station: {self._individual_station}')
             stationInfo = await self._data.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter, self._individual_station)
