@@ -8,7 +8,7 @@
 
 # Carbu.com Home Assistant integration
 [Carbu.com](https://www.Carbu.com/) Home Assistant custom component. This custom component has been built from the ground up to bring Carbu.com & Mazout.com site data to compare and save on your fuel oil, diesel, lpg and Super prices and integrate this information into Home Assistant to help you towards a better follow up. This integration is built against the public website provided by Carbu.com.
-This integration is in no way affiliated with Carbu.com.
+This integration is in no way affiliated with Carbu.com. **Please don't report issues with this integration to Carbu.com or similar site, they will not be able to support you.**
 
 Since R5.0, beta support for fuel prices in Germany (DE) has been added. City or postalcode can be provided as location.
 
