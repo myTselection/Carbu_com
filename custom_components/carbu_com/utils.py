@@ -5,7 +5,7 @@ import re
 import math
 from bs4 import BeautifulSoup
 from ratelimit import limits, sleep_and_retry
-from datetime import date
+from datetime import date, datetime, timedelta
 import urllib.parse
 from enum import Enum
 from .spain_gas_stations_api import GasStationApi
@@ -20,6 +20,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 _LOGGER = logging.getLogger(__name__)
 
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.0%z"
+_DATE_FORMAT = "%d/%m/%Y"
 
 
 def check_settings(config, hass):
@@ -188,6 +189,8 @@ class ComponentSession(object):
             return self.getFuelPricesAT(postalcode,country,town,locationinfo, fueltype, single)
         if country.lower() == 'es':
             return self.getFuelPricesSP(postalcode,country,town,locationinfo, fueltype, single)
+        if country.lower() == 'us':
+            return self.getFuelPricesUS(postalcode,country,town,locationinfo, fueltype, single)
         if country.lower() not in ['be','fr','lu']:
             _LOGGER.info(f"Not supported country: {country}")
             return []
@@ -595,7 +598,106 @@ class ComponentSession(object):
                 if postalcode == station_postalcode:
                     return stationdetails
         return stationdetails
+
+    @sleep_and_retry
+    @limits(calls=1, period=1)
+    def getFuelPricesUS(self, postalcode, country, town, locationinfo, fueltype: FuelType, single):
+        if country.lower() != 'us':
+            return self.getFuelPrices(postalcode,country,town,locationinfo, fueltype, single)
+
+        CONST_GASBUDDY_STATIONS_FMT = (
+            "https://services.gasbuddy.com/mobile-orchestration/stations?authid={AUTHID}"
+            "&country={COUNTRY}&distance_format={DISTANCEFMT}&limit={LIMIT}&region={STATE}"
+            "&lat={LAT}&lng={LONG}"
+        )
+        CONST_GASBUDDY_GET_STATION_FMT = (
+            "https://services.gasbuddy.com/mobile-orchestration/stations/{STATIONID}"
+            "?authid={AUTHID}"
+        )
         
+        ANDROID_USER_AGENT = "Dalvik/2.1.0 (Linux; U; Android 13; Pixel 4 XL Build/TQ3A.230705.001.B4)"
+        
+        _headers = {
+            "apikey": "56c57e8f1132465d817d6a753c59387e",
+            "User-Agent": ANDROID_USER_AGENT
+        }
+
+        if len(locationinfo) < 3:
+            return []
+        
+        all_stations = dict()
+        curr_dist = 0
+
+
+        # boundingboxes = {"lat": "lat", 
+        #                  "lon": "lon", 
+        #                  "boundingbox": [["lat","lon"], ["lat", "lon", "lat", "lon"], ["lat", "lon", "lat", "lon"]]}
+        
+        boundingBoxReversed = self.reverseGeocodeOSM(locationinfo.get('lon'), locationinfo.get('lat'))
+
+        requiredProv = boundingBoxReversed[3].get('state', None).lower()
+
+        #_LOGGER.debug(f"requiredProv: {requiredProv}")
+
+        
+        knownProvinces = GasStationApi.get_provinces()
+        prov_id = next(filter(lambda p: p.name.lower() in requiredProv, knownProvinces), None).id
+        #_LOGGER.debug(f"prov_id: {prov_id}")
+
+
+        sp_stations = GasStationApi.get_gas_stations_provincia(prov_id, fueltype.sp_code)
+        # Sort the list first by "price" and then by "distance"
+        self.add_station_distance(sp_stations.get('ListaEESSPrecio'), float(locationinfo.get('lat').replace(',','.')), float(locationinfo.get('lon').replace(',','.')))
+        #_LOGGER.debug(f"sp_stations: {sp_stations}")
+        sorted_stations = sorted(sp_stations.get('ListaEESSPrecio'), key=lambda x: (x['distance'], x['PrecioProducto']))
+        # sorted_stations =  sp_stations.get('ListaEESSPrecio').sort(key=lambda item: (
+        #     item['Localidad'] != town,  # Sort by postal code (current postal code first)
+        #     item['distance'],  # Sort by distance
+        #     item['PrecioProducto']  # Sort by price
+        # ))
+
+
+        stationdetails = []
+        for block in sorted_stations:
+            # url = block['href']
+            station_id = block.get('C.P.')
+            station_name = block.get('Rótulo')
+            station_street = block.get('Dirección')
+            station_city = block.get('Provincia')
+            station_postalcode = block.get('IDMunicipio')
+            station_locality = block.get('Localidad')
+            price_text = float(block.get('PrecioProducto').replace(',','.'))
+            distance = block.get('distance')
+            date = sp_stations.get('Fecha')
+            lat = block.get('Latitud')
+            lon = block.get('Longitud (WGS84)')
+
+
+            block_data = {
+                'id': station_id,
+                'name': station_name,
+                # 'url': f"https://www.clever-tanken.de{url}",
+                # 'logo_url': f"https://www.clever-tanken.de/{logo_url}",
+                'brand': station_name,
+                'address': f"{station_street}, {station_city}",
+                'postalcode': station_postalcode,
+                'locality': station_locality,
+                'price': price_text,
+                # 'price_changed': price_changed,
+                'lat': lat,
+                'lon': lon,
+                'fuelname': fueltype.name,
+                'distance': distance,
+                'date': date, 
+                'country': country
+            }
+            stationdetails.append(block_data)
+            if single:
+                if postalcode == station_postalcode:
+                    return stationdetails
+        return stationdetails
+     
+
     @sleep_and_retry
     @limits(calls=1, period=1)
     def getFuelPrediction(self, fueltype_prediction_code):
@@ -648,8 +750,15 @@ class ComponentSession(object):
                     # _LOGGER.debug(f"value: {value}")  
         except:
             _LOGGER.error(f"Carbu_com Prediction code {fueltype_prediction_code} could not be retrieved")
-                
-        return [value,categories[categoriesIndex-1]]
+            return [value, datetime.now()]
+        
+        predictiondate = categories[categoriesIndex-1]
+        # Convert the string to a datetime object
+        # _LOGGER.debug(f"Carbu_com predictiondate {predictiondate}")
+        predictiondate = datetime.strptime(predictiondate, _DATE_FORMAT)
+        # Add 5 days
+        predictiondate = predictiondate + timedelta(days=5)
+        return [value,predictiondate.strftime(_DATE_FORMAT)]
         
     @sleep_and_retry
     @limits(calls=1, period=1)

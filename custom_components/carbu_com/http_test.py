@@ -3,6 +3,7 @@ import requests
 import socket
 from datetime import datetime
 import logging
+import uuid
 
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
@@ -61,13 +62,40 @@ def log_response_details(response, start_time, end_time):
     print(f"Request Timing (in seconds): {round((end_time - start_time).total_seconds(), 2)}")
 
 
+# if __name__ == "__main__":
+#     if len(sys.argv) < 2:
+#         print("Usage to send GET request:: python http_test.py <url>")
+#         print("Usage to send POST request: python http_test.py <url> <data>")
+#         # url = "https://www.prezzibenzina.it/www2/develop/tech/handlers/search_handler.php?brand=&compact=1&fuels=b&max_lat=48.2086&max_long=24.7836&min_lat=36.4372&min_long=-1.5836&sel=getStations&rand=1690877107123"
+#         url = "https://carbu.com/belgie//liste-stations-service/E10/Alsemberg/1652/BE_bf_223"
+#         send_http_get_request(url)
+#     elif len(sys.argv) < 3:
+#         url = sys.argv[1]
+#         send_http_get_request(url)
+#     else:
+#         url = sys.argv[1]
+#         data = sys.argv[2]
+#         send_http_post_request(url,data)
+
+        
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage to send GET request:: python http_test.py <url>")
         print("Usage to send POST request: python http_test.py <url> <data>")
         # url = "https://www.prezzibenzina.it/www2/develop/tech/handlers/search_handler.php?brand=&compact=1&fuels=b&max_lat=48.2086&max_long=24.7836&min_lat=36.4372&min_long=-1.5836&sel=getStations&rand=1690877107123"
-        url = "https://carbu.com/belgie//liste-stations-service/E10/Alsemberg/1652/BE_bf_223"
-        send_http_get_request(url)
+        # url = "https://carbu.com/belgie//liste-stations-service/E10/Alsemberg/1652/BE_bf_223"
+        uid = str(uuid.uuid4)
+        CONST_GASBUDDY_GET_STATION_FMT = (
+            "https://services.gasbuddy.com/mobile-orchestration/stations/{STATIONID}"
+            "?authid={AUTHID}"
+        )
+        site_id = "916"
+        url = CONST_GASBUDDY_GET_STATION_FMT.format(
+                STATIONID=str(site_id),
+                AUTHID=str(uuid.uuid4())
+            )
+        response = send_http_get_request(url)
+        print(response)
     elif len(sys.argv) < 3:
         url = sys.argv[1]
         send_http_get_request(url)
