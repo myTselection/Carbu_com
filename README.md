@@ -7,7 +7,8 @@
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/myTselection/carbu_com.svg)](https://github.com/myTselection/carbu_com/graphs/commit-activity)
 
 # Carbu.com Home Assistant integration
-[Carbu.com](https://www.Carbu.com/) Home Assistant custom component. This custom component has been built from the ground up to bring Carbu.com & Mazout.com site data to compare and save on your fuel oil, diesel, lpg and Super prices and integrate this information into Home Assistant to help you towards a better follow up. This integration is built against the public website provided by Carbu.com. Sensors will be created for the currently cheapest gas station in a region (at location, within 5km and within 10km)
+[Carbu.com](https://www.Carbu.com/) Home Assistant custom component. This custom component has been built from the ground up to bring Carbu.com & Mazout.com site data to compare and save on your fuel oil, diesel, lpg and Super prices and integrate this information into Home Assistant to help you towards a better follow up. This integration is built against the public website provided by Carbu.com and other similar sites. Sensors will be created for the currently **cheapest** gas station in a region (at location, within 5km and within 10km).
+
 This integration is in no way affiliated with Carbu.com. **Please don't report issues with this integration to Carbu.com or similar site, they will not be able to support you.**
 
 Since R5.0, beta support for fuel prices in Germany (DE) has been added. City or postalcode can be provided as location.
@@ -23,7 +24,7 @@ Some discussion on this topic can be found within [the Home Assistant community 
 
 For electricity price expectations [this Entso-E HACS integration](https://github.com/JaccoR/hass-entso-e) can be used.
 
-For Belgian gas and electricity contracts, prices and promotions, please check out my other integration [MyEnergy](https://github.com/myTselection/MyEnergy)
+For cheapest Belgian gas and electricity contracts, prices and promotions, please check out my other integration [MyEnergy](https://github.com/myTselection/MyEnergy)
 
 <p align="center"><img src="https://raw.githubusercontent.com/myTselection/carbu_com/master/icon.png"/></p>
 
@@ -37,8 +38,8 @@ For Belgian gas and electricity contracts, prices and promotions, please check o
    - The name of the town can be selected from the dropdown in the next step of the setup config flow. See [carbu.com](https://carbu.com) website for known towns and postal codes. (Only for BE/FR/LU)
    - An extra checkbox can be set to select a specific individual gas station. If set, a station can be selected in a dropdown with known gas stations (for which a price is available) close to the provided postalcode and town. No sensor for 5km and 10km will be created, only the price sensor for the individual selected station. The name of the sensor will contain the name of the supplier.
    - For Italy & Netherlands, the town will be requested in the second step of the config flow
-   - A filter on supplier brand name can be set (optional). If the filter match, the fuel station will be considered, else next will be searched. A python regex filter value be set
-   - An option is avaible to show a logo (entity picture) with price or the original logo provided by the source. This is mainly visible when mapping the sensor on a map.
+- A filter on supplier brand name can be set (optional). If the filter match, the fuel station will be considered, else next will be searched. A python regex filter value be set
+- An option is avaible to show a logo (entity picture) with price or the original logo provided by the source. This is mainly visible when mapping the sensor on a map.
 
 ## Integration
 - <details><summary>Sensor with lowest diesel and super <code>sensor.carbu_com_[fueltype]_[postalcode]_price</code> and lowest fuel oil <code>sensor.carbu_com_[fueltype]_[postalcode]_[quantity]l_price</code> Fuel oil only supported for BE/FR/LU</summary>
