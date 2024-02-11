@@ -42,6 +42,7 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
 - An option is avaible to show a logo (entity picture) with price or the original logo provided by the source. This is mainly visible when mapping the sensor on a map.
 
 ## Integration
+### Sensors
 - <details><summary>Sensor with lowest diesel and super <code>sensor.carbu_com_[fueltype]_[postalcode]_price</code> and lowest fuel oil <code>sensor.carbu_com_[fueltype]_[postalcode]_[quantity]l_price</code> Fuel oil only supported for BE/FR/LU</summary>
 
     | Attribute | Description |
@@ -119,6 +120,7 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
     | `quantity`  | Quantity for which the price is expected. Main difference between below or above 2000l |
     </details>
 
+### Services
 A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in the area of a postalcode is available. For a given fuel type and a distance in km, the lowest fuel price will be fetched and an event will be triggered with all the details found. Similar, the service **`carbu_com.get_lowest_fuel_price_coor`** can be called providing latitude and longitude coordinates instead of country, postalcode and town.
 
 - <details><summary>Event data returned, event name: <code>carbu_com_lowest_fuel_price</code> /  <code>carbu_com_lowest_fuel_price_coor</code></summary>
