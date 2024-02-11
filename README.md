@@ -94,6 +94,19 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
     | `quantity`  | Quantity of fuel (only for fuel oil) |
     | `score`  | Score of the supplier |
     </details>
+
+- <details><summary>Sensor with official diesel and super price <code>sensor.carbu_com_[fueltype]_officia_[fueltypecode]</code>, only supported for BE/FR/LU</summary>
+
+    | Attribute | Description |
+    | --------- | ----------- |
+    | State     | **Price** |
+    | `last update `   | Timestamp info last retrieved from the carbu.com website. (There is a throttling of 1h active to limit requests. Restart HA to force update) |
+    | `fueltype`   | Fuel type |
+    | `price`   | Price |
+    | `date`  | Date for the validity of the price |
+    | `price next`   | Next official price |
+    | `date next`  | Date as of when the next price will be applicable |
+    </details>
     
 - <details><summary>Sensor diesel and super prediction: <code>sensor.carbu_com_[fueltype]_prediction</code> Only supported for BE/FR/LU</summary>
     
