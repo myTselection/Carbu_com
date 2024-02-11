@@ -64,7 +64,8 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
     | `date`  | Date for the validity of the price |
     | `quantity`  | Quantity of fuel (only for fuel oil) |
     | `score`  | Score of the supplier |
-    | `suppliers`  | Full json list of all suppliers with prices and detials found in neighbourhood around the postal code |
+    | `id`  | Unique id of the supplier |
+    | ~~`suppliers`~~  | ~~Full json list of all suppliers with prices and detials found in neighbourhood around the postal code~~ |
     
     </details>
     
@@ -93,6 +94,7 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
     | `date`  | Date for the validity of the price |
     | `quantity`  | Quantity of fuel (only for fuel oil) |
     | `score`  | Score of the supplier |
+    | `id`  | Unique id of the supplier |
     </details>
 
 - <details><summary>Sensor with official diesel and super price <code>sensor.carbu_com_[fueltype]_officia_[fueltypecode]</code>, only supported for BE/FR/LU</summary>
@@ -130,6 +132,8 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
     | **`trend`** | **Percentage of increase or decrease predicted for coming days** |
     | `price` | Predicted maximum price for type and quantity |
     | `date`  | Date for the validity of the price |
+    | `current official max price`  | Currently official max price |
+    | `current official max price date`  | Date of the currently official max price |
     | `quantity`  | Quantity for which the price is expected. Main difference between below or above 2000l |
     </details>
 
