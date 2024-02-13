@@ -233,6 +233,7 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
 
         if user_input is not None:
+            user_input["filter_choice"] = True # init filter choice to True, as a filter can be set but the flag is not visible on the setup form (only on edit)
             self._init_info = user_input
             if not(self._session):
                 self._session = ComponentSession()
