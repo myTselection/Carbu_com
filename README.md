@@ -40,6 +40,9 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
    - For Italy & Netherlands, the town will be requested in the second step of the config flow
 - A filter on supplier brand name can be set (optional). If the filter match, the fuel station will be considered, else next will be searched. A python regex filter value be set
 - An option is avaible to show a logo (entity picture) with price or the original logo provided by the source. This is mainly visible when mapping the sensor on a map.
+- After setting up the integration, the configuration can be updated using the 'Configure' button of the integration. The usage of a station filter can be enabled and set, the usage of a template to set the 'friendly name' of each sensor type can be enabled and set and the usage of icons with price indication can be enabled or disabled.
+  - The checkboxes are required since else clearing the text of the configuration was not recorded (HA bug?) and filter or templates could no longer be removed once set.
+  - When setting a sensor 'friendly name' template, any sensor attribute can be used as a placeholder which will be replaced with the actual value. Eg: `Price {fueltype} {fuelname} {supplier}` could be used as a template for te Price sensor. All available attributes can be fetched using the 'Developer Tools' > 'States' > 'Attributes' view in HA or using the tables listed below.
 
 ## Integration
 ### Sensors

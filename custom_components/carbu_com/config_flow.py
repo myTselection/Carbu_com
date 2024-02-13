@@ -31,6 +31,7 @@ def create_schema(entry, option=False):
         default_country = entry.data.get("country", "BE")
         default_postalcode = entry.data.get("postalcode", "")
         default_filter = entry.data.get("filter","")
+        default_friendly_name_template = entry.data.get("friendly_name_template","")
         default_super95 = entry.data.get("super95", True)
         default_super98 = entry.data.get("super98", True)
         default_diesel = entry.data.get("diesel", True)
@@ -40,6 +41,7 @@ def create_schema(entry, option=False):
         default_country = "BE"
         default_postalcode = ""
         default_filter = ""
+        default_friendly_name_template = ""
         default_super95 = True
         default_super98 = True
         default_diesel = True
@@ -79,6 +81,74 @@ def create_schema(entry, option=False):
 
     return data_schema
 
+def create_update_schema(entry, option=False):
+    """Create an update schema based on if a option or if settings
+    is already filled out.
+    """
+
+    if option:
+        # We use .get here incase some of the texts gets changed.
+        default_filter_choice = entry.data.get("filter_choice", False)
+        default_filter = entry.data.get("filter","")
+        default_friendly_name_price_template_choice = entry.data.get("friendly_name_price_template_choice", False)
+        default_friendly_name_price_template = entry.data.get("friendly_name_price_template","")
+        default_friendly_name_neighborhood_template_choice = entry.data.get("friendly_name_neighborhood_template_choice", False)
+        default_friendly_name_neighborhood_template = entry.data.get("friendly_name_neighborhood_template","")
+        default_friendly_name_prediction_template_choice = entry.data.get("friendly_name_prediction_template_choice", False)
+        default_friendly_name_prediction_template = entry.data.get("friendly_name_prediction_template","")
+        default_friendly_name_official_template_choice = entry.data.get("friendly_name_official_template_choice", False)
+        default_friendly_name_official_template = entry.data.get("friendly_name_official_template","")
+        default_logo_with_price = entry.data.get("logo_with_price", True)
+    else:
+        default_filter = ""
+        default_friendly_name_price_template_choice = False
+        default_friendly_name_price_template = ""
+        default_friendly_name_neighborhood_template_choice = False
+        default_friendly_name_neighborhood_template = ""
+        default_friendly_name_prediction_template_choice = False
+        default_friendly_name_prediction_template = ""
+        default_friendly_name_official_template_choice = False
+        default_friendly_name_official_template = ""
+        default_logo_with_price = True
+
+    data_schema = OrderedDict()
+    data_schema[
+        vol.Optional("filter_choice", default=default_filter_choice, description="Use filter?")
+    ] = bool
+    data_schema[
+        vol.Optional("filter", default=default_filter, description="Fuel supplier brand filter (optional)")
+    ] = str
+    data_schema[
+        vol.Optional("friendly_name_price_template_choice", default=default_friendly_name_price_template_choice, description="Use price template?")
+    ] = bool
+    data_schema[
+        vol.Optional("friendly_name_price_template", default=default_friendly_name_price_template, description="Friendly name Price template (optional)")
+    ] = str
+    data_schema[
+        vol.Optional("friendly_name_neighborhood_template_choice", default=default_friendly_name_neighborhood_template_choice, description="Use neighborhood template?")
+    ] = bool
+    data_schema[
+        vol.Optional("friendly_name_neighborhood_template", default=default_friendly_name_neighborhood_template, description="Friendly name Neighborhood template (optional)")
+    ] = str
+    data_schema[
+        vol.Optional("friendly_name_prediction_template_choice", default=default_friendly_name_prediction_template_choice, description="Use prediction template?")
+    ] = bool
+    data_schema[
+        vol.Optional("friendly_name_prediction_template", default=default_friendly_name_prediction_template, description="Friendly name Prediction template (optional)")
+    ] = str
+    data_schema[
+        vol.Optional("friendly_name_official_template_choice", default=default_friendly_name_official_template_choice, description="Use official template?")
+    ] = bool
+    data_schema[
+        vol.Optional("friendly_name_official_template", default=default_friendly_name_official_template, description="Friendly name Official template (optional)")
+    ] = str
+    data_schema[
+        vol.Optional("logo_with_price", default=default_logo_with_price, description="Logo with price")
+    ] = bool
+    
+    _LOGGER.debug(f"create_update_schema data_schema: {data_schema}")
+
+    return data_schema
 
 def create_town_carbu_schema(towns):
     """Create a default schema based on if a option or if settings
@@ -262,11 +332,11 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_create_entry(title="configuration.yaml", data={})
 
     # Disabled 'CONFIGURE' edit option, as it would require sensor full re-init
-    # @callback
-    # @staticmethod
-    # def async_get_options_flow(config_entry): 
-    #     """Get the options flow for this handler."""
-    #     return ComponentOptionsHandler(config_entry)
+    @callback
+    @staticmethod
+    def async_get_options_flow(config_entry): 
+        """Get the options flow for this handler."""
+        return ComponentOptionsHandler(config_entry)
 
 
 class ComponentOptionsHandler(config_entries.ConfigFlow):
@@ -279,16 +349,32 @@ class ComponentOptionsHandler(config_entries.ConfigFlow):
         self._errors = {}
 
     async def async_step_init(self, user_input=None):
+        # _LOGGER.debug(f"{NAME} async_step_init user_input: {user_input}, options: {self.options}, errors: {self._errors},  config_entry: {self.config_entry}")
         return self.async_show_form(
             step_id="edit",
-            data_schema=vol.Schema(create_schema(self.config_entry, option=True)),
+            data_schema=vol.Schema(create_update_schema(self.config_entry, option=True)),
             errors=self._errors,
         )
 
     async def async_step_edit(self, user_input):
-        _LOGGER.debug(f"{NAME} async_step_edit user_input: {user_input}")
+
+        _LOGGER.debug(f"{NAME} async_step_edit user_input: {user_input}, options: {self.options}, errors: {self._errors},  config_entry: {self.config_entry}")
+
         if user_input is not None:
+            user_input["country"] = self.config_entry.data.get("country", "BE")
+            user_input["postalcode"] = self.config_entry.data.get("postalcode", "")
+            user_input["super95"] = self.config_entry.data.get("super95", True)
+            user_input["super98"] = self.config_entry.data.get("super98", True)
+            user_input["diesel"] = self.config_entry.data.get("diesel", True)
+            user_input["lpg"] = self.config_entry.data.get("lpg", False)
+            user_input["individualstation"] = self.config_entry.data.get("individualstation", False)
+            user_input["station"] = self.config_entry.data.get("station", "")
+            user_input["town"] = self.config_entry.data.get("town", False)
+            user_input[FuelType.OILSTD.name_lowercase] = self.config_entry.data.get(FuelType.OILSTD.name_lowercase, True)
+            user_input[FuelType.OILEXTRA.name_lowercase] = self.config_entry.data.get(FuelType.OILEXTRA.name_lowercase, True)
+            user_input["quantity"] = self.config_entry.data.get("quantity", 1000)
+            
             self.hass.config_entries.async_update_entry(
                 self.config_entry, data=user_input
             )
-            return self.async_create_entry(title="", data={})
+            return self.async_create_entry(title=None, data=None)

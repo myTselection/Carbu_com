@@ -212,8 +212,26 @@ class ComponentData:
         self._country = config.get("country")
         self._postalcode = config.get("postalcode")
         self._town = config.get("town")
-        self._filter = config.get("filter")
-        self._logo_with_price = config.get("logo_with_price")
+        self._filter = config.get("filter","")
+        self._logo_with_price = config.get("logo_with_price", True)
+
+        
+        self._friendly_name_price_template = config.get("friendly_name_price_template","")
+        self._friendly_name_neighborhood_template = config.get("friendly_name_neighborhood_template","")
+        self._friendly_name_prediction_template = config.get("friendly_name_prediction_template","")
+        self._friendly_name_official_template = config.get("friendly_name_official_template","")
+
+        
+        self._filter_choice = config.get("filter_choice", True)
+        self._friendly_name_price_template_choice = config.get("friendly_name_price_template_choice", False)
+        self._friendly_name_neighborhood_template_choice = config.get("friendly_name_neighborhood_template_choice", False)
+        self._friendly_name_prediction_template_choice = config.get("friendly_name_prediction_template_choice", False)
+        self._friendly_name_official_template_choice = config.get("friendly_name_official_template_choice", False)
+
+
+
+
+
         self._price_info = dict()
         
         self._carbuLocationInfo = None
@@ -276,8 +294,11 @@ class ComponentData:
         self._price_info[FuelType.OILEXTRA_PREDICTION] = prediction_info
         _LOGGER.debug(f"{NAME} prediction_info oilPrediction {prediction_info}")
 
-    async def getStationInfoFromPriceInfo(self, priceinfo, postalcode, fueltype, max_distance, filter, individual_station=""):
-        stationInfo =  await self._hass.async_add_executor_job(lambda: self._session.getStationInfoFromPriceInfo(priceinfo, postalcode, fueltype, max_distance, filter, individual_station))
+    async def getStationInfoFromPriceInfo(self, priceinfo, postalcode, fueltype, max_distance, individual_station=""):
+        if self._filter_choice:
+            stationInfo =  await self._hass.async_add_executor_job(lambda: self._session.getStationInfoFromPriceInfo(priceinfo, postalcode, fueltype, max_distance, self._filter, individual_station))
+        else:
+            stationInfo =  await self._hass.async_add_executor_job(lambda: self._session.getStationInfoFromPriceInfo(priceinfo, postalcode, fueltype, max_distance, "", individual_station))
         return stationInfo
     
         
@@ -377,6 +398,8 @@ class ComponentPriceSensor(Entity):
         self._quantity = quantity
         self._individual_station = individual_station
         self._logo_with_price = data._logo_with_price
+        self._friendly_name_price_template = self._data._friendly_name_price_template
+        self._friendly_name_price_template_choice = self._data._friendly_name_price_template_choice
         
         self._last_update = None
         self._price = None
@@ -425,7 +448,7 @@ class ComponentPriceSensor(Entity):
                 _LOGGER.debug(f'No data available in priceinfo')
         else:
             # _LOGGER.debug(f'indiv. station: {self._individual_station}')
-            stationInfo = await self._data.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter, self._individual_station)
+            stationInfo = await self._data.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._individual_station)
             # stationInfo = await self._data._hass.async_add_executor_job(lambda: self._data._session.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter))
             self._price = stationInfo.get("price") 
             self._supplier  = stationInfo.get("supplier")
@@ -474,7 +497,11 @@ class ComponentPriceSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id.title()
+        # return self.unique_id.title()
+        if self._friendly_name_price_template_choice:
+            return friendly_name_template(self._friendly_name_price_template, self.extra_state_attributes)
+        else:
+            return self.unique_id.title()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -529,10 +556,6 @@ class ComponentPriceSensor(Entity):
     def device_class(self):
         return SensorDeviceClass.MONETARY
 
-    @property
-    def friendly_name(self) -> str:
-        return self.unique_id.title()
-
 class ComponentPriceNeighborhoodSensor(Entity):
     def __init__(self, data, fueltype: FuelType, postalcode, max_distance):
         self._data = data
@@ -540,6 +563,8 @@ class ComponentPriceNeighborhoodSensor(Entity):
         self._postalcode = postalcode
         self._max_distance = max_distance
         self._logo_with_price = data._logo_with_price
+        self._friendly_name_neighborhood_template = self._data._friendly_name_neighborhood_template
+        self._friendly_name_neighborhood_template_choice = self._data._friendly_name_neighborhood_template_choice
         
         self._last_update = None
         self._price = None
@@ -573,7 +598,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
         
         self._price = None
         self._priceinfo = self._data._price_info.get(self._fueltype)
-        stationInfo = await self._data.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, self._max_distance, self._data._filter)
+        stationInfo = await self._data.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, self._max_distance)
         # stationInfo = await self._data._hass.async_add_executor_job(lambda: self._data._session.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter))
         # stationInfo = await self._data._hass.async_add_executor_job(lambda: self._data._session.getStationInfoFromPriceInfo(self._priceinfo, self._postalcode, self._fueltype, 0, self._data._filter))
         self._price = stationInfo.get("price") 
@@ -618,7 +643,11 @@ class ComponentPriceNeighborhoodSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id.title()
+        # return self.unique_id.title()
+        if self._friendly_name_neighborhood_template_choice:
+            return friendly_name_template(self._friendly_name_neighborhood_template, self.extra_state_attributes)
+        else:
+            return self.unique_id.title()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -676,16 +705,13 @@ class ComponentPriceNeighborhoodSensor(Entity):
     def device_class(self):
         return SensorDeviceClass.MONETARY
 
-    @property
-    def friendly_name(self) -> str:
-        return self.unique_id.title()
-      
 
 class ComponentFuelPredictionSensor(Entity):
     def __init__(self, data, fueltype):
         self._data = data
         self._fueltype = fueltype
-        
+        self._friendly_name_prediction_template = self._data._friendly_name_prediction_template
+        self._friendly_name_prediction_template_choice = self._data._friendly_name_prediction_template_choice
         
         self._fuelname = None
         self._last_update = None
@@ -730,7 +756,11 @@ class ComponentFuelPredictionSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id.title()
+        # return self.unique_id.title()
+        if self._friendly_name_prediction_template_choice:
+            return friendly_name_template(self._friendly_name_prediction_template, self.extra_state_attributes)
+        else:
+            return self.unique_id.title()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -770,15 +800,14 @@ class ComponentFuelPredictionSensor(Entity):
     def device_class(self):
         return SensorDeviceClass.MONETARY
         
-    @property
-    def friendly_name(self) -> str:
-        return self.unique_id.title()     
 
 class ComponentOilPredictionSensor(Entity):
     def __init__(self, data, fueltype: FuelType, quantity):
         self._data = data
         self._fueltype = fueltype
         self._quantity = quantity
+        self._friendly_name_prediction_template = self._data._friendly_name_prediction_template
+        self._friendly_name_prediction_template_choice = self._data._friendly_name_prediction_template_choice
         
         
         self._fuelname = None
@@ -859,7 +888,11 @@ class ComponentOilPredictionSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id.title()
+        # return self.unique_id.title()
+        if self._friendly_name_prediction_template_choice:
+            return friendly_name_template(self._friendly_name_prediction_template, self.extra_state_attributes)
+        else:
+            return self.unique_id.title()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -869,6 +902,7 @@ class ComponentOilPredictionSensor(Entity):
             "last update": self._last_update,
             "fueltype": self._fueltype.name_lowercase.split('_')[0].title(),
             "fuelname": self._fuelname,
+            "trend": self._trend,
             "price": f"{self._price}€",
             "date": self._date,
             "current official max price": f"{self._officialPriceToday} €/l",
@@ -903,9 +937,6 @@ class ComponentOilPredictionSensor(Entity):
     def device_class(self):
         return SensorDeviceClass.MONETARY
         
-    @property
-    def friendly_name(self) -> str:
-        return self.unique_id.title()
         
 class ComponentFuelOfficialSensor(Entity):
     def __init__(self, data, fueltype):
@@ -920,6 +951,8 @@ class ComponentFuelOfficialSensor(Entity):
         self._priceNext = None
         self._dateNext = None
         
+        self._friendly_name_official_template = self._data._friendly_name_official_template
+        self._friendly_name_official_template_choice = self._data._friendly_name_official_template_choice
 
     @property
     def state(self):
@@ -961,7 +994,11 @@ class ComponentFuelOfficialSensor(Entity):
 
     @property
     def name(self) -> str:
-        return self.unique_id.title()
+        # return self.unique_id.title()
+        if self._friendly_name_official_template_choice:
+            return friendly_name_template(self._friendly_name_official_template, self.extra_state_attributes)
+        else:
+            return self.unique_id.title()
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -1004,7 +1041,6 @@ class ComponentFuelOfficialSensor(Entity):
     def device_class(self):
         return SensorDeviceClass.MONETARY
         
-    @property
-    def friendly_name(self) -> str:
-        return self.unique_id.title()
            
+def friendly_name_template(template, attributes):
+    return template.format(**attributes)

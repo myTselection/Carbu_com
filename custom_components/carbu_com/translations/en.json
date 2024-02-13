@@ -35,25 +35,7 @@
                 "data": {
                     "station": "Gas station"
                 }
-            },
-            "edit": {
-                "description": "Setup Carbu.com and Mazout.com sensors.",
-                "data": {
-                    "country": "Country (BE/DE/FR/IT/LU/NL/ES)",
-                    "postalcode": "Postal code",
-                    "town": "Town",
-                    "filter": "Supplier brand filter (optional)",
-					"super95": "Super 95 (E10)",
-					"super98": "Super 98 (E5)",
-					"diesel": "Diesel (B7)",
-					"lpg": "LPG",
-					"oilstd": "Mazout Heating Oil standard (50S)",
-					"oilextra": "Mazout Heating Oil extra",
-					"quantity": "Mazout Heating Oil quanitity (liters)",
-                    "logo_with_price": "Logo with price"
-                }
             }
-
         },
         "error": {
             "missing country": "Please provide a valid country: BE/DE/FR/IT/LU/NL/ES",
@@ -67,18 +49,17 @@
             "edit": {
                 "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
-                    "country": "Country (BE/DE/FR/IT/LU/NL)",
-                    "postalcode": "Postal code",
-                    "town": "Town",
+                    "filter_choice": "Use filter?",
                     "filter": "Supplier brand filter (optional)",
-					"super95": "Super 95 (E10)",
-					"super98": "Super 98 (E5)",
-					"diesel": "Diesel (B7)",
-					"lpg": "LPG",
-					"oilstd": "Mazout Heating Oil standard (50S)",
-					"oilextra": "Mazout Heating Oil extra",
-					"quantity": "Mazout Heating Oil quanitity (liters)",
-                    "logo_with_price": "Logo with price"
+                    "friendly_name_price_template_choice": "Use price template?",
+                    "friendly_name_price_template": "Friendly name sensor Price template (optional)",
+                    "friendly_name_neighborhood_template_choice": "Use neighborhood template?",
+                    "friendly_name_neighborhood_template": "Friendly name sensor Neighborhood template (optional)",
+                    "friendly_name_prediction_template_choice": "Use prediction template?",
+                    "friendly_name_prediction_template": "Friendly name sensor Prediction template (optional)",
+                    "friendly_name_official_template_choice": "Use official template?",
+                    "friendly_name_official_template": "Friendly name sensor Official template (optional)",
+                    "logo_with_price": "Logo with price?"
                 }
             }
         },

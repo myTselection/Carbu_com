@@ -56,11 +56,9 @@ async def async_setup(hass: HomeAssistant, config: dict):
     return True
 
 async def async_update_options(hass: HomeAssistant, config_entry: ConfigEntry):
-    await hass.config_entries.async_reload(config_entry.entry_id)
-
-async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry):
     """Reload integration when options changed"""
     await hass.config_entries.async_reload(config_entry.entry_id)
+
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     unload_ok = await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
@@ -75,6 +73,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(config_entry, Platform.SENSOR)
     )
+    config_entry.async_on_unload(config_entry.add_update_listener(async_update_options))
     _LOGGER.info(f"{DOMAIN} register_services")
     register_services(hass, config_entry)
     return True
