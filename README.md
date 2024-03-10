@@ -11,8 +11,8 @@
 
 This integration is in no way affiliated with Carbu.com. 
 
-| :warning: Please don't report issues with this integration to Carbu or other platforms, they will not be able to support you.** |
-| --------------------------------------------------------------------------------------------------------------------------------|
+| :warning: Please don't report issues with this integration to Carbu or other platforms, they will not be able to support you. |
+| ------------------------------------------------------------------------------------------------------------------------------|
 
 Since R5.0, beta support for fuel prices in Germany (DE) has been added. City or postalcode can be provided as location.
 
