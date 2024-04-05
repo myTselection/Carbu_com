@@ -693,6 +693,7 @@ class ComponentSession(object):
                 date = matching_fuel_product.get("credit", {}).get("posted_time")
                 lat = block.get('info').get('latitude')
                 lon = block.get('info').get('longitude')
+                score = block.get('info').get('star_rating')
 
 
                 block_data = {
@@ -707,6 +708,7 @@ class ComponentSession(object):
                     'price': price_text,
                     # 'price_changed': price_changed,
                     'lat': lat,
+                    'score': score,
                     'lon': lon,
                     'fuelname': fueltype.name,
                     'distance': distance,
@@ -1320,7 +1322,7 @@ class ComponentSession(object):
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
         # Calculate the distance
-        distance = earth_radius * c
+        distance = round(earth_radius * c, 2)
 
         return distance
 

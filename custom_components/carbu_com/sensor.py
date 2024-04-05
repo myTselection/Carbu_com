@@ -214,6 +214,8 @@ class ComponentData:
         self._town = config.get("town")
         self._filter = config.get("filter","")
         self._logo_with_price = config.get("logo_with_price", True)
+        self._price_unit = "€" if self._country.lower() != "us" else "$"
+        self._price_unit_per = "€/l" if self._country.lower() != "us" else "$/g"
 
         
         self._friendly_name_price_template = config.get("friendly_name_price_template","")
@@ -416,6 +418,8 @@ class ComponentPriceSensor(Entity):
         self._date = None
         self._score = None
         self._country = data._country
+        self._price_unit = data._price_unit
+        self._price_unit_per = data._price_unit_per
         self._id = None
 
     @property
@@ -469,6 +473,7 @@ class ComponentPriceSensor(Entity):
             self._date = stationInfo.get("date")
             self._country = stationInfo.get("country")
             self._id = stationInfo.get("id")
+            self._score = stationInfo.get("score")
             
         
     async def async_will_remove_from_hass(self):
@@ -550,7 +555,7 @@ class ComponentPriceSensor(Entity):
     @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement this sensor expresses itself in."""
-        return "€/l"
+        return self._price_unit_per
         
     @property
     def device_class(self):
@@ -586,6 +591,8 @@ class ComponentPriceNeighborhoodSensor(Entity):
         self._diffPct = None
         self._country = data._country
         self._id = None
+        self._price_unit = data._price_unit
+        self._price_unit_per = data._price_unit_per
 
     @property
     def state(self):
@@ -668,9 +675,9 @@ class ComponentPriceNeighborhoodSensor(Entity):
             "longitude": self._lon,
             "region": f"{self._max_distance}km",
             "distance": f"{self._distance}km",
-            "price diff": f"{self._diff}€",
+            "price diff": f"{self._diff}{self._price_unit}",
             "price diff %": f"{self._diffPct}%",
-            "price diff 30l": f"{self._diff30}€",
+            "price diff 30l": f"{self._diff30}{self._price_unit}",
             "date": self._date,
             "score": self._score,
             "filter": self._data._filter,
@@ -699,7 +706,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
     @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement this sensor expresses itself in."""
-        return "€/l"
+        return self._price_unit_per
         
     @property
     def device_class(self):
@@ -817,6 +824,8 @@ class ComponentOilPredictionSensor(Entity):
         self._date = None
         self._officialPriceToday = None
         self._officialPriceTodayDate = None
+        self._price_unit = data._price_unit
+        self._price_unit_per = data._price_unit_per
         
 
     @property
@@ -903,9 +912,9 @@ class ComponentOilPredictionSensor(Entity):
             "fueltype": self._fueltype.name_lowercase.split('_')[0].title(),
             "fuelname": self._fuelname,
             "trend": self._trend,
-            "price": f"{self._price}€",
+            "price": f"{self._price}{self._price_unit}",
             "date": self._date,
-            "current official max price": f"{self._officialPriceToday} €/l",
+            "current official max price": f"{self._officialPriceToday} {self._price_unit_per}",
             "current official max price date": {self._officialPriceTodayDate},
             "quantity": self._quantity
         }
@@ -950,6 +959,8 @@ class ComponentFuelOfficialSensor(Entity):
         self._date = None
         self._priceNext = None
         self._dateNext = None
+        self._price_unit = data._price_unit
+        self._price_unit_per = data._price_unit_per
         
         self._friendly_name_official_template = self._data._friendly_name_official_template
         self._friendly_name_official_template_choice = self._data._friendly_name_official_template_choice
@@ -1035,7 +1046,7 @@ class ComponentFuelOfficialSensor(Entity):
     @property
     def unit_of_measurement(self) -> str:
         """Return the unit of measurement this sensor expresses itself in."""
-        return "€/l"
+        return self._price_unit_per
 
     @property
     def device_class(self):
