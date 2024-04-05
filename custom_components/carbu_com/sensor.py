@@ -316,7 +316,7 @@ class ComponentData:
                 self._city = self._carbuLocationInfo.get("pn")
                 self._countryname = self._carbuLocationInfo.get("cn")
                 self._locationinfo = self._carbuLocationInfo.get("id")
-            if self._locationinfo is None and self._country.lower() in ['it','nl','es']:
+            if self._locationinfo is None and self._country.lower() in ['it','nl','es', 'us']:
                 boundingboxLocationInfo = await self._hass.async_add_executor_job(lambda: self._session.convertLocationBoundingBox(self._postalcode, self._country, self._town))
                 self._locationinfo = boundingboxLocationInfo
             # postalcode, country, town, locationinfo, fueltypecode)

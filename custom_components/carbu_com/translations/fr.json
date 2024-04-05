@@ -1,7 +1,7 @@
 {
   "config": {
     "error": {
-      "missing country": "Veuillez fournir un pays valide: BE/DE/FR/IT/LU/NL",
+      "missing country": "Veuillez fournir un pays valide: BE/DE/FR/IT/LU/NL/ES/US",
       "missing data options handler": "Le gestionnaire d'options a échoué",
       "missing postal code": "Veuillez fournir un code postal valide",
       "no_valid_settings": "Aucun paramètre valide trouvé dans la configuration HA."
@@ -30,7 +30,7 @@
       },
       "user": {
         "data": {
-          "country": "Pays (BE/DE/FR/IT/LU/NL/ES)",
+          "country": "Pays (BE/DE/FR/IT/LU/NL/ES/US)",
           "diesel": "Diesel (B7)",
           "filter": "Filtre marque fournisseur (facultatif)",
           "logo_with_price": "Logo avec prix",
@@ -46,7 +46,7 @@
   },
   "options": {
     "error": {
-      "missing country": "Veuillez fournir un pays valide: BE/DE/FR/IT/LU/NL",
+      "missing country": "Veuillez fournir un pays valide: BE/DE/FR/IT/LU/NL/ES/US",
       "missing data options handler": "Le gestionnaire d'options a échoué",
       "missing postal code": "Veuillez fournir un code postal valide",
       "no_valid_settings": "Aucun paramètre valide trouvé dans la configuration HA."
@@ -75,7 +75,7 @@
       "description": "Obtenez le prix du carburant le plus bas dans le voisinage d'un emplacement spécifique défini par le code postal et la ville (facultatif).",
       "fields": {
         "country": {
-          "description": "Le pays à rechercher, options prises en charge : BE/DE/FR/IT/LU/NL",
+          "description": "Le pays à rechercher, options prises en charge : BE/DE/FR/IT/LU/NL/ES/US",
           "name": "country"
         },
         "filter": {
@@ -131,7 +131,7 @@
       "description": "Obtenez le prix du carburant le plus bas sur un itinéraire entre 2 emplacements définis par des codes postaux",
       "fields": {
         "country": {
-          "description": "Le pays à rechercher, options prises en charge : BE/DE/FR/IT/LU/NL",
+          "description": "Le pays à rechercher, options prises en charge : BE/DE/FR/IT/LU/NL/ES/US",
           "name": "country"
         },
         "filter": {
@@ -147,7 +147,7 @@
           "name": "fuel_type"
         },
         "to_country": {
-          "description": "(Facultatif) Le pays de l'emplacement cible à rechercher, options prises en charge : BE/DE/FR/IT/LU/NL, si aucun to_country n'est fourni, le pays sera utilisé de la même manière pour l'emplacement source et cible",
+          "description": "(Facultatif) Le pays de l'emplacement cible à rechercher, options prises en charge : BE/DE/FR/IT/LU/NL/ES/US, si aucun to_country n'est fourni, le pays sera utilisé de la même manière pour l'emplacement source et cible",
           "name": "to_country"
         },
         "to_postalcode": {

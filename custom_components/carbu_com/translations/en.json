@@ -5,7 +5,7 @@
             "user": {
                 "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
-                    "country": "Country (BE/DE/FR/IT/LU/NL/ES)",
+                    "country": "Country (BE/DE/FR/IT/LU/NL/ES/US)",
                     "postalcode": "Postal code",
                     "filter": "Supplier brand filter (optional)",
 					"super95": "Super 95 (E10)",
@@ -38,7 +38,7 @@
             }
         },
         "error": {
-            "missing country": "Please provide a valid country: BE/DE/FR/IT/LU/NL/ES",
+            "missing country": "Please provide a valid country: BE/DE/FR/IT/LU/NL/ES/US",
             "missing postal code": "Please provide a valid postal code",
             "missing data options handler": "Option handler failed",
             "no_valid_settings": "No valid settings check in ha config."
@@ -64,7 +64,7 @@
             }
         },
         "error": {
-            "missing country": "Please provide a valid country: BE/DE/FR/IT/LU/NL",
+            "missing country": "Please provide a valid country: BE/DE/FR/IT/LU/NL/ES/US",
             "missing postal code": "Please provide a valid postal code",
             "missing data options handler": "Option handler failed",
             "no_valid_settings": "No valid settings check in ha config."
@@ -81,7 +81,7 @@
                 },
                 "country": {
                     "name": "country",
-                    "description": "The country to look for, supported options: BE/DE/FR/IT/LU/NL"
+                    "description": "The country to look for, supported options: BE/DE/FR/IT/LU/NL/ES/US"
                 },
                 "postalcode": {
                     "name": "postalcode",

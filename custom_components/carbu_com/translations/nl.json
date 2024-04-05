@@ -1,7 +1,7 @@
 {
   "config": {
     "error": {
-      "missing country": "Geef een geldig land op: BE/DE/FR/IT/LU/NL",
+      "missing country": "Geef een geldig land op: BE/DE/FR/IT/LU/NL/ES/US",
       "missing data options handler": "Fout bij het verwerken van de opties",
       "missing postal code": "Geef een geldige postcode op",
       "no_valid_settings": "Geen geldige instellingen gevonden in de configuratie."
@@ -30,7 +30,7 @@
       },
       "user": {
         "data": {
-          "country": "Land (BE/DE/FR/IT/LU/NL/ES)",
+          "country": "Land (BE/DE/FR/IT/LU/NL/ES/US)",
           "diesel": "Diesel (B7)",
           "filter": "Filter voor leveranciersmerk (optioneel)",
           "logo_with_price": "Logo met prijs",
@@ -46,7 +46,7 @@
   },
   "options": {
     "error": {
-      "missing country": "Geef een geldig land op: BE/DE/FR/IT/LU/NL",
+      "missing country": "Geef een geldig land op: BE/DE/FR/IT/LU/NL/ES/US",
       "missing data options handler": "Fout bij het verwerken van de opties",
       "missing postal code": "Geef een geldige postcode op",
       "no_valid_settings": "Geen geldige instellingen gevonden in de configuratie."
@@ -75,7 +75,7 @@
       "description": "Krijg de laagste brandstofprijs in de buurt van een specifieke locatie, gedefinieerd door postcode en stad (optioneel).",
       "fields": {
         "country": {
-          "description": "Het land om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL",
+          "description": "Het land om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL/ES/US",
           "name": "country"
         },
         "filter": {
@@ -131,7 +131,7 @@
       "description": "Krijg de laagste brandstofprijs op een route tussen 2 locaties gedefinieerd door postcodes",
       "fields": {
         "country": {
-          "description": "Het land om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL",
+          "description": "Het land om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL/ES/US",
           "name": "country"
         },
         "filter": {
@@ -147,7 +147,7 @@
           "name": "fuel_type"
         },
         "to_country": {
-          "description": "(Optioneel) Het land van de doellocatie om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL, als er geen to_country is opgegeven, wordt hetzelfde land gebruikt voor zowel de bron- als doellocatie",
+          "description": "(Optioneel) Het land van de doellocatie om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL/ES/US, als er geen to_country is opgegeven, wordt hetzelfde land gebruikt voor zowel de bron- als doellocatie",
           "name": "to_country"
         },
         "to_postalcode": {

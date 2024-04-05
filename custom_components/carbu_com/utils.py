@@ -1,6 +1,7 @@
 import json
 import logging
 import requests
+import uuid
 import re
 import math
 from bs4 import BeautifulSoup
@@ -40,13 +41,13 @@ def check_settings(config, hass):
         
 
 class FuelType(Enum):
-    SUPER95 = "E10", 5, "benzina", "euro95","23"
+    SUPER95 = "E10", 5, "benzina", "euro95","23", "regular_gas"
     SUPER95_PREDICTION = "E95",0
     SUPER95_OFFICIAL_E10 = "super95",0,"","Super 95 E10"
-    SUPER98 = "SP98", 6, "benzina","superplus", "3"
+    SUPER98 = "SP98", 6, "benzina","superplus", "3", "premium_gas"
     SUPER98_OFFICIAL_E5 = "super95/98_E5",0,"","Super 98 E5"
     SUPER98_OFFICIAL_E10 = "super95/98_E10",0,"","Super 98 E10"
-    DIESEL = "GO",3,"diesel","diesel","4"
+    DIESEL = "GO",3,"diesel","diesel","4", "diesel"
     DIESEL_Prediction = "D",0
     DIESEL_OFFICIAL_B7 = "diesel/b7",0,"","Diesel B7"
     DIESEL_OFFICIAL_B10 = "diesel/b10",0,"","Diesel B10"
@@ -74,6 +75,9 @@ class FuelType(Enum):
     @property
     def sp_code(self):
         return self.value[4]
+    @property
+    def us_code(self):
+        return self.value[5]
 
     @property
     def name_lowercase(self):
@@ -157,6 +161,8 @@ class ComponentSession(object):
             country_name = "Netherlands"
         if country.lower() == 'es':
             country_name = "Spain"
+        if country.lower() == 'us':
+            country_name = "United States of America"
         orig_location = self.searchGeocodeOSM(postalcode, town, country_name)
         _LOGGER.debug(f"searchGeocodeOSM({postalcode}, {town}, {country_name}): {orig_location}")
         if orig_location is None:
@@ -605,22 +611,6 @@ class ComponentSession(object):
         if country.lower() != 'us':
             return self.getFuelPrices(postalcode,country,town,locationinfo, fueltype, single)
 
-        CONST_GASBUDDY_STATIONS_FMT = (
-            "https://services.gasbuddy.com/mobile-orchestration/stations?authid={AUTHID}"
-            "&country={COUNTRY}&distance_format={DISTANCEFMT}&limit={LIMIT}&region={STATE}"
-            "&lat={LAT}&lng={LONG}"
-        )
-        CONST_GASBUDDY_GET_STATION_FMT = (
-            "https://services.gasbuddy.com/mobile-orchestration/stations/{STATIONID}"
-            "?authid={AUTHID}"
-        )
-        
-        ANDROID_USER_AGENT = "Dalvik/2.1.0 (Linux; U; Android 13; Pixel 4 XL Build/TQ3A.230705.001.B4)"
-        
-        _headers = {
-            "apikey": "56c57e8f1132465d817d6a753c59387e",
-            "User-Agent": ANDROID_USER_AGENT
-        }
 
         if len(locationinfo) < 3:
             return []
@@ -629,72 +619,104 @@ class ComponentSession(object):
         curr_dist = 0
 
 
-        # boundingboxes = {"lat": "lat", 
-        #                  "lon": "lon", 
-        #                  "boundingbox": [["lat","lon"], ["lat", "lon", "lat", "lon"], ["lat", "lon", "lat", "lon"]]}
+        # boundingboxes = {"lat": "<lat>", 
+        #                  "lon": "<lon>", 
+        #                  "boundingbox": [["<lat>","<lon>"], ["<lat>", "<lon>", "<lat>", "<lon>"], ["<lat>", "<lon>", "<lat>", "<lon>"]]}
         
         boundingBoxReversed = self.reverseGeocodeOSM(locationinfo.get('lon'), locationinfo.get('lat'))
 
-        requiredProv = boundingBoxReversed[3].get('state', None).lower()
+        requiredState = boundingBoxReversed[3].get('state', None).lower()
 
-        #_LOGGER.debug(f"requiredProv: {requiredProv}")
+
+        _LOGGER.debug(f"requiredProv: {requiredState}")
 
         
-        knownProvinces = GasStationApi.get_provinces()
-        prov_id = next(filter(lambda p: p.name.lower() in requiredProv, knownProvinces), None).id
-        #_LOGGER.debug(f"prov_id: {prov_id}")
+        AUTHID = str(uuid.uuid4())
+        COUNTRY = "US"
+        DISTANCEFMT = "km"
+        LIMIT = "500"
+        LAT = locationinfo.get('lat')
+        LONG = locationinfo.get('lon')
+        STATE = requiredState
+        CONST_GASBUDDY_STATIONS_FMT = f"https://services.gasbuddy.com/mobile-orchestration/stations?authid={AUTHID}&country={COUNTRY}&distance_format={DISTANCEFMT}&limit={LIMIT}&region={STATE}&lat={LAT}&lng={LONG}"
+        CONST_GASBUDDY_GET_STATION_FMT = "https://services.gasbuddy.com/mobile-orchestration/stations/{STATIONID}?authid={AUTHID}"
 
+        
+        ANDROID_USER_AGENT = "Dalvik/2.1.0 (Linux; U; Android 13; Pixel 4 XL Build/TQ3A.230705.001.B4)"
+        
+        GASBUDDY_HEADERS = {
+            "apikey": "56c57e8f1132465d817d6a753c59387e",
+            "User-Agent": ANDROID_USER_AGENT
+        }
 
-        sp_stations = GasStationApi.get_gas_stations_provincia(prov_id, fueltype.sp_code)
-        # Sort the list first by "price" and then by "distance"
-        self.add_station_distance(sp_stations.get('ListaEESSPrecio'), float(locationinfo.get('lat').replace(',','.')), float(locationinfo.get('lon').replace(',','.')))
-        #_LOGGER.debug(f"sp_stations: {sp_stations}")
-        sorted_stations = sorted(sp_stations.get('ListaEESSPrecio'), key=lambda x: (x['distance'], x['PrecioProducto']))
-        # sorted_stations =  sp_stations.get('ListaEESSPrecio').sort(key=lambda item: (
-        #     item['Localidad'] != town,  # Sort by postal code (current postal code first)
+        response = self.s.get(url=CONST_GASBUDDY_STATIONS_FMT, headers=GASBUDDY_HEADERS)
+        stations = response.json().get('stations')
+        self.add_station_distance(stations, "info.latitude", "info.longitude", float(locationinfo.get('lat').replace(',','.')), float(locationinfo.get('lon').replace(',','.')))
+        
+        _LOGGER.debug(f"stations: {stations}")
+
+        
+        # sorted_stations = sorted(stations, key=lambda x: (x['distance'], x['price']))
+        # sorted_stations =  stations.sort(key=lambda item: (
+        #     item.get('info').get('address').get('postal_code') != postalcode,  # Sort by postal code (current postal code first)
         #     item['distance'],  # Sort by distance
-        #     item['PrecioProducto']  # Sort by price
+        #     item.get('fuel_products').get('credit').get('price')  # Sort by price
         # ))
 
 
+
+        # Sort stations based on postal code, price for the predefined fuel type, and distance
+        # sorted_stations = sorted(stations, key=lambda x: (x['info']['address']['postal_code']!= postalcode, 
+        #                                                 next((product['credit']['price'] for product in x['fuel_products'] if product['fuel_product'] == fueltype.us_code), float('inf')), 
+        #                                                 x['distance']))
+        sorted_stations = sorted(stations, key=lambda x: (next((product['credit']['price'] for product in x['fuel_products'] if product['fuel_product'] == fueltype.us_code), float('inf')), 
+                                                        x['distance']))
+
         stationdetails = []
         for block in sorted_stations:
-            # url = block['href']
-            station_id = block.get('C.P.')
-            station_name = block.get('Rótulo')
-            station_street = block.get('Dirección')
-            station_city = block.get('Provincia')
-            station_postalcode = block.get('IDMunicipio')
-            station_locality = block.get('Localidad')
-            price_text = float(block.get('PrecioProducto').replace(',','.'))
-            distance = block.get('distance')
-            date = sp_stations.get('Fecha')
-            lat = block.get('Latitud')
-            lon = block.get('Longitud (WGS84)')
+            # Find the fuel product matching the predefined fuel type
+            matching_fuel_product = next((product for product in block["fuel_products"] if product["fuel_product"] == fueltype.us_code), None)
+            
+            # Check if matching fuel product is found
+            if matching_fuel_product:
+                # Get the price for the predefined fuel type
+                price_text = float(str(matching_fuel_product.get("credit", {}).get("price",0)).replace(',','.'))
+                
+                # url = block['href']
+                station_id = block.get('id')
+                station_name = block.get('info').get('name')
+                station_street = block.get('info').get('address').get('line_1')
+                station_city = block.get('info').get('address').get('locality')
+                station_postalcode = block.get('info').get('address').get('postal_code')
+                station_locality = block.get('info').get('address').get('WA')
+                distance = block.get('distance')
+                date = matching_fuel_product.get("credit", {}).get("posted_time")
+                lat = block.get('info').get('latitude')
+                lon = block.get('info').get('longitude')
 
 
-            block_data = {
-                'id': station_id,
-                'name': station_name,
-                # 'url': f"https://www.clever-tanken.de{url}",
-                # 'logo_url': f"https://www.clever-tanken.de/{logo_url}",
-                'brand': station_name,
-                'address': f"{station_street}, {station_city}",
-                'postalcode': station_postalcode,
-                'locality': station_locality,
-                'price': price_text,
-                # 'price_changed': price_changed,
-                'lat': lat,
-                'lon': lon,
-                'fuelname': fueltype.name,
-                'distance': distance,
-                'date': date, 
-                'country': country
-            }
-            stationdetails.append(block_data)
-            if single:
-                if postalcode == station_postalcode:
-                    return stationdetails
+                block_data = {
+                    'id': station_id,
+                    'name': station_name,
+                    # 'url': f"https://www.clever-tanken.de{url}",
+                    # 'logo_url': f"https://www.clever-tanken.de/{logo_url}",
+                    'brand': station_name,
+                    'address': f"{station_street}, {station_city}",
+                    'postalcode': station_postalcode,
+                    'locality': station_locality,
+                    'price': price_text,
+                    # 'price_changed': price_changed,
+                    'lat': lat,
+                    'lon': lon,
+                    'fuelname': fueltype.name,
+                    'distance': distance,
+                    'date': date, 
+                    'country': country
+                }
+                stationdetails.append(block_data)
+                if single:
+                    if postalcode == station_postalcode:
+                        return stationdetails
         return stationdetails
      
 
@@ -1311,15 +1333,37 @@ class ComponentSession(object):
         # distance = haversine_distance(lat1, lon1, lat2, lon2)
         # print(f"Approximate distance: {distance:.2f} km")
 
-    def add_station_distance(self, stations, lat, lon):
+    def add_station_distance(self, stations, stationLatName, stationLonName, lat, lon):
         for station in stations:
-            distance = self.haversine_distance(float(station.get("Latitud").replace(',','.')), float(station.get("Longitud (WGS84)").replace(',','.')), lat, lon)
+            latitude = str(self.get_nested_element(station, stationLatName))
+            longitude = str(self.get_nested_element(station, stationLonName))
+            distance = self.haversine_distance(float(latitude.replace(',','.')), float(longitude.replace(',','.')), lat, lon)
             station["distance"] = distance
-
+    def get_nested_element(self, json_obj, key_string):
+        keys = key_string.split('.')
+        nested_value = json_obj
+        try:
+            for key in keys:
+                nested_value = nested_value[key]
+            return nested_value
+        except (KeyError, TypeError):
+            return None
     
 #test
 # session = ComponentSession()
-# #test SP
+
+#test US
+# ZIP Code 10001 - New York, New York
+# ZIP Code 90210 - Beverly Hills, California
+# ZIP Code 60611 - Chicago, Illinois
+# ZIP Code 02110 - Boston, Massachusetts
+# ZIP Code 33109 - Miami Beach, Florida
+
+# locationinfo= session.convertLocationBoundingBox("90210", "US", "Beverly Hills")
+# print(session.getFuelPrices("90210", "US", "Beverly Hills", locationinfo, FuelType.DIESEL, False))
+
+
+#test SP
 #TODO:
 #add prov and city calls in 
 #get bounding box for search city

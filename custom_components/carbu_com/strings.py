@@ -5,7 +5,7 @@
             "user": {
                 "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
-                    "country": "Country (BE/FR/LU/DE/IT)",
+                    "country": "Country (BE / FR / LU / DE / IT / NL / ES / US)",
                     "postalcode": "Postal code",
                     "town": "Town",
                     "filter": "Supplier brand filter (optional)",
@@ -25,7 +25,7 @@
             "edit": {
                 "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
-                    "country": "Country (BE/FR/LU/DE/IT)",
+                    "country": "Country (BE / FR / LU / DE / IT / NL / ES / US)",
                     "postalcode": "Postal code",
                     "town": "Town",
                     "filter": "Supplier brand filter (optional)",
@@ -40,7 +40,7 @@
 
         },
         "error": {
-            "missing country": "Please provide a valid country: BE/FR/LU/DE/IT",
+            "missing country": "Please provide a valid country: BE / FR / LU / DE / IT / NL / ES / US",
             "missing postal code": "Please provide a valid postal code",
             "missing data options handler": "Option handler failed",
             "no_valid_settings": "No valid settings check in ha config."
@@ -51,7 +51,7 @@
             "edit": {
                 "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
-                    "country": "Country (BE/FR/LU/DE/IT)",
+                    "country": "Country (BE / FR / LU / DE / IT / NL / ES / US)",
                     "postalcode": "Postal code",
                     "town": "Town",
                     "filter": "Supplier brand filter (optional)",
@@ -65,7 +65,7 @@
             }
         },
         "error": {
-            "missing country": "Please provide a valid country: BE/FR/LU/DE/IT",
+            "missing country": "Please provide a valid country: BE / FR / LU / DE / IT / NL / ES / US",
             "missing postal code": "Please provide a valid postal code",
             "missing data options handler": "Option handler failed",
             "no_valid_settings": "No valid settings check in ha config."
@@ -82,7 +82,7 @@
                 },
                 "country": {
                     "name": "country",
-                    "description": "The country to look for, supported options: BE / FR / LU / DE / IT"
+                    "description": "The country to look for, supported options: BE / FR / LU / DE / IT / NL / ES / US"
                 },
                 "postalcode": {
                     "name": "postalcode",
@@ -138,7 +138,7 @@
                 },
                 "country": {
                     "name": "country",
-                    "description": "The country to look for, supported options: BE / FR / LU / DE / IT"
+                    "description": "The country to look for, supported options: BE / FR / LU / DE / IT / NL / ES / US"
                 },
                 "from_postalcode": {
                     "name": "from_postalcode",
@@ -150,7 +150,7 @@
                 },
                 "to_country": {
                     "name": "to_country",
-                    "description": "(Optional) The country of target location to look for, supported options: BE / FR / LU / DE / IT, if no to_country is provided, country will be used same for source and target location"
+                    "description": "(Optional) The country of target location to look for, supported options: BE / FR / LU / DE / IT / NL / ES / US, if no to_country is provided, country will be used same for source and target location"
                 },
                 "filter": {
                     "name": "filter",
