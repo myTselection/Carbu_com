@@ -685,6 +685,8 @@ class ComponentSession(object):
                 # url = block['href']
                 station_id = block.get('id')
                 station_name = block.get('info').get('name')
+                alias_name = block.get('info').get('alias')
+                brand_name = block.get('info').get('brand_name')
                 station_street = block.get('info').get('address').get('line_1')
                 station_city = block.get('info').get('address').get('locality')
                 station_postalcode = block.get('info').get('address').get('postal_code')
@@ -698,10 +700,11 @@ class ComponentSession(object):
 
                 block_data = {
                     'id': station_id,
-                    'name': station_name,
+                    'name': f"{alias_name} {station_name}" if alias_name else station_name,
                     # 'url': f"https://www.clever-tanken.de{url}",
                     # 'logo_url': f"https://www.clever-tanken.de/{logo_url}",
-                    'brand': station_name,
+                    'brand': brand_name,
+                    'city': station_city,
                     'address': f"{station_street}, {station_city}",
                     'postalcode': station_postalcode,
                     'locality': station_locality,

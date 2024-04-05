@@ -630,6 +630,7 @@ class ComponentPriceNeighborhoodSensor(Entity):
         self._date = stationInfo.get("date")
         self._country = stationInfo.get("country")
         self._id = stationInfo.get("id")
+        self._score = stationInfo.get("score")
         
     async def async_will_remove_from_hass(self):
         """Clean up after entity before removal."""
