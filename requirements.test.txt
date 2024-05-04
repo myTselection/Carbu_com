@@ -1,3 +1,4 @@
 pytest
 pytest-cov==2.9.0
 pytest-homeassistant-custom-component
+requests>=2.31.0 # not directly required, pinned by Snyk to avoid a vulnerability
