@@ -408,7 +408,7 @@ class ComponentSession(object):
                 'url': f"https://www.brandstof-zoeker.nl/station/{block.get('station').get('url')}",
                 'brand':block.get('station').get('chain'),
                 'address': block.get('station').get('adres'),
-                'postalcode': f"{block.get('station').get('pc_cijfer')}{block.get('station').get('pc_letter')}",
+                'postalcode': f"{block.get('station').get('postcode')}",
                 'locality': block.get('station').get('plaats'),
                 'price': block.get('fuelPrice').get('prijs'),
                 'price_changed': block.get('fuelPrice').get('datum'),
