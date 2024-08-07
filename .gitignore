@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 /*.url
 /custom_components/carbu_com/testUtils.py
+my_cache.sqlite
