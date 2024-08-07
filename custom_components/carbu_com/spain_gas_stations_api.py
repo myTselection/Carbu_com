@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import requests
 
 from .spain_const import *
+# from spain_const import *
 
 
 @dataclass
