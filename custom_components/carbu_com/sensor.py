@@ -207,7 +207,7 @@ class ComponentData:
     def __init__(self, config, hass):
         self._config = config
         self._hass = hass
-        self._session = ComponentSession()
+        self._session = ComponentSession(config.get("API_KEY_GEOCODIFY"))
         self._lastupdate = None
         self._country = config.get("country")
         self._postalcode = config.get("postalcode")
