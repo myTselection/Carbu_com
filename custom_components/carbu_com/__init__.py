@@ -98,9 +98,12 @@ def register_services(hass, config_entry):
             max_distance = 0
         filter = call.data.get('filter','')
         if filter is None:
-            filter = ""
+            filter = ""        
         
-        session = ComponentSession()
+        config = config_entry.data
+        API_KEY_GEOCODIFY = config.get("API_KEY_GEOCODIFY")
+        
+        session = ComponentSession(API_KEY_GEOCODIFY)
         station_info = await hass.async_add_executor_job(lambda: session.getStationInfo(postalcode, country, fuel_type, town, max_distance, filter))
         
         _LOGGER.debug(f"{NAME} get_lowest_fuel_price info found: {station_info}")
@@ -118,7 +121,10 @@ def register_services(hass, config_entry):
         if filter is None:
             filter = ""
         
-        session = ComponentSession()
+        config = config_entry.data
+        API_KEY_GEOCODIFY = config.get("API_KEY_GEOCODIFY")
+        
+        session = ComponentSession(API_KEY_GEOCODIFY)
         station_info = await hass.async_add_executor_job(lambda: session.getStationInfoLatLon(latitude, longitude, fuel_type, max_distance, filter))
         
         _LOGGER.debug(f"{NAME} get_lowest_fuel_price_coor info found: {station_info}")
@@ -138,7 +144,10 @@ def register_services(hass, config_entry):
 
         _LOGGER.debug(f"handle_get_lowest_fuel_price_on_route: country: {country}, to_country: {to_country}, fuel_type: {fuel_type}, filter: {filter}, from_postalcode: {from_postalcode}, to_postalcode: {to_postalcode}")
 
-        session = ComponentSession()
+        config = config_entry.data
+        API_KEY_GEOCODIFY = config.get("API_KEY_GEOCODIFY")
+        
+        session = ComponentSession(API_KEY_GEOCODIFY)
         station_info = await hass.async_add_executor_job(lambda: session.getPriceOnRoute(country, fuel_type, from_postalcode, to_postalcode, to_country, filter))
         
         _LOGGER.debug(f"{NAME} get_lowest_fuel_price_on_route info found: {station_info}")
@@ -158,7 +167,10 @@ def register_services(hass, config_entry):
 
         _LOGGER.debug(f"handle_get_lowest_fuel_price_on_route_coor: fuel_type: {fuel_type}, filter: {filter}, from_latitude: {from_latitude}, from_longitude: {from_longitude}, to_latitude: {to_latitude}, to_longitude: {to_longitude}")
 
-        session = ComponentSession()
+        config = config_entry.data
+        API_KEY_GEOCODIFY = config.get("API_KEY_GEOCODIFY")
+        
+        session = ComponentSession(API_KEY_GEOCODIFY)
         station_info = await hass.async_add_executor_job(lambda: session.getPriceOnRouteLatLon(fuel_type, from_latitude, from_longitude, to_latitude, to_longitude, filter))
         
         _LOGGER.debug(f"{NAME} get_lowest_fuel_price_on_route_coor info found: {station_info}")

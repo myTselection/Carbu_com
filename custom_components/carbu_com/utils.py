@@ -86,7 +86,7 @@ class FuelType(Enum):
         return self.name.lower()
 
 class ComponentSession(object):
-    def __init__(self):
+    def __init__(self, API_KEY_GEOCODIFY):
         # Initialize the cache with custom settings
         requests_cache.install_cache(
             'my_cache',
@@ -97,8 +97,7 @@ class ComponentSession(object):
         self.s = requests.Session()
         self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
         self.s.headers["Referer"] = "https://homeassistant.io"
-        # TODO 
-        self.API_KEY_GEOCODIFY = "Y0ifH3YRr1vOLvs9tjNJr7NwaclIwItJ"
+        self.API_KEY_GEOCODIFY = API_KEY_GEOCODIFY
         self.GEOCODIFY_BASE_URL = "https://api.geocodify.com/v2/"
         
     # Country = country code: BE/FR/LU/DE/IT

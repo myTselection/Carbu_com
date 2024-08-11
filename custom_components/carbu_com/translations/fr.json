@@ -32,6 +32,7 @@
         "data": {
           "country": "Pays (BE/DE/FR/IT/LU/NL/ES/US)",
           "diesel": "Diesel (B7)",
+          "API_KEY_GEOCODIFY": "GeoCodify API key (facultatif)",
           "filter": "Filtre marque fournisseur (facultatif)",
           "logo_with_price": "Logo avec prix",
           "lpg": "LPG",
@@ -54,6 +55,7 @@
     "step": {
       "edit": {
         "data": {
+          "API_KEY_GEOCODIFY": "GeoCodify API key (facultatif)",
           "filter": "Filtrer par marque de fournisseur (facultatif)",
           "filter_choice": "Utilisé un filter?",
           "friendly_name_neighborhood_template": "Modèle convivial de nom sensor Prix environment (facultatif)",

@@ -30,6 +30,7 @@ def create_schema(entry, option=False):
         # We use .get here incase some of the texts gets changed.
         default_country = entry.data.get("country", "BE")
         default_postalcode = entry.data.get("postalcode", "")
+        default_api_key = entry.data.get("API_KEY_GEOCODIFY", "API_KEY_GEOCODIFY")
         default_filter = entry.data.get("filter","")
         default_friendly_name_template = entry.data.get("friendly_name_template","")
         default_super95 = entry.data.get("super95", True)
@@ -40,6 +41,7 @@ def create_schema(entry, option=False):
     else:
         default_country = "BE"
         default_postalcode = ""
+        default_api_key = "API_KEY_GEOCODIFY"
         default_filter = ""
         default_friendly_name_template = ""
         default_super95 = True
@@ -59,6 +61,9 @@ def create_schema(entry, option=False):
             })
     data_schema[
         vol.Required("postalcode", default=default_postalcode, description="Postal Code")
+    ] = str
+    data_schema[
+        vol.Optional("API_KEY_GEOCODIFY", default=default_api_key, description="GeoCodify API key (optional)")
     ] = str
     data_schema[
         vol.Optional("filter", default=default_filter, description="Fuel supplier brand filter (optional)")
@@ -88,6 +93,7 @@ def create_update_schema(entry, option=False):
 
     if option:
         # We use .get here incase some of the texts gets changed.
+        default_api_key = entry.data.get("API_KEY_GEOCODIFY","API_KEY_GEOCODIFY")
         default_filter_choice = entry.data.get("filter_choice", False)
         default_filter = entry.data.get("filter","")
         default_friendly_name_price_template_choice = entry.data.get("friendly_name_price_template_choice", False)
@@ -100,6 +106,7 @@ def create_update_schema(entry, option=False):
         default_friendly_name_official_template = entry.data.get("friendly_name_official_template","")
         default_logo_with_price = entry.data.get("logo_with_price", True)
     else:
+        default_api_key = "API_KEY_GEOCODIFY"
         default_filter = ""
         default_friendly_name_price_template_choice = False
         default_friendly_name_price_template = ""
@@ -112,6 +119,9 @@ def create_update_schema(entry, option=False):
         default_logo_with_price = True
 
     data_schema = OrderedDict()
+    data_schema[
+        vol.Optional("API_KEY_GEOCODIFY", default=default_api_key, description="GeoCodify API key (optional)")
+    ] = str
     data_schema[
         vol.Optional("filter_choice", default=default_filter_choice, description="Use filter?")
     ] = bool

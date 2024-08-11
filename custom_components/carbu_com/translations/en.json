@@ -7,6 +7,7 @@
                 "data": {
                     "country": "Country (BE/DE/FR/IT/LU/NL/ES/US)",
                     "postalcode": "Postal code",
+                    "API_KEY_GEOCODIFY": "GeoCodify API key (optional)",
                     "filter": "Supplier brand filter (optional)",
 					"super95": "Super 95 (E10)",
 					"super98": "Super 98 (E5)",
@@ -49,6 +50,7 @@
             "edit": {
                 "description": "Setup Carbu.com and Mazout.com sensors.",
                 "data": {
+                    "API_KEY_GEOCODIFY": "GeoCodify API key (optional)",
                     "filter_choice": "Use filter?",
                     "filter": "Supplier brand filter (optional)",
                     "friendly_name_price_template_choice": "Use price template?",
