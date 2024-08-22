@@ -86,7 +86,7 @@ class FuelType(Enum):
         return self.name.lower()
 
 class ComponentSession(object):
-    def __init__(self, API_KEY_GEOCODIFY):
+    def __init__(self, GEO_API_KEY):
         # Initialize the cache with custom settings
         requests_cache.install_cache(
             'my_cache',
@@ -97,8 +97,10 @@ class ComponentSession(object):
         self.s = requests.Session()
         self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
         self.s.headers["Referer"] = "https://homeassistant.io"
-        self.API_KEY_GEOCODIFY = API_KEY_GEOCODIFY
-        self.GEOCODIFY_BASE_URL = "https://api.geocodify.com/v2/"
+        # self.API_KEY_GEOCODIFY = GEO_API_KEY
+        # self.GEOCODIFY_BASE_URL = "https://api.geocodify.com/v2/"
+        self.API_KEY_GEOAPIFY = GEO_API_KEY
+        self.GEOAPIFY_BASE_URL = "https://api.geoapify.com/v1/geocode"
         
     # Country = country code: BE/FR/LU/DE/IT
     
@@ -693,7 +695,7 @@ class ComponentSession(object):
         for block in sorted_stations:
             # Find the fuel product matching the predefined fuel type
             matching_fuel_product = next((product for product in block["fuel_products"] if product["fuel_product"] == fueltype.us_code), None)
-            
+            _LOGGER.debug(f"matching_fuel_product: {matching_fuel_product}")
             # Check if matching fuel product is found
             if matching_fuel_product:
                 # Get the price for the predefined fuel type
@@ -1014,6 +1016,8 @@ class ComponentSession(object):
                 currPrice = float(station.get("price"))
             except ValueError:
                 continue
+            _LOGGER.debug(f"getStationInfoFromPriceInfo maxDistance: {max_distance}, currDistance: {currDistance}, postalcode: {station.get("postalcode")}, currPrice: {currPrice} new price: {data.get("price")}")
+            
             # _LOGGER.debug(f'if (({max_distance} == 0 and ({currDistance} <= 5 or {postalcode} == {station.get("postalcode")})) or {currDistance} <= {max_distance}) and ({data.get("price")} is None or {currPrice} < {float(data.get("price"))})')
             if ((max_distance == 0 and (currDistance <= 5 or postalcode == station.get("postalcode"))) or currDistance <= max_distance) and (data.get("price") is None or currPrice < float(data.get("price"))):
                 data["distance"] = float(station.get("distance"))
@@ -1202,21 +1206,41 @@ class ComponentSession(object):
             # header = {"Content-Type": "application/x-www-form-urlencoded"}
             # header = {"Accept-Language": "nl-BE"}
             address = f"{postal_code}, {country_code}"
-            response = self.s.get(f"{self.GEOCODIFY_BASE_URL}geocode?api_key={self.API_KEY_GEOCODIFY}&q={address}")
 
+            
+            # GEOCODIFY
+        #     response = self.s.get(f"{self.GEOCODIFY_BASE_URL}geocode?api_key={self.API_KEY_GEOCODIFY}&q={address}")
+        #     response = response.json()
+        #     status = response.get('meta').get('code')
+        #     if response and status == 200:
+        #         # print(response)
+        #         location = response.get('response').get('features')[0].get('geometry').get('coordinates') # extract the latitude and longitude coordinates from the response
+        #         _LOGGER.debug(f"geocode lat: {location[1]}, lon {location[0]}")
+        #         return location
+        #     else:
+        #         _LOGGER.error(f"ERROR: {location}, country_code: {country_code}, postalcode: {postal_code}")
+        #         return None
+        # except:
+        #     _LOGGER.error(f"ERROR: {response.text}")
+        #     return None
 
-            response = response.json()
-            status = response.get('meta').get('code')
-            if response and status == 200:
-                # print(response)
-                location = response.get('response').get('features')[0].get('geometry').get('coordinates') # extract the latitude and longitude coordinates from the response
-                _LOGGER.debug(f"geocode lat: {location[1]}, lon {location[0]}")
-                return location
+            response = self.s.get(f"{self.GEOAPIFY_BASE_URL}/search?text={address}&api_key={self.API_KEY_GEOAPIFY}&format=json")
+
+            # Check if the request was successful
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Extract the first result's coordinates
+                if data['results'] and len(data['results']) > 0:
+                    location = [data['results'][0]['lon'],data['results'][0]['lat']] # extract the latitude and longitude coordinates from the response
+                    _LOGGER.debug(f"geocode lat: {location[1]}, lon {location[0]}")
+                    return location
+                else:
+                    return None
             else:
-                _LOGGER.error(f"ERROR: {location}, country_code: {country_code}, postalcode: {postal_code}")
-                return None
-        except:
-            _LOGGER.error(f"ERROR: {response.text}")
+                return None, f"Error searching: {address}: {response.status_code}: {response.text}"
+        except Exception as e:
+            _LOGGER.error(f"ERROR: geocode : {e}")
             return None
         
     
@@ -1265,19 +1289,38 @@ class ComponentSession(object):
     def searchGeocode(self, postalcode, city, country):
         try:
             address = f"{postalcode}, {city}, {country}"
-            response = self.s.get(f"{self.GEOCODIFY_BASE_URL}geocode?api_key={self.API_KEY_GEOCODIFY}&q={address}")
+
+            # GEOCODIFY
+            # response = self.s.get(f"{self.GEOCODIFY_BASE_URL}geocode?api_key={self.API_KEY_GEOCODIFY}&q={address}")
             
-            response = response.json()
-            status = response.get('meta').get('code')
-            if response and status == 200:
-                # print(response)
-                location = response.get('response').get('features')[0].get('geometry').get('coordinates') # extract the latitude and longitude coordinates from the response
-                _LOGGER.debug(f"geocode lat: {location[1]}, lon {location[0]}")
-                bbox = response.get('response').get('bbox')
-                return {"lat": location[1], "lon": location[0], "boundingbox": [bbox[1],bbox[0],bbox[3],bbox[2]]}
-        except:
-            _LOGGER.error(f"ERROR: {response.text}")
-            return
+            # response = response.json()
+            # status = response.get('meta').get('code')
+            # if response and status == 200:
+            #     # print(response)
+            #     location = response.get('response').get('features')[0].get('geometry').get('coordinates') # extract the latitude and longitude coordinates from the response
+            #     _LOGGER.debug(f"geocode lat: {location[1]}, lon {location[0]}")
+            #     bbox = response.get('response').get('bbox')
+            #     return {"lat": location[1], "lon": location[0], "boundingbox": [bbox[1],bbox[0],bbox[3],bbox[2]]}
+
+
+            # GEOAPIFY
+            response = self.s.get(f"{self.GEOAPIFY_BASE_URL}/search?text={address}&api_key={self.API_KEY_GEOAPIFY}&format=json")
+
+            # Check if the request was successful
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Extract the first result's coordinates
+                if data['results'] and len(data['results']) > 0:
+                    location = [data['results'][0]['lon'],data['results'][0]['lat']] # extract the latitude and longitude coordinates from the response
+                    bbox = data['results'][0]['bbox']
+                    return {"lat": location[1], "lon": location[0], "boundingbox": [bbox['lat1'],bbox['lon1'],bbox['lat2'],bbox['lon2']]}
+                else:
+                    return None
+            else:
+                return None, f"Error searching: {address}: {response.status_code}: {response.text}"
+        except Exception as e:
+            _LOGGER.error(f"ERROR: searchGeocode : {e}")
     
     #NOT USED for different countries to create a bounding box
     @sleep_and_retry
@@ -1325,26 +1368,48 @@ class ComponentSession(object):
     @limits(calls=1, period=2)
     def reverseGeocode(self, longitude, latitude):
         try:
-            response = self.s.get(f"{self.GEOCODIFY_BASE_URL}reverse?api_key={self.API_KEY_GEOCODIFY}&lat={latitude}&lng={longitude}")
+            # GECODIFY
+            # response = self.s.get(f"{self.GEOCODIFY_BASE_URL}reverse?api_key={self.API_KEY_GEOCODIFY}&lat={latitude}&lng={longitude}")
             
-            response = response.json()
-            status = response.get('meta').get('code')
-            if response and status == 200:
-                # print(response)
+            # response = response.json()
+            # status = response.get('meta').get('code')
+            # if response and status == 200:
+            #     # print(response)
 
-                # Extract the postal code from the response
-                extracted_response = {
-                    "postal_code": response.get('response').get('features')[0].get('properties').get('postalcode'),
-                    "country_code": response.get('response').get('features')[0].get('properties').get('country_code'),
-                    "town": response.get('response').get('features')[0].get('properties').get('locality'),
-                    "address": f"{response.get('response').get('features')[0].get('properties').get('street')} {response.get('response').get('features')[0].get('properties').get('housenumber')}, {response.get('response').get('features')[0].get('properties').get('postalcode')} {response.get('response').get('features')[0].get('properties').get('locality')}, {response.get('response').get('features')[0].get('properties').get('country')}",
-                    "region": response.get('response').get('features')[0].get('properties').get('region')
-                }
-                _LOGGER.debug(f"geodata extracted_response {extracted_response}")
+            #     # Extract the postal code from the response
+            #     extracted_response = {
+            #         "postal_code": response.get('response').get('features')[0].get('properties').get('postalcode'),
+            #         "country_code": response.get('response').get('features')[0].get('properties').get('country_code'),
+            #         "town": response.get('response').get('features')[0].get('properties').get('locality'),
+            #         "address": f"{response.get('response').get('features')[0].get('properties').get('street')} {response.get('response').get('features')[0].get('properties').get('housenumber')}, {response.get('response').get('features')[0].get('properties').get('postalcode')} {response.get('response').get('features')[0].get('properties').get('locality')}, {response.get('response').get('features')[0].get('properties').get('country')}",
+            #         "region": response.get('response').get('features')[0].get('properties').get('region')
+            #     }
+            #     _LOGGER.debug(f"geodata extracted_response {extracted_response}")
 
-                return extracted_response
-        except:
-            return None
+            #     return extracted_response
+
+            # GEOAPIFY
+            response = self.s.get(f"{self.GEOAPIFY_BASE_URL}/reverse?lat={latitude}&lon={longitude}&api_key={self.API_KEY_GEOAPIFY}&format=json")
+
+            # Check if the request was successful
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Extract the first result's coordinates
+                if data['results'] and len(data['results']) > 0:
+                    # Extract the postal code from the response
+                    extracted_response = {
+                        "postal_code": data['results'][0].get('postcode',''),
+                        "country_code": data['results'][0].get('country_code',''),
+                        "town": data['results'][0].get('city',''),
+                        "address": data['results'][0].get('formatted',''),
+                        "region": data['results'][0].get('state','')
+                    }
+                    return extracted_response
+                else:
+                    return None
+        except Exception as e:
+            _LOGGER.error(f"ERROR: reverseGeocode: {e}")
 
 
     # NOT USED for converting lat lon to postal code
@@ -1473,7 +1538,7 @@ class ComponentSession(object):
 
 # Example usage
 
-# session = ComponentSession()
+# session = ComponentSession("GEO_API_KEY")
 # session.geocode("BE", "1000")
 
 #test US
@@ -1488,15 +1553,7 @@ class ComponentSession(object):
 
 
 #test SP
-#TODO:
-#add prov and city calls in 
-#get bounding box for search city
-#search all stations in province
-#add disstance for each location to search city
-#sort by distance and price
-# prov = GasStationApi.get_provinces()
-# city = GasStationApi.get_municipalities(prov[8].id)
-# print(session.getFuelPrices("3300", "SP", "Bost", city[20].id, FuelType.DIESEL, False))
+
 
 # locationinfo= session.convertLocationBoundingBox("28500", "ES", "Madrid")
 # print(session.getFuelPrices("28500", "ES", "Madrid", locationinfo, FuelType.DIESEL, False))

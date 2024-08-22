@@ -207,7 +207,8 @@ class ComponentData:
     def __init__(self, config, hass):
         self._config = config
         self._hass = hass
-        self._session = ComponentSession(config.get("API_KEY_GEOCODIFY"))
+        self._GEO_API_KEY = config.get("GEO_API_KEY")
+        self._session = ComponentSession(self._GEO_API_KEY)
         self._lastupdate = None
         self._country = config.get("country")
         self._postalcode = config.get("postalcode")
@@ -308,7 +309,7 @@ class ComponentData:
     async def _forced_update(self):
         _LOGGER.info("Fetching init stuff for " + NAME)
         if not(self._session):
-            self._session = ComponentSession()
+            self._session = ComponentSession(self._GEO_API_KEY)
 
         if self._session:
             _LOGGER.debug("Starting with session for " + NAME)
