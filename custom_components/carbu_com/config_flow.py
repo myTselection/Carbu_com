@@ -363,7 +363,7 @@ class ComponentOptionsHandler(config_entries.ConfigFlow):
 
     async def async_step_init(self, user_input=None):
         # _LOGGER.debug(f"{NAME} async_step_init user_input: {user_input}, options: {self.options}, errors: {self._errors},  config_entry: {self.config_entry}")
-        data_schema = create_update_schema(user_input, True)
+        data_schema = create_update_schema(self.config_entry.data, True)
         # Define variables for placeholders
         placeholders = {
             "country": self.config_entry.data.get("country", "Unknown country"),
