@@ -1,6 +1,7 @@
 {
   "config": {
     "error": {
+      "api_key_error": "API key geadviseerd en verplicht voor NL/IT/US/ES",
       "missing country": "Geef een geldig land op: BE/DE/FR/IT/LU/NL/ES/US",
       "missing data options handler": "Fout bij het verwerken van de opties",
       "missing postal code": "Geef een geldige postcode op",
@@ -32,7 +33,7 @@
         "data": {
           "country": "Land (BE/DE/FR/IT/LU/NL/ES/US)",
           "diesel": "Diesel (B7)",
-          "GEO_API_KEY": "GeoApify API key (optioneel)",
+          "GEO_API_KEY": "GeoApify API key (geadviseerd)",
           "filter": "Filter voor leveranciersmerk (optioneel)",
           "logo_with_price": "Logo met prijs",
           "lpg": "LPG",
@@ -47,6 +48,7 @@
   },
   "options": {
     "error": {
+      "api_key_error": "API key geadviseerd en verplicht voor NL/IT/US/ES",
       "missing country": "Geef een geldig land op: BE/DE/FR/IT/LU/NL/ES/US",
       "missing data options handler": "Fout bij het verwerken van de opties",
       "missing postal code": "Geef een geldige postcode op",
@@ -54,8 +56,9 @@
     },
     "step": {
       "edit": {
+        "description": "Wijzig instellingen van: {postalcode} {town} ({country}).",
         "data": {
-          "GEO_API_KEY": "GeoApify API key (optioneel)",
+          "GEO_API_KEY": "GeoApify API key (geadviseerd)",
           "filter": "Filter voor leveranciersmerk (optioneel)",
           "filter_choice": "Gebruik filter?",
           "friendly_name_neighborhood_template": "Sensor naam Omgeving template (optional)",
@@ -67,8 +70,7 @@
           "friendly_name_price_template": "Sensor naam Prijs template (optional)",
           "friendly_name_price_template_choice": "Gebruik Prijs template?",
           "logo_with_price": "Logo met prijs?"
-        },
-        "description": "Configureer Carbu.com en Mazout.com sensoren."
+        }
       }
     }
   },

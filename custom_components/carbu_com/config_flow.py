@@ -26,18 +26,18 @@ def create_schema(entry, option=False):
     is already filled out.
     """
 
-    if option:
+    if option and entry :
         # We use .get here incase some of the texts gets changed.
-        default_country = entry.data.get("country", "BE")
-        default_postalcode = entry.data.get("postalcode", "")
-        default_api_key = entry.data.get("GEO_API_KEY", "GEO_API_KEY")
-        default_filter = entry.data.get("filter","")
-        default_friendly_name_template = entry.data.get("friendly_name_template","")
-        default_super95 = entry.data.get("super95", True)
-        default_super98 = entry.data.get("super98", True)
-        default_diesel = entry.data.get("diesel", True)
-        default_lpg = entry.data.get("lpg", False)
-        default_logo_with_price = entry.data.get("default_logo_with_price", True)
+        default_country = entry.get("country", "BE")
+        default_postalcode = entry.get("postalcode", "")
+        default_api_key = entry.get("GEO_API_KEY", "GEO_API_KEY")
+        default_filter = entry.get("filter","")
+        default_friendly_name_template = entry.get("friendly_name_template","")
+        default_super95 = entry.get("super95", True)
+        default_super98 = entry.get("super98", True)
+        default_diesel = entry.get("diesel", True)
+        default_lpg = entry.get("lpg", False)
+        default_logo_with_price = entry.get("default_logo_with_price", True)
     else:
         default_country = "BE"
         default_postalcode = ""
@@ -91,22 +91,23 @@ def create_update_schema(entry, option=False):
     is already filled out.
     """
 
-    if option:
+    if option and entry:
         # We use .get here incase some of the texts gets changed.
-        default_api_key = entry.data.get("GEO_API_KEY","GEO_API_KEY")
-        default_filter_choice = entry.data.get("filter_choice", False)
-        default_filter = entry.data.get("filter","")
-        default_friendly_name_price_template_choice = entry.data.get("friendly_name_price_template_choice", False)
-        default_friendly_name_price_template = entry.data.get("friendly_name_price_template","")
-        default_friendly_name_neighborhood_template_choice = entry.data.get("friendly_name_neighborhood_template_choice", False)
-        default_friendly_name_neighborhood_template = entry.data.get("friendly_name_neighborhood_template","")
-        default_friendly_name_prediction_template_choice = entry.data.get("friendly_name_prediction_template_choice", False)
-        default_friendly_name_prediction_template = entry.data.get("friendly_name_prediction_template","")
-        default_friendly_name_official_template_choice = entry.data.get("friendly_name_official_template_choice", False)
-        default_friendly_name_official_template = entry.data.get("friendly_name_official_template","")
-        default_logo_with_price = entry.data.get("logo_with_price", True)
+        default_api_key = entry.get("GEO_API_KEY","GEO_API_KEY")
+        default_filter_choice = entry.get("filter_choice", False)
+        default_filter = entry.get("filter","")
+        default_friendly_name_price_template_choice = entry.get("friendly_name_price_template_choice", False)
+        default_friendly_name_price_template = entry.get("friendly_name_price_template","")
+        default_friendly_name_neighborhood_template_choice = entry.get("friendly_name_neighborhood_template_choice", False)
+        default_friendly_name_neighborhood_template = entry.get("friendly_name_neighborhood_template","")
+        default_friendly_name_prediction_template_choice = entry.get("friendly_name_prediction_template_choice", False)
+        default_friendly_name_prediction_template = entry.get("friendly_name_prediction_template","")
+        default_friendly_name_official_template_choice = entry.get("friendly_name_official_template_choice", False)
+        default_friendly_name_official_template = entry.get("friendly_name_official_template","")
+        default_logo_with_price = entry.get("logo_with_price", True)
     else:
         default_api_key = "GEO_API_KEY"
+        default_filter_choice = True
         default_filter = ""
         default_friendly_name_price_template_choice = False
         default_friendly_name_price_template = ""
@@ -120,7 +121,7 @@ def create_update_schema(entry, option=False):
 
     data_schema = OrderedDict()
     data_schema[
-        vol.Optional("GEO_API_KEY", default=default_api_key, description="GeoApify API key (optional)")
+        vol.Optional("GEO_API_KEY", default=default_api_key, description="GeoApify API key (adviced)")
     ] = str
     data_schema[
         vol.Optional("filter_choice", default=default_filter_choice, description="Use filter?")
@@ -243,11 +244,9 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
 
         if user_input is not None:
-            user_input["filter_choice"] = True # init filter choice to True, as a filter can be set but the flag is not visible on the setup form (only on edit)
             self._init_info = user_input
-            if not(self._session):
-                self._session = ComponentSession(user_input.get('GEO_API_KEY'))
             if user_input.get('country') in ['BE','FR','LU']:
+                self._session = ComponentSession(user_input.get('GEO_API_KEY'))
                 self._towns = []
                 carbuLocationInfo = await self.hass.async_add_executor_job(lambda: self._session.convertPostalCodeMultiMatch(user_input.get('postalcode'), user_input.get('country')))
                 for location in carbuLocationInfo:
@@ -255,13 +254,16 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.debug(f"carbuLocationInfo: {carbuLocationInfo} towns {self._towns}")
                 return await self.async_step_town_carbu()
             # Other countries: get town
-            return await self.async_step_town()
+            if user_input.get('country') not in ['NL','IT','US','ES'] or user_input.get('GEO_API_KEY') not in ['','GEO_API_KEY']:
+                return await self.async_step_town()
+            else:
+                self._errors["base"] = "api_key_error"
         
         return await self._show_config_form(user_input)
 
     async def _show_config_form(self, user_input):
         """Show the configuration form to edit location data."""
-        data_schema = create_schema(user_input)
+        data_schema = create_schema(user_input, True)
         return self.async_show_form(
             step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors
         )
@@ -361,10 +363,18 @@ class ComponentOptionsHandler(config_entries.ConfigFlow):
 
     async def async_step_init(self, user_input=None):
         # _LOGGER.debug(f"{NAME} async_step_init user_input: {user_input}, options: {self.options}, errors: {self._errors},  config_entry: {self.config_entry}")
+        data_schema = create_update_schema(user_input, True)
+        # Define variables for placeholders
+        placeholders = {
+            "country": self.config_entry.data.get("country", "Unknown country"),
+            "postalcode": self.config_entry.data.get("postalcode", "Unknown postalcode"),
+            "town": self.config_entry.data.get("town", "Unknown town"),
+        }
         return self.async_show_form(
             step_id="edit",
-            data_schema=vol.Schema(create_update_schema(self.config_entry, option=True)),
+            data_schema=vol.Schema(data_schema),
             errors=self._errors,
+            description_placeholders=placeholders  # Pass the placeholders here
         )
 
     async def async_step_edit(self, user_input):
@@ -385,7 +395,10 @@ class ComponentOptionsHandler(config_entries.ConfigFlow):
             user_input[FuelType.OILEXTRA.name_lowercase] = self.config_entry.data.get(FuelType.OILEXTRA.name_lowercase, True)
             user_input["quantity"] = self.config_entry.data.get("quantity", 1000)
             
-            self.hass.config_entries.async_update_entry(
-                self.config_entry, data=user_input
-            )
-            return self.async_create_entry(title=None, data=None)
+            if user_input.get('country') not in ['NL','IT','US','ES'] or user_input.get('GEO_API_KEY') not in ['','GEO_API_KEY']:
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry, data=user_input
+                )
+                return self.async_create_entry(title=NAME, data=None)
+            else:
+                self._errors["base"] = "api_key_error"

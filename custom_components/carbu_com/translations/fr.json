@@ -1,6 +1,7 @@
 {
   "config": {
     "error": {
+      "api_key_error": "API key conseillé et obligatoire pour NL/IT/US/ES",
       "missing country": "Veuillez fournir un pays valide: BE/DE/FR/IT/LU/NL/ES/US",
       "missing data options handler": "Le gestionnaire d'options a échoué",
       "missing postal code": "Veuillez fournir un code postal valide",
@@ -32,7 +33,7 @@
         "data": {
           "country": "Pays (BE/DE/FR/IT/LU/NL/ES/US)",
           "diesel": "Diesel (B7)",
-          "GEO_API_KEY": "GeoApify API key (facultatif)",
+          "GEO_API_KEY": "GeoApify API key (conseillé)",
           "filter": "Filtre marque fournisseur (facultatif)",
           "logo_with_price": "Logo avec prix",
           "lpg": "LPG",
@@ -47,6 +48,7 @@
   },
   "options": {
     "error": {
+      "api_key_error": "API key conseillé et obligatoire pour NL/IT/US/ES",
       "missing country": "Veuillez fournir un pays valide: BE/DE/FR/IT/LU/NL/ES/US",
       "missing data options handler": "Le gestionnaire d'options a échoué",
       "missing postal code": "Veuillez fournir un code postal valide",
@@ -54,8 +56,9 @@
     },
     "step": {
       "edit": {
+        "description": "Mise à jour des paramètres de: {postalcode} {town} ({country}).",
         "data": {
-          "GEO_API_KEY": "GeoApify API key (facultatif)",
+          "GEO_API_KEY": "GeoApify API key (conseillé)",
           "filter": "Filtrer par marque de fournisseur (facultatif)",
           "filter_choice": "Utilisé un filter?",
           "friendly_name_neighborhood_template": "Modèle convivial de nom sensor Prix environment (facultatif)",
@@ -67,8 +70,7 @@
           "friendly_name_price_template": "Modèle convivial de nom sensor Prix (facultatif)",
           "friendly_name_price_template_choice": "Utilisé Prix modèle?",
           "logo_with_price": "Logo avec prix?"
-        },
-        "description": "Configuration des capteurs Carbu.com et Mazout.com."
+        }
       }
     }
   },
