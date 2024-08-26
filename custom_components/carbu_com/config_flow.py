@@ -255,6 +255,7 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 return await self.async_step_town_carbu()
             # Other countries: get town
             if user_input.get('country') not in ['NL','IT','US','ES'] or user_input.get('GEO_API_KEY') not in ['','GEO_API_KEY']:
+                self._errors = {}
                 return await self.async_step_town()
             else:
                 self._errors["base"] = "api_key_error"
@@ -399,6 +400,7 @@ class ComponentOptionsHandler(config_entries.ConfigFlow):
                 self.hass.config_entries.async_update_entry(
                     self.config_entry, data=user_input
                 )
+                self._errors = {}
                 return self.async_create_entry(title=NAME, data=None)
             else:
                 self._errors["base"] = "api_key_error"
