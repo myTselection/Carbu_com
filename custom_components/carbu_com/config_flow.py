@@ -245,8 +245,8 @@ class ComponentFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self._init_info = user_input
+            self._session = ComponentSession(user_input.get('GEO_API_KEY'))
             if user_input.get('country') in ['BE','FR','LU']:
-                self._session = ComponentSession(user_input.get('GEO_API_KEY'))
                 self._towns = []
                 carbuLocationInfo = await self.hass.async_add_executor_job(lambda: self._session.convertPostalCodeMultiMatch(user_input.get('postalcode'), user_input.get('country')))
                 for location in carbuLocationInfo:
