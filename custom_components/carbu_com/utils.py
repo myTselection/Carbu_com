@@ -54,8 +54,8 @@ class FuelType(Enum):
     DIESEL_OFFICIAL_B7 = "diesel/b7",0,"","Diesel B7"
     DIESEL_OFFICIAL_B10 = "diesel/b10",0,"","Diesel B10"
     DIESEL_OFFICIAL_XTL = "diesel/xtl",0,"","Diesel XTL"
-    OILSTD = "7",0
-    OILSTD_PREDICTION = "mazout50s",0
+    OILSTD = "10",0
+    OILSTD_PREDICTION = "mazoutH0H7",0
     OILEXTRA = "2",0
     OILEXTRA_PREDICTION = "extra",0
     LPG = "GPL", 1, "gpl","lpg","17"
@@ -91,7 +91,7 @@ class ComponentSession(object):
         requests_cache.install_cache(
             'my_cache',
             backend='sqlite',     # Use SQLite as the backend
-            expire_after=3600,    # Cache expiration time in seconds (1 hour)
+            expire_after=2500,    # Cache expiration time in seconds (<1 hour)
             allowable_methods=['GET', 'POST']  # Cache both GET and POST requests
         )
         self.s = requests.Session()
@@ -862,7 +862,7 @@ class ComponentSession(object):
         # https://mazout.com/config.378173423.json
         # https://api.carbu.com/mazout/v1/offers?api_key=elPb39PWhWJj9K2t73tlxyRL0cxEcTCr0cgceQ8q&areaCode=BE_bf_223&productId=7&quantity=1000&sk=T211ck5hWEtySXFMRTlXRys5KzVydz09
 
-        response = self.s.get(f"https://mazout.com/config.378173423.json",headers=header,timeout=30)
+        response = self.s.get(f"https://mazout.com/config.204135307.json",headers=header,timeout=30)
         if response.status_code != 200:
             _LOGGER.error(f"ERROR: {response.text}")
         assert response.status_code == 200
@@ -892,7 +892,7 @@ class ComponentSession(object):
         # https://mazout.com/config.378173423.json
         # https://api.carbu.com/mazout/v1/price-summary?api_key=elPb39PWhWJj9K2t73tlxyRL0cxEcTCr0cgceQ8q&sk=T211ck5hWEtySXFMRTlXRys5KzVydz09
 
-        response = self.s.get(f"https://mazout.com/config.378173423.json",headers=header,timeout=30)
+        response = self.s.get(f"https://mazout.com/config.204135307.json",headers=header,timeout=30)
         if response.status_code != 200:
             _LOGGER.error(f"ERROR: {response.text}")
         assert response.status_code == 200
