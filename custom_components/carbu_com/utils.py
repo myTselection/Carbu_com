@@ -11,6 +11,7 @@ from enum import Enum
 from .spain_gas_stations_api import GasStationApi
 # from spain_gas_stations_api import GasStationApi
 import urllib3
+from ratelimit import limits, sleep_and_retry
 
 import voluptuous as vol
 
