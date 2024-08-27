@@ -5,9 +5,7 @@ import uuid
 import re
 import math
 from bs4 import BeautifulSoup
-from ratelimit import limits, sleep_and_retry
 from datetime import date, datetime, timedelta
-import requests_cache
 import urllib.parse
 from enum import Enum
 from .spain_gas_stations_api import GasStationApi
@@ -87,13 +85,6 @@ class FuelType(Enum):
 
 class ComponentSession(object):
     def __init__(self, GEO_API_KEY):
-        # Initialize the cache with custom settings
-        requests_cache.install_cache(
-            'my_cache',
-            backend='sqlite',     # Use SQLite as the backend
-            expire_after=2500,    # Cache expiration time in seconds (<1 hour)
-            allowable_methods=['GET', 'POST']  # Cache both GET and POST requests
-        )
         self.s = requests.Session()
         self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
         self.s.headers["Referer"] = "https://homeassistant.io"
