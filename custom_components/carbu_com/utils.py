@@ -59,7 +59,7 @@ class FuelType(Enum):
     OILEXTRA = "2",0
     OILEXTRA_PREDICTION = "extra",0
     LPG = "GPL", 1, "gpl","lpg","17"
-    LPG_OFFICIAL = "GPL", 1, "gpl","LPG","LPG"
+    LPG_OFFICIAL = "lpg", 1, "gpl","LPG","LPG"
     
     
     @property
@@ -839,6 +839,7 @@ class ComponentSession(object):
 
         # Super 95: https://carbu.com/belgie/super95
         # Diesel: https://carbu.com/belgie/diesel
+        # Diesel: https://carbu.com/belgie/lpg
         _LOGGER.debug(f"https://carbu.com/belgie/{fueltype_prediction_code}")
 
         response = self.s.get(f"https://carbu.com/belgie/{fueltype_prediction_code}",headers=header,timeout=30)
@@ -1664,6 +1665,7 @@ class ComponentSession(object):
 
 # test nl official
 # session.getFuelOfficial(FuelType.DIESEL_OFFICIAL_B7, "NL")
+# session.getFuelOfficial(FuelType.LPG_OFFICIAL, "BE")
 
 #test US
 # ZIP Code 10001 - New York, New York

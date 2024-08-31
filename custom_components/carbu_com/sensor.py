@@ -317,22 +317,31 @@ class ComponentData:
     
     async def get_fuel_price_prediction_info(self, fuel_type: FuelType):
         _LOGGER.debug(f"{NAME} getting prediction price_info {fuel_type.name_lowercase}") 
-        prediction_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrediction(fuel_type.code))
-        self._price_info[fuel_type] = prediction_info
-        _LOGGER.debug(f"{NAME} prediction_info {fuel_type.name_lowercase} Prediction {prediction_info}")
+        try:
+            prediction_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelPrediction(fuel_type.code))
+            self._price_info[fuel_type] = prediction_info
+            _LOGGER.debug(f"{NAME} prediction_info {fuel_type.name_lowercase} Prediction {prediction_info}")
+        except Exception as e:
+            _LOGGER.error(f"ERROR: prediction failed for {fuel_type.name_lowercase} : {e}")
     
     async def get_fuel_price_official_info(self, fuel_type: FuelType):
         _LOGGER.debug(f"{NAME} getting official price_info {fuel_type.name_lowercase}") 
-        official_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelOfficial(fuel_type, self._country))
-        self._price_info[fuel_type] = official_info
-        _LOGGER.debug(f"{NAME} official_info {fuel_type.name_lowercase} Official {official_info}")
+        try:
+            official_info = await self._hass.async_add_executor_job(lambda: self._session.getFuelOfficial(fuel_type, self._country))
+            self._price_info[fuel_type] = official_info
+            _LOGGER.debug(f"{NAME} official_info {fuel_type.name_lowercase} Official {official_info}")
+        except Exception as e:
+            _LOGGER.error(f"ERROR: prediction failed for {fuel_type.name_lowercase} : {e}")
     
     async def get_oil_price_prediction_info(self):
         _LOGGER.debug(f"{NAME} getting price_info oil prediction") 
-        prediction_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrediction())
-        self._price_info[FuelType.OILSTD_PREDICTION] = prediction_info
-        self._price_info[FuelType.OILEXTRA_PREDICTION] = prediction_info
-        _LOGGER.debug(f"{NAME} prediction_info oilPrediction {prediction_info}")
+        try:
+            prediction_info = await self._hass.async_add_executor_job(lambda: self._session.getOilPrediction())
+            self._price_info[FuelType.OILSTD_PREDICTION] = prediction_info
+            self._price_info[FuelType.OILEXTRA_PREDICTION] = prediction_info
+            _LOGGER.debug(f"{NAME} prediction_info oilPrediction {prediction_info}")
+        except Exception as e:
+            _LOGGER.error(f"ERROR: prediction failed for oil : {e}")
 
     async def getStationInfoFromPriceInfo(self, priceinfo, postalcode, fueltype, max_distance, individual_station=""):
         if self._filter_choice:
@@ -790,12 +799,15 @@ class ComponentFuelPredictionSensor(Entity):
         await self._data.update()
         self._last_update =  self._data._lastupdate
         
-        priceinfo = self._data._price_info.get(self._fueltype)
+        try:
+            priceinfo = self._data._price_info.get(self._fueltype)
         
-        
-        self._trend = round( priceinfo[0],3)
-        
-        self._date = priceinfo[1]
+            
+            self._trend = round( priceinfo[0],3)
+            
+            self._date = priceinfo[1]
+        except Exception as e:
+            _LOGGER.error(f"ERROR: prediction failed for {self._fueltype.name_lowercase} : {e}")
         
             
         
@@ -895,41 +907,44 @@ class ComponentOilPredictionSensor(Entity):
         await self._data.update()
         self._last_update =  self._data._lastupdate
         
-        priceinfo = self._data._price_info.get(self._fueltype)
+        try:
+            priceinfo = self._data._price_info.get(self._fueltype)
         
-        code = self._fueltype.code
-        
-        if int(self._quantity) < 2000:
-            code += "Inf2000"
-        else:
-            code += "Sup2000"
-        
-        table = priceinfo.get("data").get("table")
-        # _LOGGER.debug(f"{NAME} code {code} table: {table}")
-        
-        todayPrice = 0
-        tomorrowPrice = 0
-        
-        for element in table:
-            if element.get("code").lower() == code.lower():
-                self._fuelname = element.get("name")
-                if element.get("data")[1]:
-                    todayPrice = element.get("data")[1].get("price")
-                if element.get("data")[2]:
-                    tomorrowPrice = element.get("data")[2].get("price")
-                elif element.get("data")[1]:
-                    tomorrowPrice = element.get("data")[1].get("price")
-                break
-        
-        self._price = tomorrowPrice
-        
-        if todayPrice != 0:
-            self._trend = round(100 * ((tomorrowPrice - todayPrice) / todayPrice),3)
-            self._officialPriceToday = todayPrice
-        
-        if len(priceinfo.get("data").get("heads")) > 1:
-            self._date = priceinfo.get("data").get("heads")[2].get("name")
-            self._officialPriceTodayDate = priceinfo.get("data").get("heads")[1].get("name")
+            code = self._fueltype.code
+            
+            if int(self._quantity) < 2000:
+                code += "Inf2000"
+            else:
+                code += "Sup2000"
+            
+            table = priceinfo.get("data").get("table")
+            # _LOGGER.debug(f"{NAME} code {code} table: {table}")
+            
+            todayPrice = 0
+            tomorrowPrice = 0
+            
+            for element in table:
+                if element.get("code").lower() == code.lower():
+                    self._fuelname = element.get("name")
+                    if element.get("data")[1]:
+                        todayPrice = element.get("data")[1].get("price")
+                    if element.get("data")[2]:
+                        tomorrowPrice = element.get("data")[2].get("price")
+                    elif element.get("data")[1]:
+                        tomorrowPrice = element.get("data")[1].get("price")
+                    break
+            
+            self._price = tomorrowPrice
+            
+            if todayPrice != 0:
+                self._trend = round(100 * ((tomorrowPrice - todayPrice) / todayPrice),3)
+                self._officialPriceToday = todayPrice
+            
+            if len(priceinfo.get("data").get("heads")) > 1:
+                self._date = priceinfo.get("data").get("heads")[2].get("name")
+                self._officialPriceTodayDate = priceinfo.get("data").get("heads")[1].get("name")
+        except Exception as e:
+            _LOGGER.error(f"ERROR: prediction failed for {self._fueltype.name_lowercase} : {e}")
         
             
         
@@ -1036,21 +1051,24 @@ class ComponentFuelOfficialSensor(Entity):
         await self._data.update()
         self._last_update =  self._data._lastupdate
         
-        priceinfo = self._data._price_info.get(self._fueltype)
-        # _LOGGER.debug(f"official priceinfo: {priceinfo}")
-        
-        if self._country.lower() in ['be','fr','lu']:
-            self._price= priceinfo.get(self._fueltype.sp_code)
-            self._date = priceinfo.get('Brandstof')
+        try:
+            priceinfo = self._data._price_info.get(self._fueltype)
+            # _LOGGER.debug(f"official priceinfo: {priceinfo}")
             
-            self._priceNext= priceinfo.get(self._fueltype.sp_code+"Next")
-            self._dateNext = priceinfo.get('BrandstofNext')
-        elif self._country.lower() == 'nl':
-            self._price= priceinfo.get(self._fueltype.nl_name).get("GLA")
-            self._date = priceinfo.get(self._fueltype.nl_name).get("date")
-            
-            self._priceNext= None
-            self._dateNext = None
+            if self._country.lower() in ['be','fr','lu']:
+                self._price= priceinfo.get(self._fueltype.sp_code)
+                self._date = priceinfo.get('Brandstof')
+                
+                self._priceNext= priceinfo.get(self._fueltype.sp_code+"Next")
+                self._dateNext = priceinfo.get('BrandstofNext')
+            elif self._country.lower() == 'nl':
+                self._price= priceinfo.get(self._fueltype.nl_name).get("GLA")
+                self._date = priceinfo.get(self._fueltype.nl_name).get("date")
+                
+                self._priceNext= None
+                self._dateNext = None
+        except Exception as e:
+            _LOGGER.error(f"ERROR: official failed for {self._fueltype.name_lowercase} : {e}")
             
         
             

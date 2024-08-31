@@ -46,11 +46,11 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
    - An extra checkbox can be set to select a specific individual gas station. If set, a station can be selected in a dropdown with known gas stations (for which a price is available) close to the provided postalcode and town. No sensor for 5km and 10km will be created, only the price sensor for the individual selected station. The name of the sensor will contain the name of the supplier.
    - For Italy, Netherlands, Spain and US the town will be requested in the second step of the config flow
 - Get an API key at [Geoapify.com](https://myprojects.geoapify.com/register), which has a free tier for 3K geocoding requests per day. If the API key is not set, countries IT, NL, ES and US will not function and services to find fuel price on route or at coordinate will not function. The API key can also be set/updated on existing sensors using the 'Configure' entity option.
-- A filter on supplier brand name can be set (optional). If the filter match, the fuel station will be considered, else next will be searched. A python regex filter value be set
+- A filter on supplier brand name can be set (optional). If the filter match, the fuel station will be considered, else next will be searched. A python regex filter value can be set
 - An option is avaible to show a logo (entity picture) with price or the original logo provided by the source. This is mainly visible when mapping the sensor on a map.
 - After setting up the integration, the configuration can be updated using the 'Configure' button of the integration. The usage of a station filter can be enabled and set, the usage of a template to set the 'friendly name' of each sensor type can be enabled and set and the usage of icons with price indication can be enabled or disabled.
   - The checkboxes are required since else clearing the text of the configuration was not recorded (HA bug?) and filter or templates could no longer be removed once set.
-  - When setting a sensor 'friendly name' template, any sensor attribute can be used as a placeholder which will be replaced with the actual value. Eg: `Price {fueltype} {fuelname} {supplier}` could be used as a template for te Price sensor. All available attributes can be fetched using the 'Developer Tools' > 'States' > 'Attributes' view in HA or using the tables listed below.
+  - When setting a sensor 'friendly name' template, any sensor attribute can be used as a placeholder which will be replaced with the actual value. Eg: `Price {fueltype} {fuelname} {supplier}` could be used as a template for the Price sensor. All available attributes can be fetched using the 'Developer Tools' > 'States' > 'Attributes' view in HA or using the tables listed below.
 
 ## Integration
 ### Sensors
@@ -108,7 +108,7 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
     | `id`  | Unique id of the supplier |
     </details>
 
-- <details><summary>Sensor with official diesel and super price <code>sensor.carbu_com_[fueltype]_officia_[fueltypecode]</code>, only supported for BE/FR/LU</summary>
+- <details><summary>Sensor with official diesel and super price <code>sensor.carbu_com_[fueltype]_officia_[fueltypecode]</code>, only supported for BE/FR/LU/NL</summary>
 
     | Attribute | Description |
     | --------- | ----------- |
@@ -117,6 +117,7 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
     | `fueltype`   | Fuel type |
     | `price`   | Price |
     | `date`  | Date for the validity of the price |
+    | `country`  | Country |
     | `price next`   | Next official price |
     | `date next`  | Date as of when the next price will be applicable |
     </details>
