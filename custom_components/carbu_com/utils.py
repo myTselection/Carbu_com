@@ -43,22 +43,24 @@ def check_settings(config, hass):
         
 
 class FuelType(Enum):
+            # 0: carbu code, 1: de code, 2: it name, 3: nl name, 4: sp code, 5: us code
     SUPER95 = "E10", 5, "benzina", "euro95","23", "regular_gas"
     SUPER95_PREDICTION = "E95",0
-    SUPER95_OFFICIAL_E10 = "super95",0,"","Super 95 E10"
+    SUPER95_OFFICIAL_E10 = "super95",0,"","Euro95","Super 95 E10"
     SUPER98 = "SP98", 6, "benzina","superplus", "3", "premium_gas"
-    SUPER98_OFFICIAL_E5 = "super95/98_E5",0,"","Super 98 E5"
-    SUPER98_OFFICIAL_E10 = "super95/98_E10",0,"","Super 98 E10"
+    SUPER98_OFFICIAL_E5 = "super95/98_E5",0,"","Super","Super 98 E5"
+    SUPER98_OFFICIAL_E10 = "super95/98_E10",0,"","","Super 98 E10"
     DIESEL = "GO",3,"diesel","diesel","4", "diesel"
     DIESEL_Prediction = "D",0
-    DIESEL_OFFICIAL_B7 = "diesel/b7",0,"","Diesel B7"
-    DIESEL_OFFICIAL_B10 = "diesel/b10",0,"","Diesel B10"
-    DIESEL_OFFICIAL_XTL = "diesel/xtl",0,"","Diesel XTL"
+    DIESEL_OFFICIAL_B7 = "diesel/b7",0,"","Diesel","Diesel B7"
+    DIESEL_OFFICIAL_B10 = "diesel/b10",0,"","","Diesel B10"
+    DIESEL_OFFICIAL_XTL = "diesel/xtl",0,"","","Diesel XTL"
     OILSTD = "10",0
     OILSTD_PREDICTION = "mazoutH0H7",0
     OILEXTRA = "2",0
     OILEXTRA_PREDICTION = "extra",0
     LPG = "GPL", 1, "gpl","lpg","17"
+    LPG_OFFICIAL = "GPL", 1, "gpl","LPG","LPG"
     
     
     @property
@@ -808,7 +810,10 @@ class ComponentSession(object):
         
     @sleep_and_retry
     @limits(calls=1, period=1)
-    def getFuelOfficial(self, fueltype_prediction_code):
+    def getFuelOfficial(self, fueltype: FuelType, country):
+        if country.lower() == 'nl':
+            return self.getFuelOfficialNl(fueltype, country)
+        fueltype_prediction_code = fueltype.code
         header = {"Content-Type": "application/x-www-form-urlencoded"}
 
         # Super 95: https://carbu.com/belgie/super95
@@ -851,6 +856,101 @@ class ComponentSession(object):
             result = table_to_json(html_table)
 
         return result
+    
+    
+    @sleep_and_retry
+    @limits(calls=1, period=1)
+    def getFuelOfficialNl(self, fueltype: FuelType, country):
+        if country.lower() != 'nl':
+            return self.getFuelOfficial(fueltype, country)
+        fueltype_prediction_code = fueltype.nl_name
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+        # https://www.unitedconsumers.com/tanken/brandstofprijzen
+        
+
+        response = self.s.get(f"https://www.unitedconsumers.com/tanken/brandstofprijzen",headers=header,timeout=30)
+        if response.status_code != 200:
+            _LOGGER.error(f"ERROR: {response.text}")
+        assert response.status_code == 200
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        for paragraph in soup.find_all('p', class_='text-xs'):
+            if paragraph.text.strip().startswith("Datum overzicht"):
+                date_text = paragraph.text.replace("Datum overzicht ", "").strip()
+                break
+
+
+        # Mapping of Dutch month names to English month names
+        month_translation = {
+            "januari": "January",
+            "februari": "February",
+            "maart": "March",
+            "april": "April",
+            "mei": "May",
+            "juni": "June",
+            "juli": "July",
+            "augustus": "August",
+            "september": "September",
+            "oktober": "October",
+            "november": "November",
+            "december": "December"
+        }
+
+        def translate_month(dutch_date_str):
+            spaceSplit = dutch_date_str.lower().split(" ")
+            return f"{spaceSplit[0]} {month_translation.get(spaceSplit[1], spaceSplit[1])} {spaceSplit[2]}"
+        
+        # Convert the date text to a datetime.date object if found
+        date_object = None
+        if date_text:
+            try:
+                # Translate Dutch month to English
+                translated_date_text = translate_month(date_text)
+                # Define the expected date format
+                date_object = datetime.strptime(translated_date_text, "%d %B %Y").date()
+            except ValueError:
+                # Handle cases where the date format is unexpected or incorrect
+                date_object = None
+
+        # Assuming 'soup' is the BeautifulSoup object containing your HTML
+        data = {}
+
+        # Find all rows
+        rows = soup.find_all('div', class_='_row_1rcw2_25')
+
+        # Loop through each row to extract data
+        for row in rows:
+            # fuel_type = row.find('a').text.strip()
+            # gla_value = row.find_all('span', class_='_root_1d6z8_1')[0].text.strip()
+            # # Remove the Euro sign and convert the GLA value to a float
+            # gla_value = float(gla_value.replace('€', '').replace(',', '.').strip())
+            # verschil_value = row.find_all('span', class_='_root_vw1r2_1')[0].next_sibling.strip()
+
+            try:
+                fuel_type = row.find('a').text.strip()
+            except AttributeError:
+                fuel_type = None
+
+            try:
+                gla_value_str = row.find_all('span', class_='_root_1d6z8_1')[0].text.strip()
+                gla_value = float(gla_value_str.replace('€', '').replace(',', '.').strip())
+            except (IndexError, AttributeError, ValueError):
+                gla_value = None
+
+            try:
+                verschil_value = row.find_all('span', class_='_root_vw1r2_1')[0].next_sibling.strip()
+            except (IndexError, AttributeError):
+                verschil_value = None
+
+            # Append the extracted data to the list
+            data[fuel_type] = {
+                'fuel_type': fuel_type,
+                'GLA': gla_value,
+                'Verschil': verschil_value,
+                'date': date_object
+            }
+        return data
     
 
     @sleep_and_retry
@@ -1540,6 +1640,9 @@ class ComponentSession(object):
 
 # session = ComponentSession("GEO_API_KEY")
 # session.geocode("BE", "1000")
+
+# test nl official
+# session.getFuelOfficial(FuelType.DIESEL_OFFICIAL_B7, "NL")
 
 #test US
 # ZIP Code 10001 - New York, New York
