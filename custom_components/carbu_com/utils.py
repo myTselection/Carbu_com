@@ -324,18 +324,41 @@ class ComponentSession(object):
         for block in blocks:
             url = block['href']
             station_id = url.split('/')[-1]
-            station_name = block.find('span', class_='fuel-station-location-name').text.strip()
-            station_street = block.find('div', class_='fuel-station-location-street').text.strip()
-            station_city = block.find('div', class_='fuel-station-location-city').text.strip()
-            station_postalcode, station_locality = station_city.split(maxsplit=1)
+            try:
+                station_name = block.find('span', class_='fuel-station-location-name').text.strip()
+            except:
+                station_name = "Unknown"
+            try:
+                station_street = block.find('div', class_='fuel-station-location-street').text.strip()
+            except:
+                station_street = "Unknown"
+            try:
+                station_city = block.find('div', class_='fuel-station-location-city').text.strip()
+            except:
+                station_city = "Unknown"
+            try:
+                station_postalcode, station_locality = station_city.split(maxsplit=1)
+            except:
+                station_postalcode = "Unknown"
+            
             price_text = block.find('div', class_='price-text')
             if price_text != None:
                 price_text = price_text.text.strip()
-            else:
-                continue
-            price_changed = [span.text.strip() for span in block.find_all('span', class_='price-changed')]
-            logo_url = block.find('img', class_='mtsk-logo')['src']
-            distance = float(block.find('div', class_='fuel-station-location-distance').text.strip().replace(' km',''))
+
+            try:
+                price_changed = [span.text.strip() for span in block.find_all('span', class_='price-changed')]
+            except:
+                price_changed = None
+
+            try:
+                logo_url = block.find('img', class_='mtsk-logo')['src']
+            except:
+                logo_url = ""
+
+            try:
+                distance = float(block.find('div', class_='fuel-station-location-distance').text.strip().replace(' km',''))
+            except:
+                distance = 10
             today = date.today()
             current_date = today.strftime("%Y-%m-%d")
             # _LOGGER.debug(f"blocks id : {station_id}, postalcode: {station_postalcode}")
@@ -359,12 +382,13 @@ class ComponentSession(object):
                 'date': current_date, 
                 'country': country
             }
-            if single:
-                if postalcode == station_postalcode:
+            if price_text:
+                if single:
+                    if postalcode == station_postalcode:
+                        stationdetails.append(block_data)
+                        return stationdetails
+                else:
                     stationdetails.append(block_data)
-                    return stationdetails
-            else:
-                stationdetails.append(block_data)
         return stationdetails
     
     
