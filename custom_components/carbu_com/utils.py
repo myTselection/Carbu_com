@@ -717,22 +717,26 @@ class ComponentSession(object):
             # Check if matching fuel product is found
             if matching_fuel_product:
                 # Get the price for the predefined fuel type
-                price_text = float(str(matching_fuel_product.get("credit", {}).get("price",0)).replace(',','.'))
+                try:
+                    price_text = float(str(matching_fuel_product.get("credit", {}).get("price",0)).replace(',','.'))
                 
-                # url = block['href']
-                station_id = block.get('id')
-                station_name = block.get('info').get('name')
-                alias_name = block.get('info').get('alias')
-                brand_name = block.get('info').get('brand_name')
-                station_street = block.get('info').get('address').get('line_1')
-                station_city = block.get('info').get('address').get('locality')
-                station_postalcode = block.get('info').get('address').get('postal_code')
-                station_locality = block.get('info').get('address').get('WA')
-                distance = block.get('distance')
-                date = matching_fuel_product.get("credit", {}).get("posted_time")
-                lat = block.get('info').get('latitude')
-                lon = block.get('info').get('longitude')
-                score = block.get('info').get('star_rating')
+                    # url = block['href']
+                    station_id = block.get('id')
+                    station_name = block.get('info').get('name')
+                    alias_name = block.get('info').get('alias')
+                    brand_name = block.get('info').get('brand_name')
+                    station_street = block.get('info').get('address').get('line_1')
+                    station_city = block.get('info').get('address').get('locality')
+                    station_postalcode = block.get('info').get('address').get('postal_code')
+                    station_locality = block.get('info').get('address').get('WA')
+                    distance = block.get('distance')
+                    date = matching_fuel_product.get("credit", {}).get("posted_time")
+                    lat = block.get('info').get('latitude')
+                    lon = block.get('info').get('longitude')
+                    score = block.get('info').get('star_rating')
+                except Exception as e:
+                    _LOGGER.error(f"ERROR: geocode : {e}")
+
 
 
                 block_data = {
@@ -755,10 +759,11 @@ class ComponentSession(object):
                     'date': date, 
                     'country': country
                 }
-                stationdetails.append(block_data)
-                if single:
-                    if postalcode == station_postalcode:
-                        return stationdetails
+                if price_text and price_text > 0:
+                    stationdetails.append(block_data)
+                    if single:
+                        if postalcode == station_postalcode:
+                            return stationdetails
         return stationdetails
      
 
