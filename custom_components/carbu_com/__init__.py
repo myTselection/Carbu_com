@@ -104,7 +104,7 @@ def register_services(hass, config_entry):
         GEO_API_KEY = config.get("GEO_API_KEY")
         
         session = ComponentSession(GEO_API_KEY)
-        station_info = await hass.async_add_executor_job(lambda: session.getStationInfo(postalcode, country, fuel_type, town, max_distance, filter))
+        station_info = await hass.async_add_executor_job(lambda: session.getStationInfo(postalcode, country, fuel_type, town, max_distance, filter, True))
         
         _LOGGER.debug(f"{NAME} get_lowest_fuel_price info found: {station_info}")
         hass.bus.async_fire(f"{DOMAIN}_lowest_fuel_price", station_info)

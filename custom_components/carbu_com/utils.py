@@ -1036,11 +1036,14 @@ class ComponentSession(object):
 
     @sleep_and_retry
     @limits(calls=10, period=5)
-    def getStationInfo(self, postalcode, country, fuel_type: FuelType, town="", max_distance=0, filter=""):
+    def getStationInfo(self, postalcode, country, fuel_type: FuelType, town="", max_distance=0, filter="", townConfirmed = False):
         locationinfo = None
         single = True if max_distance == 0 else False
         if country.lower() in ["be","fr","lu"]:
-            carbuLocationInfo = self.convertPostalCode(postalcode, country, town)
+            if townConfirmed:
+                carbuLocationInfo = self.convertPostalCodeMultiMatch(postalcode, country, town)
+            else:
+                carbuLocationInfo = self.convertPostalCode(postalcode, country)
             if not carbuLocationInfo:
                 raise Exception(f"Location not found country: {country}, postalcode: {postalcode}, town: {town}")
             town = carbuLocationInfo.get("n")
@@ -1234,7 +1237,7 @@ class ComponentSession(object):
             to_country = country
         to_location = self.geocode(to_country, to_postalcode)
         assert to_location is not None
-        return self.getPriceOnRouteLatLon(fuel_type, from_location[0], from_location[1], to_location[0], to_location[1], filter)
+        return self.getPriceOnRouteLatLon(fuel_type, from_location[1], from_location[0], to_location[1], to_location[0], filter)
 
     
     #USED BY Service: handle_get_lowest_fuel_price_on_route_coor
@@ -1267,7 +1270,11 @@ class ComponentSession(object):
             postal_code_country = self.reverseGeocode(route[i]['maneuver']['location'][0], route[i]['maneuver']['location'][1])
             if postal_code_country.get('postal_code') is not None and postal_code_country.get('postal_code') not in processedPostalCodes:
                 _LOGGER.debug(f"Get route postalcode {postal_code_country.get('postal_code')}, processedPostalCodes {processedPostalCodes}")
-                bestAroundPostalCode = self.getStationInfo(postal_code_country.get('postal_code'), postal_code_country.get('country_code'), fuel_type, postal_code_country.get('town'), 3, filter)
+                bestAroundPostalCode = None
+                try:
+                    bestAroundPostalCode = self.getStationInfo(postal_code_country.get('postal_code'), postal_code_country.get('country_code'), fuel_type, postal_code_country.get('town'), 3, filter, False)
+                except Exception as e:
+                    _LOGGER.error(f"ERROR: getStationInfo failed : {e}")
                 if bestAroundPostalCode is None:
                     continue
                 processedPostalCodes.extend(bestAroundPostalCode.get('postalcodes'))                    
@@ -1329,7 +1336,8 @@ class ComponentSession(object):
             # header = {"Accept-Language": "nl-BE"}
             address = f"{postal_code}, {country_code}"
 
-            
+            if self.API_KEY_GEOAPIFY in ["","GEO_API_KEY"]:
+                raise Exception("Geocode failed: GEO_API_KEY not set!")
             # GEOCODIFY
         #     response = self.s.get(f"{self.GEOCODIFY_BASE_URL}geocode?api_key={self.API_KEY_GEOCODIFY}&q={address}")
         #     response = response.json()
@@ -1595,7 +1603,38 @@ class ComponentSession(object):
 
         # Request the route from OpenStreetMap API
         # 'https://router.project-osrm.org/route/v1/driving/<from_lon>,<from_lat>;<to_lon>,<to_lat>?steps=true
+        
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+        self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
         url = f'https://router.project-osrm.org/route/v1/driving/{from_location[1]},{from_location[0]};{to_location[1]},{to_location[0]}?steps=true'
+        _LOGGER.debug(f"getOSMRoute: {url}")
+        response = self.s.get(url,headers=header, timeout=30)
+        route_data = response.json()
+        _LOGGER.debug(f"route_data {route_data}")
+
+
+        if route_data.get('routes') is None:
+            _LOGGER.error(f"ERROR: route not found: {route_data}")
+            return
+        # Extract the waypoints (towns) along the route
+        waypoints = route_data['routes'][0]['legs'][0]['steps']
+        
+        _LOGGER.debug(f"waypoints {waypoints}")
+        return waypoints
+
+    #  NOT USED by services on route 
+    @sleep_and_retry
+    @limits(calls=1, period=15)
+    def getRoute(self, from_location, to_location):
+
+        #location expected (lat (50.XX), lon (4.XX))
+
+        # Request the route from GeoApify.com API
+        
+        # 'https://router.project-osrm.org/route/v1/driving/<from_lon>,<from_lat>;<to_lon>,<to_lat>?steps=true
+        url = f'https://router.project-osrm.org/route/v1/driving/{from_location[1]},{from_location[0]};{to_location[1]},{to_location[0]}?steps=true'
+        url = f"https://api.geoapify.com/v1/routing?waypoints={from_location[0]},{from_location[1]}|{to_location[0]},{to_location[1]}&mode=drive&apiKey={self.API_KEY_GEOAPIFY}"
+        #NOT WORKING: steps contain no coordinates
         response = self.s.get(url)
         route_data = response.json()
         _LOGGER.debug(f"route_data {route_data}")
@@ -1604,8 +1643,7 @@ class ComponentSession(object):
         waypoints = route_data['routes'][0]['legs'][0]['steps']
         
         _LOGGER.debug(f"waypoints {waypoints}")
-        return waypoints
-    
+        return waypoints    
 
 
     def haversine_distance(self, lat1, lon1, lat2, lon2):
@@ -1660,8 +1698,22 @@ class ComponentSession(object):
 
 # Example usage
 
+# _LOGGER = logging.getLogger(__name__)
+# _LOGGER.setLevel(logging.DEBUG)
+# if not logging.getLogger().hasHandlers():
+#     logging.basicConfig(level=logging.DEBUG)
+# _LOGGER.debug("Debug logging is now enabled.")
+
 # session = ComponentSession("GEO_API_KEY")
+
+
+#LOCAL TESTS
+
 # session.geocode("BE", "1000")
+
+#  test route
+# print(session.getPriceOnRoute("BE", FuelType.DIESEL, 1000, 2000))
+
 
 # test nl official
 # session.getFuelOfficial(FuelType.DIESEL_OFFICIAL_B7, "NL")
