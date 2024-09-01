@@ -404,7 +404,7 @@ class ComponentOptionsHandler(config_entries.ConfigFlow):
                     self.config_entry, data=user_input
                 )
                 self._errors = {}
-                custom_title = f"{NAME} {user_input.get('postalcode')} {self._init_info.get('town')} {user_input.get('country')}"
+                custom_title = f"{NAME} {user_input.get('postalcode')} {user_input.get('town')} {user_input.get('country')}"
                 return self.async_create_entry(title=custom_title, data=None)
             else:
                 self._errors["base"] = "api_key_error"
