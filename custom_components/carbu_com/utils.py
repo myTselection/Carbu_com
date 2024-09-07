@@ -897,6 +897,7 @@ class ComponentSession(object):
         
         soup = BeautifulSoup(response.text, 'html.parser')
 
+        date_text = None
         for paragraph in soup.find_all('p', class_='text-xs'):
             if paragraph.text.strip().startswith("Datum overzicht"):
                 date_text = paragraph.text.replace("Datum overzicht ", "").strip()
@@ -924,7 +925,7 @@ class ComponentSession(object):
             return f"{spaceSplit[0]} {month_translation.get(spaceSplit[1], spaceSplit[1])} {spaceSplit[2]}"
         
         # Convert the date text to a datetime.date object if found
-        date_object = None
+        date_object = date.today()
         if date_text:
             try:
                 # Translate Dutch month to English
@@ -933,7 +934,7 @@ class ComponentSession(object):
                 date_object = datetime.strptime(translated_date_text, "%d %B %Y").date()
             except ValueError:
                 # Handle cases where the date format is unexpected or incorrect
-                date_object = None
+                date_object = date.today()
 
         # Assuming 'soup' is the BeautifulSoup object containing your HTML
         data = {}
