@@ -6,25 +6,17 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/myTselection/carbu_com.svg)](https://github.com/myTselection/carbu_com/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/myTselection/carbu_com.svg)](https://github.com/myTselection/carbu_com/graphs/commit-activity)
 
-# Carbu.com Home Assistant integration
-[Carbu.com](https://www.Carbu.com/) Home Assistant custom component. This custom component has been built from the ground up to bring Carbu.com & Mazout.com site data to compare and save on your fuel oil, diesel, lpg and Super prices and integrate this information into Home Assistant to help you towards a better follow up. This integration is built against the public website provided by Carbu.com and other similar sites. Sensors will be created for the currently **cheapest** gas station in a region (at location, within 5km and within 10km).
+# Carbu.com Home Assistant integration for cheapest fuel stations
+Home Assistant custom component to create sensors with information on the cheapest fuel station in a chose area. This custom component has been built from the ground up to bring for example Carbu.com & Mazout.com and similar site data to compare and save on your fuel oil, diesel, lpg and Super prices and integrate this information into Home Assistant. This integration is built against the public websites provided by Carbu.com and other similar sites. Sensors will be created for the currently **cheapest** gas station in a region (at location, within 5km and within 10km). 
+
+**Currently supporting fuel stations in Belgium, France, Luxembourg, Spain, Netherlands, Germany, Italy and US and on routes.**
 
 This integration is in no way affiliated with Carbu.com. 
 
 | :warning: Please don't report issues with this integration to Carbu or other platforms, they will not be able to support you. |
 | ------------------------------------------------------------------------------------------------------------------------------|
 
-Since R5.0, beta support for fuel prices in Germany (DE) has been added. City or postalcode can be provided as location.
-
-Since R6.0, beta support for fuel prices in Italy (IT) has been added. Postalcode and town need to be provided.
-
-Since R7.0, beta support for fuel prices in Netherlands (NL) has been added. Postalcode and town need to be provided.
-
-Since R8.0, beta support for fuel prices in Spain (ES) has been added. Postalcode and town need to be provided.
-
-Since R10.0, beta support for fuel prices in USA (US) has been added. Postalcode and town need to be provided.
-
-Since R11.0, [Geoapify.com](https://myprojects.geoapify.com/register) API key required to perform geocoding and reverse geocoding (required for countries IT, NL, ES, US and for services to find fuel on route or on coordinates). [GeoApify.com](https://geoapify.com/pricing) offers free tier of 3000 requests per day and up to 5 request/sec.
+Since R11.0, a [Geoapify.com](https://myprojects.geoapify.com/register) API key is required to perform geocoding and reverse geocoding (required for countries IT, NL, ES, US and for services to find fuel on route or on coordinates). [GeoApify.com](https://geoapify.com/pricing) offers free tier of 3000 requests per day and up to 5 request/sec.
 
 
 Some discussion on this topic can be found within [the Home Assistant community forum](https://community.home-assistant.io/t/rest-sensor-needs-to-get-latest-element-of-list/404882/4).
