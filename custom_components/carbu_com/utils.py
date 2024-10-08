@@ -1042,11 +1042,12 @@ class ComponentSession(object):
         single = True if max_distance == 0 else False
         if country.lower() in ["be","fr","lu"]:
             if townConfirmed:
-                carbuLocationInfo = self.convertPostalCodeMultiMatch(postalcode, country, town)
+                carbuLocationInfo = self.convertPostalCodeMultiMatch(postalcode, country, town)[0]
             else:
                 carbuLocationInfo = self.convertPostalCode(postalcode, country)
             if not carbuLocationInfo:
                 raise Exception(f"Location not found country: {country}, postalcode: {postalcode}, town: {town}")
+            _LOGGER.debug(f"getStationInfo carbuLocationInfo: {carbuLocationInfo}")
             town = carbuLocationInfo.get("n")
             city = carbuLocationInfo.get("pn")
             countryname = carbuLocationInfo.get("cn")
