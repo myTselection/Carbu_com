@@ -7,7 +7,7 @@
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/myTselection/carbu_com.svg)](https://github.com/myTselection/carbu_com/graphs/commit-activity)
 
 # Carbu.com Home Assistant integration for cheapest fuel stations
-Home Assistant custom component to create sensors with information on the cheapest fuel station in a chose area. This custom component has been built from the ground up to bring for example Carbu.com & Mazout.com and similar site data to compare and save on your fuel oil, diesel, lpg and Super prices and integrate this information into Home Assistant. This integration is built against the public websites provided by Carbu.com and other similar sites. Sensors will be created for the currently **cheapest** gas station in a region (at location, within 5km and within 10km). 
+Home Assistant custom component to create sensors with information on the cheapest fuel station in a chosen area. This custom component has been built from the ground up to bring for example Carbu.com & Mazout.com and similar site data to compare and save on your fuel oil, diesel, lpg and Super prices and integrate this information into Home Assistant. This integration is built against the public websites provided by Carbu.com and other similar sites. Sensors will be created for the currently **cheapest** gas station in a region (at location, within 5km and within 10km). The cheapest fuel station in between two locations can be retrieved too.
 
 **Currently supporting fuel stations in Belgium, France, Luxembourg, Spain, Netherlands, Germany, Italy and US and on routes.**
 
@@ -29,7 +29,7 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
 
 
 ## Installation
-- [HACS](https://hacs.xyz/): add url https://github.com/myTselection/carbu_com as custom repository (HACS > Integration > option: Custom Repositories)
+- [HACS](https://hacs.xyz/): search for Carbu in the default HACS repo list or use below button to navigate directly to it on your local system and install via HACS. 
    -    [![Open your Home Assistant instance and open the repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg?style=flat-square)](https://my.home-assistant.io/redirect/hacs_repository/?owner=myTselection&repository=Carbu_com&category=integration)
 - Restart Home Assistant
 - Add 'Carbu.com' integration via HA Settings > 'Devices and Services' > 'Integrations'
@@ -43,6 +43,21 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
 - After setting up the integration, the configuration can be updated using the 'Configure' button of the integration. The usage of a station filter can be enabled and set, the usage of a template to set the 'friendly name' of each sensor type can be enabled and set and the usage of icons with price indication can be enabled or disabled.
   - The checkboxes are required since else clearing the text of the configuration was not recorded (HA bug?) and filter or templates could no longer be removed once set.
   - When setting a sensor 'friendly name' template, any sensor attribute can be used as a placeholder which will be replaced with the actual value. Eg: `Price {fueltype} {fuelname} {supplier}` could be used as a template for the Price sensor. All available attributes can be fetched using the 'Developer Tools' > 'States' > 'Attributes' view in HA or using the tables listed below.
+
+### Setup screenshot
+![Carbu com setup config](https://github.com/user-attachments/assets/103221e3-3a0a-48ef-a3ae-00b59ee5e2cb) 
+
+For BE/FR/LU, sensors for mazout/fuel oil can be added too.
+
+![Carbu com BE-FR-LU fuel mazout prices](https://github.com/user-attachments/assets/1b9d0f16-3e88-4797-9e53-c69624a1f35d)
+
+
+If desired (selection box default off), the fuel price of a specific individual station can be shown. If no individual station is enabled, the cheapest station in the area will be retrieved and price and address details will be shown in the sensor attributes.
+
+![Carbu com optional specific gas station](https://github.com/user-attachments/assets/81cbb120-5b1c-4d25-bdc9-9f6b7c09f209)
+
+
+
 
 ## Integration
 ### Sensors
@@ -141,7 +156,7 @@ For cheapest Belgian gas and electricity contracts, prices and promotions, pleas
     | `quantity`  | Quantity for which the price is expected. Main difference between below or above 2000l |
     </details>
 
-### Services
+### Services / Actions
 A **service `carbu_com.get_lowest_fuel_price`** to get the lowest fuel price in the area of a postalcode is available. For a given fuel type and a distance in km, the lowest fuel price will be fetched and an event will be triggered with all the details found. Similar, the service **`carbu_com.get_lowest_fuel_price_coor`** can be called providing latitude and longitude coordinates instead of country, postalcode and town.
 
 - <details><summary>Event data returned, event name: <code>carbu_com_lowest_fuel_price</code> /  <code>carbu_com_lowest_fuel_price_coor</code></summary>
