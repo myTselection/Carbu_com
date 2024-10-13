@@ -7,6 +7,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
 from homeassistant.const import Platform
+from homeassistant.exceptions import ServiceValidationError
 from .utils import check_settings, FuelType, ComponentSession
 
 manifestfile = Path(__file__).parent / 'manifest.json'
@@ -123,6 +124,9 @@ def register_services(hass, config_entry):
         
         config = config_entry.data
         GEO_API_KEY = config.get("GEO_API_KEY")
+        if GEO_API_KEY is None or GEO_API_KEY == "GEO_API_KEY" or GEO_API_KEY == "":
+            raise ServiceValidationError("No GEO_API_KEY set")
+        
         
         session = ComponentSession(GEO_API_KEY)
         station_info = await hass.async_add_executor_job(lambda: session.getStationInfoLatLon(latitude, longitude, fuel_type, max_distance, filter))
@@ -146,6 +150,8 @@ def register_services(hass, config_entry):
 
         config = config_entry.data
         GEO_API_KEY = config.get("GEO_API_KEY")
+        if GEO_API_KEY is None or GEO_API_KEY == "GEO_API_KEY" or GEO_API_KEY == "":
+            raise ServiceValidationError("No GEO_API_KEY set")
         
         session = ComponentSession(GEO_API_KEY)
         station_info = await hass.async_add_executor_job(lambda: session.getPriceOnRoute(country, fuel_type, from_postalcode, to_postalcode, to_country, filter))
@@ -169,6 +175,8 @@ def register_services(hass, config_entry):
 
         config = config_entry.data
         GEO_API_KEY = config.get("GEO_API_KEY")
+        if GEO_API_KEY is None or GEO_API_KEY == "GEO_API_KEY" or GEO_API_KEY == "":
+            raise ServiceValidationError("No GEO_API_KEY set")
         
         session = ComponentSession(GEO_API_KEY)
         station_info = await hass.async_add_executor_job(lambda: session.getPriceOnRouteLatLon(fuel_type, from_latitude, from_longitude, to_latitude, to_longitude, filter))

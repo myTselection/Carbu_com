@@ -1521,8 +1521,10 @@ class ComponentSession(object):
             #     return extracted_response
 
             # GEOAPIFY
+            
             response = self.s.get(f"{self.GEOAPIFY_BASE_URL}/reverse?lat={latitude}&lon={longitude}&api_key={self.API_KEY_GEOAPIFY}&format=json")
 
+            _LOGGER.debug(f"reverseGeocode geodata response {response}, {self.GEOAPIFY_BASE_URL}/reverse?lat={latitude}&lon={longitude}&api_key={self.API_KEY_GEOAPIFY}&format=json")
             # Check if the request was successful
             if response.status_code == 200:
                 data = response.json()
