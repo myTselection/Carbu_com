@@ -5,9 +5,10 @@ import re
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import Config, HomeAssistant
 from homeassistant.const import Platform
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers.typing import ConfigType
 from .utils import check_settings, FuelType, ComponentSession
 
 manifestfile = Path(__file__).parent / 'manifest.json'
@@ -36,7 +37,7 @@ If you have any issues with this you need to open an issue here:
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass: HomeAssistant, config: dict):
+async def async_setup(hass: HomeAssistant, config: ConfigType):
     """Set up this component using YAML."""
     _LOGGER.info(STARTUP)
     if config.get(DOMAIN) is None:
