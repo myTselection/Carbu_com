@@ -116,7 +116,7 @@ class ComponentSession(object):
             # _LOGGER.debug(f"loop location info found: {info_dict}")
             if info_dict.get('c') is not None and info_dict.get('pc') is not None:
                 if town is not None and town.strip() != '' and info_dict.get("n") is not None:
-                    if info_dict.get("n",'').lower() == town.lower() and info_dict.get("c",'').lower() == country.lower() and info_dict.get("pc",'') == str(postalcode):
+                    if (info_dict.get("pn",'').lower() == town.lower() or info_dict.get("n",'').lower() == town.lower()) and info_dict.get("c",'').lower() == country.lower() and info_dict.get("pc",'') == str(postalcode):
                         # _LOGGER.debug(f"location info found: {info_dict}, matching town {town}, postal {postalcode} and country {country}")
                         return info_dict
                 else:
@@ -147,7 +147,7 @@ class ComponentSession(object):
             _LOGGER.debug(f"loop location info found: {info_dict}")
             if info_dict.get('c') is not None and info_dict.get('pc') is not None:
                 if town is not None and town.strip() != '' and info_dict.get("n") is not None:
-                    if info_dict.get("n",'').lower() == town.lower() and info_dict.get("c",'').lower() == country.lower() and info_dict.get("pc",'') == str(postalcode):
+                    if (info_dict.get("pn",'').lower() == town.lower() or info_dict.get("n",'').lower() == town.lower()) and info_dict.get("c",'').lower() == country.lower() and info_dict.get("pc",'') == str(postalcode):
                         _LOGGER.debug(f"location info found: {info_dict}, matching town {town}, postal {postalcode} and country {country}")
                         results.append(info_dict)
                 else:
@@ -1435,6 +1435,8 @@ class ComponentSession(object):
             #     return {"lat": location[1], "lon": location[0], "boundingbox": [bbox[1],bbox[0],bbox[3],bbox[2]]}
 
 
+            if self.API_KEY_GEOAPIFY in ["","GEO_API_KEY"]:
+                raise Exception("Geocode failed: GEO_API_KEY not set!")
             # GEOAPIFY
             response = self.s.get(f"{self.GEOAPIFY_BASE_URL}/search?text={address}&api_key={self.API_KEY_GEOAPIFY}&format=json")
 
@@ -1743,12 +1745,17 @@ class ComponentSession(object):
 # #test BE
 # locationinfo= session.convertPostalCode("3300", "BE", "Bost")
 # print(session.getFuelPrices("3300", "BE", "Bost", locationinfo.get("id"), FuelType.LPG, False))
+# #test2
+# locationinfo= session.convertPostalCode("8380", "BE", "Brugge")
+# if locationinfo:
+#     print(session.getFuelPrices("8380", "BE", "Brugge", locationinfo.get("id"), FuelType.SUPER95, False))
 # test IT
 # locationinfo= session.convertLocationBoundingBox("07021", "IT", "Arzachena")
 # print(session.getFuelPrices("07021", "IT", "Arzachena", locationinfo, FuelType.LPG, False))
 # test NL
 # locationinfo= session.convertLocationBoundingBox("2627AR", "NL", "Delft")
-# print(session.getFuelPrices("2627AR", "NL", "Delft", locationinfo, FuelType.LPG, False))
+# if len(locationinfo) > 0: 
+#     print(session.getFuelPrices("2627AR", "NL", "Delft", locationinfo, FuelType.LPG, False))
             
 # print(FuelType.DIESEL.code)
 # print(FuelType.SUPER95_PREDICTION.code)
