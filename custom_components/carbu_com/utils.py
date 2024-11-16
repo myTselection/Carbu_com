@@ -898,9 +898,10 @@ class ComponentSession(object):
         soup = BeautifulSoup(response.text, 'html.parser')
 
         date_text = None
-        for paragraph in soup.find_all('p', class_='text-xs'):
+        for paragraph in soup.find_all('div', class_='_tableFooter_14l7y_20'):
             if paragraph.text.strip().startswith("Datum overzicht"):
                 date_text = paragraph.text.replace("Datum overzicht ", "").strip()
+                date_text = date_text.split("*")[0]
                 break
 
 
@@ -940,7 +941,7 @@ class ComponentSession(object):
         data = {}
 
         # Find all rows
-        rows = soup.find_all('div', class_='_row_1rcw2_25')
+        rows = soup.find_all('div', class_='_row_14l7y_25')
 
         # Loop through each row to extract data
         for row in rows:
@@ -1711,6 +1712,7 @@ class ComponentSession(object):
 # _LOGGER.debug("Debug logging is now enabled.")
 
 # session = ComponentSession("GEO_API_KEY")
+# session = ComponentSession("GEO_API_KEY")
 
 
 #LOCAL TESTS
@@ -1759,7 +1761,9 @@ class ComponentSession(object):
             
 # print(FuelType.DIESEL.code)
 # print(FuelType.SUPER95_PREDICTION.code)
-# print(session.getFuelOfficial(FuelType.DIESEL_OFFICIAL_B10.code))
-# print(session.getFuelOfficial(FuelType.SUPER95_OFFICIAL_E10.code))
+# print("FuelType.DIESEL_OFFICIAL_B10")
+# print(session.getFuelOfficial(FuelType.DIESEL_OFFICIAL_B10, "NL"))
+# print("FuelType.SUPER95_OFFICIAL_E10")
+# print(session.getFuelOfficial(FuelType.SUPER95_OFFICIAL_E10, "NL"))
 
 # print(FuelType.DIESEL.code)
