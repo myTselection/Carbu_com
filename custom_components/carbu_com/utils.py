@@ -379,7 +379,7 @@ class ComponentSession(object):
                 'lon': 0,
                 'fuelname': fueltype.name,
                 'distance': distance,
-                'date': current_date, 
+                'date': price_changed[0] if price_changed else current_date, 
                 'country': country
             }
             if price_text:
@@ -1146,8 +1146,20 @@ class ComponentSession(object):
                 continue
             _LOGGER.debug(f"getStationInfoFromPriceInfo maxDistance: {max_distance}, currDistance: {currDistance}, postalcode: {station.get("postalcode")}, currPrice: {currPrice} new price: {data.get("price")}")
             
+            data_recently_updated = True
+            if station.get("date") is not None:
+                try:
+                    station_date = datetime.strptime(station.get("date"), "%d/%m/%y") #assuming the date is in the format dd/mm/yy
+                    six_months_ago = datetime.now() - timedelta(days=180)  # 180 days = 6 months
+                    if station_date >= six_months_ago:
+                        data_recently_updated = True
+                    else:
+                        # The date is older than 6 months
+                        data_recently_updated = False
+                except:
+                    continue
             # _LOGGER.debug(f'if (({max_distance} == 0 and ({currDistance} <= 5 or {postalcode} == {station.get("postalcode")})) or {currDistance} <= {max_distance}) and ({data.get("price")} is None or {currPrice} < {float(data.get("price"))})')
-            if ((max_distance == 0 and (currDistance <= 5 or postalcode == station.get("postalcode"))) or currDistance <= max_distance) and (data.get("price") is None or currPrice < float(data.get("price"))):
+            if ((max_distance == 0 and data_recently_updated and (currDistance <= 5 or postalcode == station.get("postalcode"))) or currDistance <= max_distance) and (data.get("price") is None or currPrice < float(data.get("price"))):
                 data["distance"] = float(station.get("distance"))
                 data["price"] = 0 if station.get("price") == '' else float(station.get("price"))
                 data["localPrice"] = 0 if price_info[0].get("price") == '' else float(price_info[0].get("price"))
@@ -1712,7 +1724,6 @@ class ComponentSession(object):
 # _LOGGER.debug("Debug logging is now enabled.")
 
 # session = ComponentSession("GEO_API_KEY")
-# session = ComponentSession("GEO_API_KEY")
 
 
 #LOCAL TESTS
@@ -1751,6 +1762,11 @@ class ComponentSession(object):
 # locationinfo= session.convertPostalCode("8380", "BE", "Brugge")
 # if locationinfo:
 #     print(session.getFuelPrices("8380", "BE", "Brugge", locationinfo.get("id"), FuelType.SUPER95, False))
+# #test3
+# locationinfo= session.convertPostalCode("31830", "FR")
+# if locationinfo:
+#     # print(session.getFuelPrices("31830", "FR", "Plaisance-du-Touch", locationinfo.get("id"), FuelType.SUPER95, True))
+#     print(session.getStationInfo("31830", "FR", FuelType.SUPER95, "Plaisance-du-Touch", 0, "", True))
 # test IT
 # locationinfo= session.convertLocationBoundingBox("07021", "IT", "Arzachena")
 # print(session.getFuelPrices("07021", "IT", "Arzachena", locationinfo, FuelType.LPG, False))
