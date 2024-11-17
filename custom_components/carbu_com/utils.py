@@ -452,7 +452,7 @@ class ComponentSession(object):
                 'country': country
             }
             if single:
-                if postalcode == f"{block.get('station').get('pc_cijfer')}{block.get('station').get('pc_letter')}":
+                if postalcode.lower() == block.get('station').get('postcode').lower().replace(" ",""):
                     stationdetails.append(block_data)
                     return stationdetails
             else:
@@ -1773,7 +1773,8 @@ class ComponentSession(object):
 # test NL
 # locationinfo= session.convertLocationBoundingBox("2627AR", "NL", "Delft")
 # if len(locationinfo) > 0: 
-#     print(session.getFuelPrices("2627AR", "NL", "Delft", locationinfo, FuelType.LPG, False))
+#     print(session.getFuelPrices("2627AR", "NL", "Delft", locationinfo, FuelType.DIESEL, False))
+#     print(session.getStationInfo("2627AR", "NL", FuelType.DIESEL, "Delft", 0, "", False))
             
 # print(FuelType.DIESEL.code)
 # print(FuelType.SUPER95_PREDICTION.code)
