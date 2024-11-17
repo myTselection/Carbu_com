@@ -440,7 +440,7 @@ class ComponentSession(object):
                 'url': f"https://www.brandstof-zoeker.nl/station/{block.get('station').get('url')}",
                 'brand':block.get('station').get('chain'),
                 'address': block.get('station').get('adres'),
-                'postalcode': f"{block.get('station').get('postcode')}",
+                'postalcode': f"{block.get('station').get('postcode')}".replace(" ",""),
                 'locality': block.get('station').get('plaats'),
                 'price': block.get('fuelPrice').get('prijs'),
                 'price_changed': block.get('fuelPrice').get('datum'),
@@ -1157,9 +1157,9 @@ class ComponentSession(object):
                         # The date is older than 6 months
                         data_recently_updated = False
                 except:
-                    continue
+                    _LOGGER.debug(f"date validation not possible since non matching date notation: {station.get("date")}")
             # _LOGGER.debug(f'if (({max_distance} == 0 and ({currDistance} <= 5 or {postalcode} == {station.get("postalcode")})) or {currDistance} <= {max_distance}) and ({data.get("price")} is None or {currPrice} < {float(data.get("price"))})')
-            if ((max_distance == 0 and data_recently_updated and (currDistance <= 5 or postalcode == station.get("postalcode"))) or currDistance <= max_distance) and (data.get("price") is None or currPrice < float(data.get("price"))):
+            if ((max_distance == 0  and (currDistance <= 5 or postalcode == station.get("postalcode"))) or currDistance <= max_distance) and data_recently_updated and (data.get("price") is None or currPrice < float(data.get("price"))):
                 data["distance"] = float(station.get("distance"))
                 data["price"] = 0 if station.get("price") == '' else float(station.get("price"))
                 data["localPrice"] = 0 if price_info[0].get("price") == '' else float(price_info[0].get("price"))
@@ -1712,10 +1712,7 @@ class ComponentSession(object):
             return None
     
 
-#test
-
-
-# Example usage
+#manual tests - enable debug logging
 
 # _LOGGER = logging.getLogger(__name__)
 # _LOGGER.setLevel(logging.DEBUG)
@@ -1724,7 +1721,6 @@ class ComponentSession(object):
 # _LOGGER.debug("Debug logging is now enabled.")
 
 # session = ComponentSession("GEO_API_KEY")
-
 
 #LOCAL TESTS
 
@@ -1757,6 +1753,8 @@ class ComponentSession(object):
 
 # #test BE
 # locationinfo= session.convertPostalCode("3300", "BE", "Bost")
+# print(session.getOilPrice(locationinfo.get("id"), 1000, FuelType.OILSTD.code))
+# locationinfo= session.convertPostalCode("3300", "BE", "Bost")
 # print(session.getFuelPrices("3300", "BE", "Bost", locationinfo.get("id"), FuelType.LPG, False))
 # #test2
 # locationinfo= session.convertPostalCode("8380", "BE", "Brugge")
@@ -1774,7 +1772,7 @@ class ComponentSession(object):
 # locationinfo= session.convertLocationBoundingBox("2627AR", "NL", "Delft")
 # if len(locationinfo) > 0: 
 #     print(session.getFuelPrices("2627AR", "NL", "Delft", locationinfo, FuelType.DIESEL, False))
-#     print(session.getStationInfo("2627AR", "NL", FuelType.DIESEL, "Delft", 0, "", False))
+    # print(session.getStationInfo("2627AR", "NL", FuelType.DIESEL, "Delft", 0, "", False))
             
 # print(FuelType.DIESEL.code)
 # print(FuelType.SUPER95_PREDICTION.code)

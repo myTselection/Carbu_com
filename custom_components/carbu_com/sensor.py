@@ -494,9 +494,18 @@ class ComponentPriceSensor(Entity):
                 self._price = float(self._priceinfo.get("data")[0].get("unitPrice"))
                 self._supplier  = self._priceinfo.get("data")[0].get("supplier").get("name") #x.data[0].supplier.name
                 oilproductid = self._fueltype.code
-                self._url   = f"https://mazout.com/belgie/offers?areaCode={self._data._locationinfo}&by=quantity&for={self._quantity}&productId={oilproductid}"
-                self._logourl = self._priceinfo.get("data")[0].get("supplier").get("media").get("logo").get("src") #x.data[0].supplier.media.logo.src
-                self._score = self._priceinfo.get("data")[0].get("supplier").get("rating").get("score") #x.data[0].supplier.rating.score
+                try:
+                    self._url   = f"https://mazout.com/belgie/offers?areaCode={self._data._locationinfo}&by=quantity&for={self._quantity}&productId={oilproductid}"
+                except:
+                    self._url   = None
+                try:
+                    self._logourl = self._priceinfo.get("data")[0].get("supplier").get("media").get("logo").get("src") #x.data[0].supplier.media.logo.src
+                except:
+                    self._logourl = None
+                try:
+                    self._score = self._priceinfo.get("data")[0].get("supplier").get("rating").get("score") #x.data[0].supplier.rating.score
+                except:
+                    self._score = None
                 # self._address = 
                 # self._city = 
                 # self._lat = 

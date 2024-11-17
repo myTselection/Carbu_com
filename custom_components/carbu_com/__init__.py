@@ -11,26 +11,28 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.typing import ConfigType
 from .utils import check_settings, FuelType, ComponentSession
 
-manifestfile = Path(__file__).parent / 'manifest.json'
-with open(manifestfile, 'r') as json_file:
-    manifest_data = json.load(json_file)
+# Removed reading from manifest file
+
+# manifestfile = Path(__file__).parent / 'manifest.json'
+# with open(manifestfile, 'r') as json_file:
+#     manifest_data = json.load(json_file)
     
-DOMAIN = manifest_data.get("domain")
-NAME = manifest_data.get("name")
-VERSION = manifest_data.get("version")
-ISSUEURL = manifest_data.get("issue_tracker")
+# DOMAIN = manifest_data.get("domain")
+# NAME = manifest_data.get("name")
+# VERSION = manifest_data.get("version")
+# ISSUEURL = manifest_data.get("issue_tracker")
+
+DOMAIN =  "carbu_com"
+NAME =  "Carbu.com"
 PLATFORMS = [Platform.SENSOR]
 
 STARTUP = """
 -------------------------------------------------------------------
 {name}
-Version: {version}
 This is a custom component
-If you have any issues with this you need to open an issue here:
-{issueurl}
 -------------------------------------------------------------------
 """.format(
-    name=NAME, version=VERSION, issueurl=ISSUEURL
+    name=NAME
 )
 
 
