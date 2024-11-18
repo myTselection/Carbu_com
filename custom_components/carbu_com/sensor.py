@@ -20,7 +20,7 @@ from homeassistant.const import (
     CONF_USERNAME
 )
 
-from . import DOMAIN, NAME, VERSION
+from . import DOMAIN, NAME
 
 _LOGGER = logging.getLogger(__name__)
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.0%z"
@@ -613,7 +613,6 @@ class ComponentPriceSensor(Entity):
             },
             name=f"{NAME} {self._data._postalcode} {self._data._country}",
             model=f"{self._data._postalcode} {self._data._country}",
-            sw_version= f"{VERSION}",
             manufacturer= NAME
         )
     @property
@@ -767,7 +766,6 @@ class ComponentPriceNeighborhoodSensor(Entity):
             },
             name=f"{NAME} {self._data._postalcode} {self._data._country}",
             model=f"{self._data._postalcode} {self._data._country}",
-            sw_version= f"{VERSION}",
             manufacturer= NAME
         )
 
@@ -868,7 +866,6 @@ class ComponentFuelPredictionSensor(Entity):
             },
             name=f"{NAME} {self._data._postalcode} {self._data._country}",
             model=f"{self._data._postalcode} {self._data._country}",
-            sw_version= f"{VERSION}",
             manufacturer= NAME
         )
 
@@ -1013,7 +1010,6 @@ class ComponentOilPredictionSensor(Entity):
             },
             name=f"{NAME} {self._data._postalcode} {self._data._country}",
             model=f"{self._data._postalcode} {self._data._country}",
-            sw_version= f"{VERSION}",
             manufacturer= NAME
         )
 
@@ -1136,7 +1132,6 @@ class ComponentFuelOfficialSensor(Entity):
             },
             name=f"{NAME} {self._data._postalcode} {self._data._country}",
             model=f"{self._data._postalcode} {self._data._country}",
-            sw_version= f"{VERSION}",
             manufacturer= NAME
         )
 
