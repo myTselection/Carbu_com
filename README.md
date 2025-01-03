@@ -452,7 +452,7 @@ cards:
           <center>
 
 
-          [{{state_attr('sensor.carbu_com_super95_3010_price','supplier')}}]({{state_attr('sensor.carbu_com_super95_3010_5km','url')}})
+          [{{state_attr('sensor.carbu_com_super95_3010_price','supplier')}}]({{state_attr('sensor.carbu_com_super95_3010_price','url')}})
 
           ### <center>{{states('sensor.carbu_com_super95_3010_price')}} €/l
       - type: markdown
@@ -487,7 +487,7 @@ cards:
           <center>
 
 
-          [{{state_attr('sensor.carbu_com_super95_3010_10km','supplier')}}]({{state_attr('sensor.carbu_com_super95_3010_5km','url')}})
+          [{{state_attr('sensor.carbu_com_super95_3010_10km','supplier')}}]({{state_attr('sensor.carbu_com_super95_3010_10km','url')}})
 
           ### <center>{{states('sensor.carbu_com_super95_3010_10km')}} €/l
 
