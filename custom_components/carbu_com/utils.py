@@ -487,7 +487,7 @@ class ComponentSession(object):
             pb_get_prices_price = pb_get_prices.get('prices').get('price')
 
             # Filter the list to keep only items containing "diesel" in the "fuel" value
-            fuel_type_items = [item for item in pb_get_prices_price if fueltype.it_name in item["fuel"].lower()]
+            fuel_type_items = [item for item in pb_get_prices_price if fueltype.it_name in item["fuel"].lower() and item["service"] == "SS"]
 
             # Sort the filtered list by the "price" key in ascending order
             sorted_fuel_type_items = sorted(fuel_type_items, key=lambda x: float(x["price"]))
