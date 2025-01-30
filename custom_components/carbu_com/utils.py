@@ -421,7 +421,7 @@ class ComponentSession(object):
             # _LOGGER.debug(f"NL URL: {nl_url}")
             response = self.s.get(nl_url,headers=header,timeout=50)
             if response.status_code != 200:
-                _LOGGER.error(f"ERROR: {response.text}")
+                _LOGGER.error(f"ERROR: NL URL: {nl_url}, {response.text}")
             assert response.status_code == 200
             radius = radius + 0.045
 
