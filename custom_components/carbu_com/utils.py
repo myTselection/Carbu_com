@@ -1165,7 +1165,7 @@ class ComponentSession(object):
                 data["localPrice"] = 0 if price_info[0].get("price") == '' else float(price_info[0].get("price"))
                 data["diff"] = round(data["price"] - data["localPrice"],3)
                 data["diff30"] = round(data["diff"] * 30,3)
-                data["diffPct"] = 0 if data["price"] == 0 else round(100*((data["price"] - data["localPrice"])/data["price"]),3)
+                data["diffPct"] = 0 if data["price"] == 0 else round(100*(1 - (data["price"]/data["localPrice"])),3)
                 data["supplier"]  = station.get("name")
                 data["supplier_brand"]  = station.get("brand")
                 data["url"]   = station.get("url")
