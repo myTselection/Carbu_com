@@ -127,7 +127,7 @@ async def dry_setup(hass, config_entry, async_add_devices):
             # await sensorSuper95Neigh.async_update()
             sensors.append(sensorSuper98Neigh)
 
-        if country.lower() in ['be','fr','lu']:
+        if country.lower() in ['be','fr','lu','de']:
             sensorSuper98OfficialE10 = ComponentFuelOfficialSensor(componentData, FuelType.SUPER98_OFFICIAL_E10)
             appendUniqueSensor(sensorSuper98OfficialE10)
             
