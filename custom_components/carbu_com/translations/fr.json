@@ -39,6 +39,7 @@
           "lpg": "LPG",
           "postalcode": "Code postal",
           "super95": "Super 95 (E10)",
+          "super95_e5": "Super 95 (E5) (seulement en DE/ES)",
           "super98": "Super 98 (E5)"
         },
         "description": "Configuration des capteurs Carbu.com et Mazout.com."

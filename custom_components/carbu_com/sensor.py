@@ -56,6 +56,7 @@ async def dry_setup(hass, config_entry, async_add_devices):
     individualstation = config.get("individualstation", False)
     station = config.get("station","")
     super95 = config.get(FuelType.SUPER95.name_lowercase)
+    super95_e5 = config.get(FuelType.SUPER95_E5.name_lowercase)
     super98 = config.get(FuelType.SUPER98.name_lowercase)
     diesel = config.get(FuelType.DIESEL.name_lowercase)
     lpg = config.get(FuelType.LPG.name_lowercase)
@@ -109,6 +110,30 @@ async def dry_setup(hass, config_entry, async_add_devices):
             appendUniqueSensor(sensorSuper95Official)
 
         if country.lower() in ['nl']:
+            sensorSuper95Official = ComponentFuelOfficialSensor(componentData, FuelType.SUPER95_OFFICIAL_E10)
+            appendUniqueSensor(sensorSuper95Official)
+
+    if super95_e5:
+        sensorSuper95_e5 = ComponentPriceSensor(componentData, FuelType.SUPER95_E5, postalcode, False, 0, station)
+        # await sensorSuper95.async_update()
+        sensors.append(sensorSuper95_e5)
+        
+        if not individualstation:
+                sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95_E5, postalcode, 5)
+                # await sensorSuper95Neigh.async_update()
+                sensors.append(sensorSuper95Neigh)
+                
+                sensorSuper95Neigh = ComponentPriceNeighborhoodSensor(componentData, FuelType.SUPER95_E5, postalcode, 10)
+                # await sensorSuper95Neigh.async_update()
+                sensors.append(sensorSuper95Neigh)
+
+        if country.lower() in ['be','fr','lu'] and not(super95):
+            sensorSuper95Prediction = ComponentFuelPredictionSensor(componentData, FuelType.SUPER95_PREDICTION)
+            appendUniqueSensor(sensorSuper95Prediction)
+            sensorSuper95Official = ComponentFuelOfficialSensor(componentData, FuelType.SUPER95_OFFICIAL_E10)
+            appendUniqueSensor(sensorSuper95Official)
+
+        if country.lower() in ['nl'] and not(super95):
             sensorSuper95Official = ComponentFuelOfficialSensor(componentData, FuelType.SUPER95_OFFICIAL_E10)
             appendUniqueSensor(sensorSuper95Official)
     
@@ -281,6 +306,7 @@ class ComponentData:
         
         self._quantity = config.get("quantity")
         self._super95 = config.get(FuelType.SUPER95.name_lowercase)
+        self._super95_e5 = config.get(FuelType.SUPER95_E5.name_lowercase)
         self._super98 = config.get(FuelType.SUPER98.name_lowercase)
         self._diesel = config.get(FuelType.DIESEL.name_lowercase)
         self._lpg = config.get(FuelType.LPG.name_lowercase)
@@ -375,6 +401,14 @@ class ComponentData:
                     await self.get_fuel_price_prediction_info(FuelType.SUPER95_PREDICTION) 
                     await self.get_fuel_price_official_info(FuelType.SUPER95_OFFICIAL_E10)
                 if self._country.lower() in ['nl']:
+                    await self.get_fuel_price_official_info(FuelType.SUPER95_OFFICIAL_E10)
+
+            if self._super95_e5:
+                await self.get_fuel_price_info(FuelType.SUPER95_E5)  
+                if self._country.lower() in ['be','fr','lu'] and not self._super95:
+                    await self.get_fuel_price_prediction_info(FuelType.SUPER95_PREDICTION) 
+                    await self.get_fuel_price_official_info(FuelType.SUPER95_OFFICIAL_E10)
+                if self._country.lower() in ['nl'] and not self._super95:
                     await self.get_fuel_price_official_info(FuelType.SUPER95_OFFICIAL_E10)
                 
             if self._super98:

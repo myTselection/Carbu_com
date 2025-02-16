@@ -60,6 +60,17 @@ If desired (selection box default off), the fuel price of a specific individual 
 
 
 ## Integration
+### Mapping
+
+| Fuel type | BE/FR/LU (carbu) | DE (clever-tanken.de) | IT (prezzibenzina.it) | NL (brandstof-zoeker.nl) | ES (sedeaplicaciones.minetur.gob.es) | US (gas-buddy.com) |
+| --------- | ---------------- | --------------------- | --------------------- | ------------------------ | ------------------------------------ | ------------------ |
+| SUPER95 (E10)  | E10         | Super E10             | benzina               | euro95                   | Gasolina 95 E10                      | regular_gas        |
+| SUPER95 (E5)   | / (E10)     | Super E5              | / (benzina)           | specbenzine              | Gasolina 95 E5 Premium               | / (regular_gas)    |
+| SUPER98 (E5)   | SP98        | SuperPlus             | benzinasp             | superplus                | Gasolina 98 E5                       | premium_gas        |
+| DIESEL (B7)    | GO          | Diesel                | diesel                | diesel                   | Gasóleo A                            | diesel             |
+| LPG            | GPL         | LPG                   | gpl                   | lpg                      | Gases licuados del petróleo          | /                  |
+
+
 ### Sensors
 - <details><summary>Sensor with lowest diesel and super <code>sensor.carbu_com_[fueltype]_[postalcode]_price</code> and lowest fuel oil <code>sensor.carbu_com_[fueltype]_[postalcode]_[quantity]l_price</code> Fuel oil only supported for BE/FR/LU</summary>
 

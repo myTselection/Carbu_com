@@ -43,10 +43,11 @@ def check_settings(config, hass):
 
 class FuelType(Enum):
             # 0: carbu code, 1: de code, 2: it name, 3: nl name, 4: sp code, 5: us code
+    SUPER95_E5 = "E10", 7, "benzina", "specbenzine","20", "regular_gas"
     SUPER95 = "E10", 5, "benzina", "euro95","23", "regular_gas"
     SUPER95_PREDICTION = "E95",0
     SUPER95_OFFICIAL_E10 = "super95",0,"","Euro95","Super 95 E10"
-    SUPER98 = "SP98", 6, "benzina","superplus", "3", "premium_gas"
+    SUPER98 = "SP98", 6, "benzinasp","superplus", "3", "premium_gas"
     SUPER98_OFFICIAL_E5 = "super95/98_E5",0,"","Super","Super 98 E5"
     SUPER98_OFFICIAL_E10 = "super95/98_E10",0,"","","Super 98 E10"
     DIESEL = "GO",3,"diesel","diesel","4", "diesel"
@@ -61,7 +62,9 @@ class FuelType(Enum):
     LPG = "GPL", 1, "gpl","lpg","17"
     LPG_OFFICIAL = "lpg", 1, "gpl","LPG","LPG"
     
-    
+    # https://www.anwb.nl/auto/brandstof/tanken-in-het-buitenland
+
+
     @property
     def code(self):
         return self.value[0]

@@ -45,6 +45,7 @@ def create_schema(entry, option=False):
         default_filter = ""
         default_friendly_name_template = ""
         default_super95 = True
+        default_super95_e5 = False
         default_super98 = True
         default_diesel = True
         default_lpg = False
@@ -70,6 +71,9 @@ def create_schema(entry, option=False):
     ] = str
     data_schema[
         vol.Optional(FuelType.SUPER95.name_lowercase, default=default_super95, description="Super 95 sensors")
+    ] = bool
+    data_schema[
+        vol.Optional(FuelType.SUPER95_E5.name_lowercase, default=default_super95_e5, description="Super 95 E5 sensors")
     ] = bool
     data_schema[
         vol.Optional(FuelType.SUPER98.name_lowercase, default=default_super98, description="Super 98 sensors")

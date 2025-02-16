@@ -10,6 +10,7 @@
                     "GEO_API_KEY": "GeoApfiy API key (adviced)",
                     "filter": "Supplier brand filter (optional)",
 					"super95": "Super 95 (E10)",
+					"super95_e5": "Super 95 (E5) (only in DE/ES)",
 					"super98": "Super 98 (E5)",
 					"diesel": "Diesel (B7)",
 					"lpg": "LPG",
