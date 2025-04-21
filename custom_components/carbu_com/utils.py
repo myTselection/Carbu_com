@@ -980,32 +980,56 @@ class ComponentSession(object):
             }
         return data
     
+    _MAZOUT_API_KEY = None
+    @sleep_and_retry
+    @limits(calls=1, period=1)
+    def getMazoutApiKey(self):
+        if self._MAZOUT_API_KEY is not None:
+            return self._MAZOUT_API_KEY
+        
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+        header = {"Accept-Language": "nl-BE"}
+        response = self.s.get(f"https://mazout.com/belgie",headers=header,timeout=30)
+        if response.status_code != 200:
+            _LOGGER.error(f"ERROR: {response.text}")
+            self._MAZOUT_API_KEY = None
+        assert response.status_code == 200
+
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        script_tag = soup.find('script', {'type': 'module'})
+        src = script_tag['src']
+        file_name = src.split('/')[-1]
+
+        
+        response = self.s.get(f"https://mazout.com/assets/{file_name}",headers=header,timeout=30)
+        if response.status_code != 200:
+            _LOGGER.error(f"ERROR: {response.text}")
+            self._MAZOUT_API_KEY = None
+        assert response.status_code == 200
+
+        code = response.text
+
+        match = re.search(r'api_key:\s*"([^"]+)"', code)
+        api_key = match.group(1) if match else None
+
+        return api_key
 
     @sleep_and_retry
     @limits(calls=1, period=1)
     def getOilPrice(self, locationinfo, volume, oiltypecode):
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         header = {"Accept-Language": "nl-BE"}
-        # https://mazout.com/belgie/offers?areaCode=BE_bf_279&by=quantity&for=2000&productId=7
-        # https://mazout.com/config.378173423.json
-        # https://api.carbu.com/mazout/v1/offers?api_key=elPb39PWhWJj9K2t73tlxyRL0cxEcTCr0cgceQ8q&areaCode=BE_bf_223&productId=7&quantity=1000&sk=T211ck5hWEtySXFMRTlXRys5KzVydz09
-
-        response = self.s.get(f"https://mazout.com/config.204135307.json",headers=header,timeout=30)
-        if response.status_code != 200:
-            _LOGGER.error(f"ERROR: {response.text}")
-        assert response.status_code == 200
-        api_details = response.json()
-        api_key = api_details.get("api").get("accessToken").get("val")
-        sk = api_details.get("api").get("appId").get("val") #x.api.appId.val
-        url = api_details.get("api").get("url")
-        namespace = api_details.get("api").get("namespace")
-        offers = api_details.get("api").get("routes").get("offers") #x.api.routes.offers
-        oildetails_url = f"{url}{namespace}{offers}?api_key={api_key}&sk={sk}&areaCode={locationinfo}&productId={oiltypecode}&quantity={volume}&locale=nl-BE"
+        # https://api.carbu.com/mazout/v1/offers?[object%20Object]&api_key=elPb39PWhWJj9K2t73tlxyRL0cxEcTCr0cgceQ8q&maxLevel=6&minLevel=5&areaCode=BE_bf_223&productId=2&quantity=1000
+        
+        api_key = self.getMazoutApiKey()
+        oildetails_url = f"https://api.carbu.com/mazout/v1/offers?[object%20Object]&api_key={api_key}&maxLevel=6&minLevel=5&areaCode={locationinfo}&productId={oiltypecode}&quantity={volume}&locale=nl-BE"
         _LOGGER.debug(f"oildetails_url: {oildetails_url}")
         
         response = self.s.get(oildetails_url,headers=header,timeout=30, verify=False)
         if response.status_code != 200:
             _LOGGER.error(f"ERROR: {response.text}")
+            self._MAZOUT_API_KEY = None
         assert response.status_code == 200
         oildetails = response.json()
         
@@ -1016,24 +1040,16 @@ class ComponentSession(object):
     def getOilPrediction(self):
         header = {"Content-Type": "application/x-www-form-urlencoded"}
         header = {"Accept-Language": "nl-BE"}
-        # https://mazout.com/belgie/offers?areaCode=BE_bf_279&by=quantity&for=2000&productId=7
-        # https://mazout.com/config.378173423.json
         # https://api.carbu.com/mazout/v1/price-summary?api_key=elPb39PWhWJj9K2t73tlxyRL0cxEcTCr0cgceQ8q&sk=T211ck5hWEtySXFMRTlXRys5KzVydz09
 
-        response = self.s.get(f"https://mazout.com/config.204135307.json",headers=header,timeout=30)
-        if response.status_code != 200:
-            _LOGGER.error(f"ERROR: {response.text}")
-        assert response.status_code == 200
-        api_details = response.json()
-        api_key = api_details.get("api").get("accessToken").get("val")
-        sk = api_details.get("api").get("appId").get("val") #x.api.appId.val
-        url = api_details.get("api").get("url")
-        namespace = api_details.get("api").get("namespace")
-        oildetails_url = f"{url}{namespace}/price-summary?api_key={api_key}&sk={sk}"
+
+        api_key = self.getMazoutApiKey()
+        oildetails_url = f"https://api.carbu.com/mazout/v1/price-summary?api_key={api_key}"
         
         response = self.s.get(oildetails_url,headers=header,timeout=30, verify=False)
         if response.status_code != 200:
             _LOGGER.error(f"ERROR: {response.text}")
+            self._MAZOUT_API_KEY = None
         assert response.status_code == 200
         oildetails = response.json()
         
