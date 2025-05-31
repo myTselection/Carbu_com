@@ -538,7 +538,7 @@ class ComponentSession(object):
                     'id': block.get('id'),
                     'name': block.get('name'),
                     'url': block.get('url'),
-                    'logo_url': f"https://www.prezzibenzina.it/www2/marker.php?brand={block.get('co')}&status=AP&price={fuel_price}&certified=0&marker_type=1",
+                    'logo_url': f"https://www.prezzibenzina.it/www2/contentImages/brands/logo_{block.get('co')}_small.png",
                     'brand': block.get('co_name'),
                     'address': block.get('address'),
                     'postalcode': block.get('zip'),
