@@ -3,6 +3,7 @@ import logging
 import requests
 import uuid
 import re
+import locale
 import math
 from bs4 import BeautifulSoup
 from datetime import date, datetime, timedelta
@@ -901,83 +902,50 @@ class ComponentSession(object):
         
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        date_text = None
-        for paragraph in soup.find_all('div', class_='_tableFooter_14l7y_20'):
-            if paragraph.text.strip().startswith("Datum overzicht"):
-                date_text = paragraph.text.replace("Datum overzicht ", "").strip()
-                date_text = date_text.split("*")[0]
-                break
+        soup = soup.find('div', class_='flex w-full flex-col')
 
-
-        # Mapping of Dutch month names to English month names
-        month_translation = {
-            "januari": "January",
-            "februari": "February",
-            "maart": "March",
-            "april": "April",
-            "mei": "May",
-            "juni": "June",
-            "juli": "July",
-            "augustus": "August",
-            "september": "September",
-            "oktober": "October",
-            "november": "November",
-            "december": "December"
-        }
-
-        def translate_month(dutch_date_str):
-            spaceSplit = dutch_date_str.lower().split(" ")
-            return f"{spaceSplit[0]} {month_translation.get(spaceSplit[1], spaceSplit[1])} {spaceSplit[2]}"
-        
-        # Convert the date text to a datetime.date object if found
-        date_object = date.today()
-        if date_text:
-            try:
-                # Translate Dutch month to English
-                translated_date_text = translate_month(date_text)
-                # Define the expected date format
-                date_object = datetime.strptime(translated_date_text, "%d %B %Y").date()
-            except ValueError:
-                # Handle cases where the date format is unexpected or incorrect
-                date_object = date.today()
-
-        # Assuming 'soup' is the BeautifulSoup object containing your HTML
         data = {}
 
-        # Find all rows
-        rows = soup.find_all('div', class_='_row_14l7y_25')
+        # Try setting Dutch locale to parse Dutch month names, fallback if not available
+        try:
+            locale.setlocale(locale.LC_TIME, 'nl_NL.UTF-8')
+        except:
+            pass  # Continue without locale if it's not available (may affect date parsing)
 
-        # Loop through each row to extract data
-        for row in rows:
-            # fuel_type = row.find('a').text.strip()
-            # gla_value = row.find_all('span', class_='_root_1d6z8_1')[0].text.strip()
-            # # Remove the Euro sign and convert the GLA value to a float
-            # gla_value = float(gla_value.replace('€', '').replace(',', '.').strip())
-            # verschil_value = row.find_all('span', class_='_root_vw1r2_1')[0].next_sibling.strip()
+        # Extract overview date
+        date_object = None
+        datum_found = False
+        for div in soup.find_all("div"):
+            if div.text and "Datum overzicht" in div.text:
+                lines = div.get_text(separator="\n").split("\n")
+                for line in lines:
+                    if "Datum overzicht" in line or datum_found:
+                        raw_date = line.replace("Datum overzicht", "").strip()
+                        datum_found = True
+                        try:
+                            date_object = datetime.strptime(raw_date, "%d %B %Y").date()
+                            break
+                        except:
+                            date_object = raw_date  # fallback to string
+                break
 
-            try:
-                fuel_type = row.find('a').text.strip()
-            except AttributeError:
-                fuel_type = None
+        # Extract fuel data
+        for row in soup.find_all("div"):
+            a_tag = row.find("a", href=True)
+            span_tags = row.find_all("span")
 
-            try:
-                gla_value_str = row.find_all('span', class_='_root_1d6z8_1')[0].text.strip()
-                gla_value = float(gla_value_str.replace('€', '').replace(',', '.').strip())
-            except (IndexError, AttributeError, ValueError):
-                gla_value = None
+            if a_tag and len(span_tags) >= 2:
+                fuel_type = a_tag.get_text(strip=True)
+                gla_value = span_tags[0].get_text(strip=True).replace('\xa0', ' ')
+                verschil_value = span_tags[1].next_sibling.strip() if span_tags[1].next_sibling else "Unknown"
 
-            try:
-                verschil_value = row.find_all('span', class_='_root_vw1r2_1')[0].next_sibling.strip()
-            except (IndexError, AttributeError):
-                verschil_value = None
+                data[fuel_type] = {
+                    'fuel_type': fuel_type,
+                    'GLA': gla_value,
+                    'Verschil': verschil_value,
+                    'date': date_object
+                }
 
-            # Append the extracted data to the list
-            data[fuel_type] = {
-                'fuel_type': fuel_type,
-                'GLA': gla_value,
-                'Verschil': verschil_value,
-                'date': date_object
-            }
         return data
     
     _MAZOUT_API_KEY = None
@@ -1756,7 +1724,7 @@ class ComponentSession(object):
 
 
 # test nl official
-# session.getFuelOfficial(FuelType.DIESEL_OFFICIAL_B7, "NL")
+#print(session.getFuelOfficial(FuelType.DIESEL_OFFICIAL_B7, "NL"))
 # session.getFuelOfficial(FuelType.LPG_OFFICIAL, "BE")
 
 #test US
