@@ -7,7 +7,7 @@
                 "data": {
                     "country": "Country (BE/DE/FR/IT/LU/NL/ES/US)",
                     "postalcode": "Postal code",
-                    "GEO_API_KEY": "GeoApfiy API key (adviced)",
+                    "GEO_API_KEY": "GeoApify API key (adviced)",
                     "filter": "Supplier brand filter (optional)",
 					"super95": "Super 95 (E10)",
 					"super95_e5": "Super 95 (E5) (only in DE/ES)",
