@@ -18,7 +18,7 @@ from homeassistant.const import (
 from . import DOMAIN, NAME
 from .utils import *
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(DOMAIN)
 
 
 def create_schema(entry, option=False):

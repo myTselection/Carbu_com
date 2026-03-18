@@ -18,9 +18,11 @@ import voluptuous as vol
 
 # Disable SSL warnings globally
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+from .const import (
+    DOMAIN,
+)
 # logging.basicConfig(level=logging.DEBUG)
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(DOMAIN)
 
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.0%z"
 _DATE_FORMAT = "%d/%m/%Y"

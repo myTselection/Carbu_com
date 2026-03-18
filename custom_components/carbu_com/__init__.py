@@ -36,7 +36,7 @@ This is a custom component
 )
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType):
