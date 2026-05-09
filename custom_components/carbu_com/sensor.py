@@ -22,7 +22,7 @@ from homeassistant.const import (
 
 from . import DOMAIN, NAME
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(DOMAIN)
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.0%z"
 # Global or module-level variable to track existing sensors
 existing_sensors = set()
