@@ -28,6 +28,179 @@ _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.0%z"
 _DATE_FORMAT = "%d/%m/%Y"
 
 
+def _extract_balanced_js_object(script_text, start=0):
+    object_start = script_text.find("{", start)
+    if object_start == -1:
+        return None
+
+    depth = 0
+    quote = None
+    escaped = False
+
+    for index in range(object_start, len(script_text)):
+        char = script_text[index]
+
+        if quote:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+            continue
+
+        if char in ["'", '"']:
+            quote = char
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return script_text[object_start:index + 1]
+
+    return None
+
+
+def _add_workdays(start_date, days):
+    prediction_date = start_date
+    remaining_days = days
+
+    while remaining_days > 0:
+        prediction_date = prediction_date + timedelta(days=1)
+        if prediction_date.weekday() < 5:
+            remaining_days -= 1
+
+    return prediction_date
+
+
+def _chart_value(value):
+    if value is None or value == "null" or value == "-":
+        return None
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _series_value_at(series, index):
+    data = series.get("data")
+    if not isinstance(data, list) or index < 0 or index >= len(data):
+        return None
+
+    return _chart_value(data[index])
+
+
+def _normalized_chart_name(value):
+    return " ".join(str(value or "").lower().split())
+
+
+def _is_maximum_price_series(series, forecast):
+    name = _normalized_chart_name(series.get("name"))
+    is_maximum_price = "maximum prijs" in name
+    is_forecast = "voorspellingen" in name
+    return is_maximum_price and is_forecast == forecast
+
+
+def _forecast_series_indexes(script_text):
+    match = re.search(r"\bforecastSeriesIndexes\s*=\s*(\[[^\]]+\])", script_text)
+    if not match:
+        return []
+
+    try:
+        indexes = json.loads(match.group(1))
+    except json.JSONDecodeError:
+        return []
+
+    return [index for index in indexes if isinstance(index, int)]
+
+
+def _prediction_indexes(categories):
+    forecast_indexes = []
+    for index, category in enumerate(categories):
+        if isinstance(category, str) and re.fullmatch(r"\+\d+", category.strip()):
+            forecast_indexes.append(index)
+
+    if not forecast_indexes or forecast_indexes[0] == 0:
+        raise ValueError("No forecast categories found")
+
+    target_index = forecast_indexes[-1]
+    target_label = str(categories[target_index]).strip()
+
+    return forecast_indexes[0] - 1, target_index, int(target_label[1:])
+
+
+def _current_maximum_price(series_list, index):
+    for series in series_list:
+        if _is_maximum_price_series(series, False):
+            value = _series_value_at(series, index)
+            if value is not None:
+                return value
+
+    return None
+
+
+def _maximum_price_forecast_series(series_list, script_text):
+    for series in series_list:
+        if _is_maximum_price_series(series, True):
+            return series
+
+    for index in reversed(_forecast_series_indexes(script_text)):
+        if 0 <= index < len(series_list):
+            return series_list[index]
+
+    return None
+
+
+def _fuel_prediction_from_echarts_option(option, script_text):
+    categories = option.get("xAxis", {}).get("data", [])
+    series_list = option.get("series", [])
+    current_index, target_index, forecast_days = _prediction_indexes(categories)
+
+    series = _maximum_price_forecast_series(series_list, script_text)
+    if series is None:
+        raise ValueError("No maximum price forecast series found")
+
+    current_value = _series_value_at(series, current_index)
+    if current_value is None:
+        current_value = _current_maximum_price(series_list, current_index)
+
+    target_value = _series_value_at(series, target_index)
+    if current_value in [None, 0] or target_value is None:
+        raise ValueError("Incomplete maximum price forecast data")
+
+    trend = 100 * (target_value - current_value) / current_value
+    current_date = datetime.strptime(categories[current_index], _DATE_FORMAT)
+    prediction_date = _add_workdays(current_date, forecast_days)
+
+    return [trend, prediction_date.strftime(_DATE_FORMAT)]
+
+
+def _fuel_prediction_from_echarts(html):
+    soup = BeautifulSoup(html, 'html.parser')
+
+    for script in soup.find_all('script'):
+        script_text = script.string or script.get_text()
+        if "echarts" not in script_text:
+            continue
+
+        match = re.search(r"\b(?:var|let|const)\s+option\s*=", script_text)
+        if not match:
+            continue
+
+        option_text = _extract_balanced_js_object(script_text, match.end())
+        if option_text is None:
+            continue
+
+        try:
+            option = json.loads(option_text, strict=False)
+            return _fuel_prediction_from_echarts_option(option, script_text)
+        except (TypeError, ValueError, KeyError, IndexError, json.JSONDecodeError) as err:
+            _LOGGER.debug(f"Could not parse ECharts fuel prediction data: {err}")
+
+    return None
+
+
 def check_settings(config, hass):
     errors_found = False
     if not any(config.get(i) for i in ["country"]):
@@ -786,9 +959,13 @@ class ComponentSession(object):
         if response.status_code != 200:
             _LOGGER.error(f"ERROR: {response.text}")
         assert response.status_code == 200
+
+        echarts_prediction = _fuel_prediction_from_echarts(response.text)
+        if echarts_prediction is not None:
+            return echarts_prediction
         
-        last_category = None
-        last_data = None
+        categories = None
+        categoriesIndex = None
         soup = BeautifulSoup(response.text, 'html.parser')
         # Find the Highchart series data
         highchart_series = soup.find_all('script')
@@ -824,7 +1001,11 @@ class ComponentSession(object):
                             value = 100 * (elem.get('data')[categoriesIndex +4] - elem.get('data')[categoriesIndex -1]) / elem.get('data')[categoriesIndex -1]
                     
                     # _LOGGER.debug(f"value: {value}")  
-        except:
+        except Exception as e:
+            _LOGGER.error(f"Carbu_com Prediction code {fueltype_prediction_code} could not be retrieved: {e}")
+            return [value, datetime.now()]
+
+        if categories is None or categoriesIndex is None:
             _LOGGER.error(f"Carbu_com Prediction code {fueltype_prediction_code} could not be retrieved")
             return [value, datetime.now()]
         
