@@ -1,0 +1,196 @@
+{
+  "config": {
+    "error": {
+      "api_key_error": "API key conseillé et obligatoire pour NL/IT/US/ES",
+      "missing country": "Veuillez fournir un pays valide: BE/DE/FR/IT/LU/NL/ES/US",
+      "missing data options handler": "Le gestionnaire d'options a échoué",
+      "missing postal code": "Veuillez fournir un code postal valide",
+      "no_valid_settings": "Aucun paramètre valide trouvé dans la configuration HA."
+    },
+    "step": {
+      "station": {
+        "data": {
+          "station": "Station-service"
+        },
+        "description": "Sélectionnez une station-service individuelle"
+      },
+      "town": {
+        "data": {
+          "individualstation": "Sélectionnez une station-service individuelle",
+          "town": "Ville"
+        }
+      },
+      "town_carbu": {
+        "data": {
+          "individualstation": "Sélectionnez une station-service individuelle",
+          "oilextra": "Fioul Extra",
+          "oilstd": "Fioul Standard (50S)",
+          "quantity": "Quantité Fioul (liters)",
+          "town": "Ville"
+        }
+      },
+      "user": {
+        "data": {
+          "country": "Pays (BE/DE/FR/IT/LU/NL/ES/US)",
+          "diesel": "Diesel (B7)",
+          "GEO_API_KEY": "GeoApify API key (conseillé)",
+          "filter": "Filtre marque fournisseur (facultatif)",
+          "logo_with_price": "Logo avec prix",
+          "lpg": "LPG",
+          "postalcode": "Code postal",
+          "super95": "Super 95 (E10)",
+          "super95_e5": "Super 95 (E5) (seulement en DE/ES)",
+          "super98": "Super 98 (E5)"
+        },
+        "description": "Configuration des capteurs Carbu.com et Mazout.com."
+      }
+    },
+    "title": "Carbu.com"
+  },
+  "options": {
+    "error": {
+      "api_key_error": "API key conseillé et obligatoire pour NL/IT/US/ES",
+      "missing country": "Veuillez fournir un pays valide: BE/DE/FR/IT/LU/NL/ES/US",
+      "missing data options handler": "Le gestionnaire d'options a échoué",
+      "missing postal code": "Veuillez fournir un code postal valide",
+      "no_valid_settings": "Aucun paramètre valide trouvé dans la configuration HA."
+    },
+    "step": {
+      "edit": {
+        "description": "Mise à jour des paramètres de: {postalcode} {town} ({country}).",
+        "data": {
+          "GEO_API_KEY": "GeoApify API key (conseillé)",
+          "filter": "Filtrer par marque de fournisseur (facultatif)",
+          "filter_choice": "Utilisé un filter?",
+          "friendly_name_neighborhood_template": "Modèle convivial de nom sensor Prix environment (facultatif)",
+          "friendly_name_neighborhood_template_choice": "Utilisé environment modèle?",
+          "friendly_name_official_template": "Modèle convivial de nom sensor Officiel (facultatif)",
+          "friendly_name_official_template_choice": "Utilisé Officiel modèle?",
+          "friendly_name_prediction_template": "Modèle convivial de nom sensor Prediction (facultatif)",
+          "friendly_name_prediction_template_choice": "Utilisé Prediction modèle?",
+          "friendly_name_price_template": "Modèle convivial de nom sensor Prix (facultatif)",
+          "friendly_name_price_template_choice": "Utilisé Prix modèle?",
+          "logo_with_price": "Logo avec prix?"
+        }
+      }
+    }
+  },
+  "services": {
+    "get_lowest_fuel_price": {
+      "description": "Obtenez le prix du carburant le plus bas dans le voisinage d'un emplacement spécifique défini par le code postal et la ville (facultatif).",
+      "fields": {
+        "country": {
+          "description": "Le pays à rechercher, options prises en charge : BE/DE/FR/IT/LU/NL/ES/US",
+          "name": "country"
+        },
+        "filter": {
+          "description": "(Facultatif) Filtrez uniquement les marques de fournisseur spécifiques, laissez vide si une marque de fournisseur est autorisée",
+          "name": "filter"
+        },
+        "fuel_type": {
+          "description": "Le type de carburant à rechercher, options prises en charge : super95, super98, diesel ou lpg",
+          "name": "fuel_type"
+        },
+        "max_distance": {
+          "description": "Distance maximale en km autour du code postal pour rechercher le prix du carburant le plus bas, par exemple, rechercher 5 km autour du code postal",
+          "name": "max_distance"
+        },
+        "postalcode": {
+          "description": "Le code postal à rechercher",
+          "name": "postalcode"
+        },
+        "town": {
+          "description": "(Facultatif) La ville à rechercher",
+          "name": "town"
+        }
+      },
+      "name": "get_lowest_fuel_price"
+    },
+    "get_lowest_fuel_price_coor": {
+      "description": "Obtenez le prix du carburant le plus bas dans le voisinage d'un emplacement spécifique défini par des coordonnées de latitude et de longitude.",
+      "fields": {
+        "filter": {
+          "description": "(Facultatif) Filtrez uniquement les marques de fournisseur spécifiques, laissez vide si une marque de fournisseur est autorisée",
+          "name": "filter"
+        },
+        "fuel_type": {
+          "description": "Le type de carburant à rechercher, options prises en charge : super95, super98, diesel ou lpg",
+          "name": "fuel_type"
+        },
+        "latitude": {
+          "description": "La latitude du lieu (N)",
+          "name": "latitude"
+        },
+        "longitude": {
+          "description": "La longitude du lieu (E)",
+          "name": "longitude"
+        },
+        "max_distance": {
+          "description": "Distance maximale en km autour du code postal pour rechercher le prix du carburant le plus bas, par exemple, rechercher 5 km autour du code postal",
+          "name": "max_distance"
+        }
+      },
+      "name": "get_lowest_fuel_price_coor"
+    },
+    "get_lowest_fuel_price_on_route": {
+      "description": "Obtenez le prix du carburant le plus bas sur un itinéraire entre 2 emplacements définis par des codes postaux",
+      "fields": {
+        "country": {
+          "description": "Le pays à rechercher, options prises en charge : BE/DE/FR/IT/LU/NL/ES/US",
+          "name": "country"
+        },
+        "filter": {
+          "description": "(Facultatif) Filtrez uniquement les marques de fournisseur spécifiques, laissez vide si une marque de fournisseur est autorisée",
+          "name": "filter"
+        },
+        "from_postalcode": {
+          "description": "Le code postal à rechercher comme point de départ de l'itinéraire",
+          "name": "from_postalcode"
+        },
+        "fuel_type": {
+          "description": "Le type de carburant à rechercher, options prises en charge : super95, super98, diesel ou lpg",
+          "name": "fuel_type"
+        },
+        "to_country": {
+          "description": "(Facultatif) Le pays de l'emplacement cible à rechercher, options prises en charge : BE/DE/FR/IT/LU/NL/ES/US, si aucun to_country n'est fourni, le pays sera utilisé de la même manière pour l'emplacement source et cible",
+          "name": "to_country"
+        },
+        "to_postalcode": {
+          "description": "Le code postal à rechercher en fin de parcours",
+          "name": "to_postalcode"
+        }
+      },
+      "name": "get_lowest_fuel_price_on_route"
+    },
+    "get_lowest_fuel_price_on_route_coor": {
+      "description": "Obtenez le prix du carburant le plus bas sur un itinéraire entre 2 emplacements définis par des coordonnées de latitude et de longitude.",
+      "fields": {
+        "filter": {
+          "description": "(Facultatif) Filtrez uniquement les marques de fournisseur spécifiques, laissez vide si une marque de fournisseur est autorisée",
+          "name": "filter"
+        },
+        "from_latitude": {
+          "description": "La latitude de l'emplacement de la source (N)",
+          "name": "from_latitude"
+        },
+        "from_longitude": {
+          "description": "La longitude de l'emplacement de la source (E)",
+          "name": "from_longitude"
+        },
+        "fuel_type": {
+          "description": "Le type de carburant à rechercher, options prises en charge : super95, super98, diesel ou lpg",
+          "name": "fuel_type"
+        },
+        "to_latitude": {
+          "description": "La latitude de l'emplacement cible (N)",
+          "name": "to_latitude"
+        },
+        "to_longitude": {
+          "description": "La longitude de l'emplacement cible (E)",
+          "name": "to_longitude"
+        }
+      },
+      "name": "get_lowest_fuel_price_on_route_coor"
+    }
+  }
+}

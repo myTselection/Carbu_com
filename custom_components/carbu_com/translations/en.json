@@ -1,0 +1,196 @@
+{
+    "config": {
+        "title": "Carbu.com",
+        "step": {
+            "user": {
+                "description": "Setup Carbu.com and Mazout.com sensors.",
+                "data": {
+                    "country": "Country (BE/DE/FR/IT/LU/NL/ES/US)",
+                    "postalcode": "Postal code",
+                    "GEO_API_KEY": "GeoApify API key (adviced)",
+                    "filter": "Supplier brand filter (optional)",
+					"super95": "Super 95 (E10)",
+					"super95_e5": "Super 95 (E5) (only in DE/ES)",
+					"super98": "Super 98 (E5)",
+					"diesel": "Diesel (B7)",
+					"lpg": "LPG",
+                    "logo_with_price": "Logo with price"
+                }
+            },
+            "town": {
+                "data": {
+                    "town": "Town",
+                    "individualstation": "Select an individual gas station"
+                }
+            },
+            "town_carbu": {
+                "data": {
+                    "town": "Town",
+                    "individualstation": "Select an individual gas station",
+					"oilstd": "Mazout Heating Oil standard (50S)",
+					"oilextra": "Mazout Heating Oil extra",
+					"quantity": "Mazout Heating Oil quanitity (liters)"
+                }
+            },
+            "station": {
+                "description": "Select an individual gas station",
+                "data": {
+                    "station": "Gas station"
+                }
+            }
+        },
+        "error": {
+            "api_key_error": "API key strongly recommended and mandatory for NL/IT/US/ES",
+            "missing country": "Please provide a valid country: BE/DE/FR/IT/LU/NL/ES/US",
+            "missing postal code": "Please provide a valid postal code",
+            "missing data options handler": "Option handler failed",
+            "no_valid_settings": "No valid settings check in ha config."
+        }
+    },
+    "options": {
+        "step": {
+            "edit": {
+                "description": "Update config of: {postalcode} {town} ({country}).",
+                "data": {
+                    "GEO_API_KEY": "GeoApfiy API key (adviced)",
+                    "filter_choice": "Use filter?",
+                    "filter": "Supplier brand filter (optional)",
+                    "friendly_name_price_template_choice": "Use price template?",
+                    "friendly_name_price_template": "Friendly name sensor Price template (optional)",
+                    "friendly_name_neighborhood_template_choice": "Use neighborhood template?",
+                    "friendly_name_neighborhood_template": "Friendly name sensor Neighborhood template (optional)",
+                    "friendly_name_prediction_template_choice": "Use prediction template?",
+                    "friendly_name_prediction_template": "Friendly name sensor Prediction template (optional)",
+                    "friendly_name_official_template_choice": "Use official template?",
+                    "friendly_name_official_template": "Friendly name sensor Official template (optional)",
+                    "logo_with_price": "Logo with price?"
+                }
+            }
+        },
+        "error": {
+            "api_key_error": "API key strongly recommended and mandatory for NL/IT/US/ES",
+            "missing country": "Please provide a valid country: BE/DE/FR/IT/LU/NL/ES/US",
+            "missing postal code": "Please provide a valid postal code",
+            "missing data options handler": "Option handler failed",
+            "no_valid_settings": "No valid settings check in ha config."
+        }
+    },
+    "services": {
+        "get_lowest_fuel_price": {
+            "name": "get_lowest_fuel_price",
+            "description": "Get the lowest fuel price in the neighbourhood of a specific location defined by postalcode and town (optional).",
+            "fields": {
+                "fuel_type": {
+                    "name": "fuel_type",
+                    "description": "The type of fuel to look for, supported options: super95, super98, diesel or lpg"
+                },
+                "country": {
+                    "name": "country",
+                    "description": "The country to look for, supported options: BE/DE/FR/IT/LU/NL/ES/US"
+                },
+                "postalcode": {
+                    "name": "postalcode",
+                    "description": "The postalcode to look for"
+                },
+                "town": {
+                    "name": "town",
+                    "description": "(Optonal) The town to look for"
+                },
+                "max_distance": {
+                    "name": "max_distance",
+                    "description": "Max distance in km around postal code to look for lowest fuel price, eg search 5km around postal code"
+                },
+                "filter": {
+                    "name": "filter",
+                    "description": "(Optional) Filter out only specific supplier brands, leave empty if any supplier brand is allowed"
+                }
+            }
+        },
+        "get_lowest_fuel_price_coor": {
+            "name": "get_lowest_fuel_price_coor",
+            "description": "Get the lowest fuel price in the neighbourhood of a specific location defined by coordinates latitude and longitude.",
+            "fields": {
+                "fuel_type": {
+                    "name": "fuel_type",
+                    "description": "The type of fuel to look for, supported options: super95, super98, diesel or lpg"
+                },
+                "latitude": {
+                    "name": "latitude",
+                    "description": "The latitude of the location (N)"
+                },
+                "longitude": {
+                    "name": "longitude",
+                    "description": "The longitude of the location (E)"
+                },
+                "max_distance": {
+                    "name": "max_distance",
+                    "description": "Max distance in km around postal code to look for lowest fuel price, eg search 5km around postal code"
+                },
+                "filter": {
+                    "name": "filter",
+                    "description": "(Optional) Filter out only specific supplier brands, leave empty if any supplier brand is allowed"
+                }
+            }
+        },
+        "get_lowest_fuel_price_on_route": {
+            "name": "get_lowest_fuel_price_on_route",
+            "description": "Get the lowest fuel price on a route between 2 locations defined by postalcodes",
+            "fields": {
+                "fuel_type": {
+                    "name": "fuel_type",
+                    "description": "The type of fuel to look for, supported options: super95, super98, diesel or lpg"
+                },
+                "country": {
+                    "name": "country",
+                    "description": "The country to look for, supported options: BE/DE/FR/IT/LU/NL"
+                },
+                "from_postalcode": {
+                    "name": "from_postalcode",
+                    "description": "The postalcode to look for as start of the route"
+                },
+                "to_postalcode": {
+                    "name": "to_postalcode",
+                    "description": "The postalcode to look for as end of the route"
+                },
+                "to_country": {
+                    "name": "to_country",
+                    "description": "(Optional) The country of target location to look for, supported options: BE/DE/FR/IT/LU/NL, if no to_country is provided, country will be used same for source and target location"
+                },
+                "filter": {
+                    "name": "filter",
+                    "description": "(Optional) Filter out only specific supplier brands, leave empty if any supplier brand is allowed"
+                }
+            }
+        },
+        "get_lowest_fuel_price_on_route_coor": {
+            "name": "get_lowest_fuel_price_on_route_coor",
+            "description": "Get the lowest fuel price on a route between 2 locations  defined by coordinates latitude and longitude.",
+            "fields": {
+                "fuel_type": {
+                    "name": "fuel_type",
+                    "description": "The type of fuel to look for, supported options: super95, super98, diesel or lpg"
+                },
+                "from_latitude": {
+                    "name": "from_latitude",
+                    "description": "The latitude of the source location (N)"
+                },
+                "from_longitude": {
+                    "name": "from_longitude",
+                    "description": "The longitude of the source location (E)"
+                },
+                "to_latitude": {
+                    "name": "to_latitude",
+                    "description": "The latitude of the target location (N)"
+                },
+                "to_longitude": {
+                    "name": "to_longitude",
+                    "description": "The longitude of the target location (E)"
+                },
+                "filter": {
+                    "name": "filter",
+                    "description": "(Optional) Filter out only specific supplier brands, leave empty if any supplier brand is allowed"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,196 @@
+{
+  "config": {
+    "error": {
+      "api_key_error": "API key geadviseerd en verplicht voor NL/IT/US/ES",
+      "missing country": "Geef een geldig land op: BE/DE/FR/IT/LU/NL/ES/US",
+      "missing data options handler": "Fout bij het verwerken van de opties",
+      "missing postal code": "Geef een geldige postcode op",
+      "no_valid_settings": "Geen geldige instellingen gevonden in de configuratie."
+    },
+    "step": {
+      "station": {
+        "data": {
+          "station": "Tankstation"
+        },
+        "description": "Selecteer een individueel tankstation"
+      },
+      "town": {
+        "data": {
+          "individualstation": "Selecteer een individueel tankstation",
+          "town": "Stad"
+        }
+      },
+      "town_carbu": {
+        "data": {
+          "individualstation": "Selecteer een individueel tankstation",
+          "oilextra": "Extra Mazout Verwarmingsolie",
+          "oilstd": "Standaard Mazout Verwarmingsolie (50S)",
+          "quantity": "Hoeveelheid Mazout Verwarmingsolie (liters)",
+          "town": "Stad"
+        }
+      },
+      "user": {
+        "data": {
+          "country": "Land (BE/DE/FR/IT/LU/NL/ES/US)",
+          "diesel": "Diesel (B7)",
+          "GEO_API_KEY": "GeoApify API key (geadviseerd)",
+          "filter": "Filter voor leveranciersmerk (optioneel)",
+          "logo_with_price": "Logo met prijs",
+          "lpg": "LPG",
+          "postalcode": "Postcode",
+          "super95": "Super 95 (E10)",
+          "super95_e5": "Super 95 (E5) (enkel in DE/ES)",
+          "super98": "Super 98 (E5)"
+        },
+        "description": "Configureer Carbu.com en Mazout.com sensoren."
+      }
+    },
+    "title": "Carbu.com"
+  },
+  "options": {
+    "error": {
+      "api_key_error": "API key geadviseerd en verplicht voor NL/IT/US/ES",
+      "missing country": "Geef een geldig land op: BE/DE/FR/IT/LU/NL/ES/US",
+      "missing data options handler": "Fout bij het verwerken van de opties",
+      "missing postal code": "Geef een geldige postcode op",
+      "no_valid_settings": "Geen geldige instellingen gevonden in de configuratie."
+    },
+    "step": {
+      "edit": {
+        "description": "Wijzig instellingen van: {postalcode} {town} ({country}).",
+        "data": {
+          "GEO_API_KEY": "GeoApify API key (geadviseerd)",
+          "filter": "Filter voor leveranciersmerk (optioneel)",
+          "filter_choice": "Gebruik filter?",
+          "friendly_name_neighborhood_template": "Sensor naam Omgeving template (optional)",
+          "friendly_name_neighborhood_template_choice": "Gebruik Omgeving template?",
+          "friendly_name_official_template": "Sensor naam Officiele template (optional)",
+          "friendly_name_official_template_choice": "Gebruik Officiele template?",
+          "friendly_name_prediction_template": "Sensor naam Voorspelling template (optional)",
+          "friendly_name_prediction_template_choice": "Gebruik Voorspelling template?",
+          "friendly_name_price_template": "Sensor naam Prijs template (optional)",
+          "friendly_name_price_template_choice": "Gebruik Prijs template?",
+          "logo_with_price": "Logo met prijs?"
+        }
+      }
+    }
+  },
+  "services": {
+    "get_lowest_fuel_price": {
+      "description": "Krijg de laagste brandstofprijs in de buurt van een specifieke locatie, gedefinieerd door postcode en stad (optioneel).",
+      "fields": {
+        "country": {
+          "description": "Het land om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL/ES/US",
+          "name": "country"
+        },
+        "filter": {
+          "description": "(Optioneel) Filter alleen specifieke leveranciersmerken uit, laat leeg als elk leveranciersmerk is toegestaan",
+          "name": "filter"
+        },
+        "fuel_type": {
+          "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98, diesel of lpg",
+          "name": "fuel_type"
+        },
+        "max_distance": {
+          "description": "Maximale afstand in km rond de postcode om naar de laagste brandstofprijs te zoeken, bijv. zoek 5 km rond de postcode",
+          "name": "max_distance"
+        },
+        "postalcode": {
+          "description": "De postcode om naar te zoeken",
+          "name": "postalcode"
+        },
+        "town": {
+          "description": "(Optioneel) De stad om naar te zoeken",
+          "name": "town"
+        }
+      },
+      "name": "get_lowest_fuel_price"
+    },
+    "get_lowest_fuel_price_coor": {
+      "description": "Krijg de laagste brandstofprijs in de buurt van een specifieke locatie gedefinieerd door coördinaten, breedtegraad en lengtegraad.",
+      "fields": {
+        "filter": {
+          "description": "(Optioneel) Filter alleen specifieke leveranciersmerken uit, laat leeg als elk leveranciersmerk is toegestaan",
+          "name": "filter"
+        },
+        "fuel_type": {
+          "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98, diesel of lpg",
+          "name": "fuel_type"
+        },
+        "latitude": {
+          "description": "De breedtegraad van de locatie (N)",
+          "name": "latitude"
+        },
+        "longitude": {
+          "description": "De lengtegraad van de locatie (E)",
+          "name": "longitude"
+        },
+        "max_distance": {
+          "description": "Maximale afstand in km rond de breedtegraad en lengtegraad om naar de laagste brandstofprijs te zoeken, bijv. zoek 5 km rond de coördinaten",
+          "name": "max_distance"
+        }
+      },
+      "name": "get_lowest_fuel_price_coor"
+    },
+    "get_lowest_fuel_price_on_route": {
+      "description": "Krijg de laagste brandstofprijs op een route tussen 2 locaties gedefinieerd door postcodes",
+      "fields": {
+        "country": {
+          "description": "Het land om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL/ES/US",
+          "name": "country"
+        },
+        "filter": {
+          "description": "(Optioneel) Filter alleen specifieke leveranciersmerken uit, laat leeg als elk leveranciersmerk is toegestaan",
+          "name": "filter"
+        },
+        "from_postalcode": {
+          "description": "De postcode om naar te zoeken als start van de route",
+          "name": "from_postalcode"
+        },
+        "fuel_type": {
+          "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98, diesel of lpg",
+          "name": "fuel_type"
+        },
+        "to_country": {
+          "description": "(Optioneel) Het land van de doellocatie om naar te zoeken, ondersteunde opties: BE/DE/FR/IT/LU/NL/ES/US, als er geen to_country is opgegeven, wordt hetzelfde land gebruikt voor zowel de bron- als doellocatie",
+          "name": "to_country"
+        },
+        "to_postalcode": {
+          "description": "De postcode om naar te zoeken als eindpunt van de route",
+          "name": "to_postalcode"
+        }
+      },
+      "name": "get_lowest_fuel_price_on_route"
+    },
+    "get_lowest_fuel_price_on_route_coor": {
+      "description": "Krijg de laagste brandstofprijs op een route tussen 2 locaties gedefinieerd door coördinaten, breedtegraad en lengtegraad.",
+      "fields": {
+        "filter": {
+          "description": "(Optioneel) Filter alleen specifieke leveranciersmerken uit, laat leeg als elk leveranciersmerk is toegestaan",
+          "name": "filter"
+        },
+        "from_latitude": {
+          "description": "De breedtegraad van de bronlocatie (N)",
+          "name": "from_latitude"
+        },
+        "from_longitude": {
+          "description": "De lengtegraad van de bronlocatie (E)",
+          "name": "from_longitude"
+        },
+        "fuel_type": {
+          "description": "Het type brandstof om naar te zoeken, ondersteunde opties: super95, super98, diesel of lpg",
+          "name": "fuel_type"
+        },
+        "to_latitude": {
+          "description": "De breedtegraad van de doellocatie (N)",
+          "name": "to_latitude"
+        },
+        "to_longitude": {
+          "description": "De lengtegraad van de doellocatie (E)",
+          "name": "to_longitude"
+        }
+      },
+      "name": "get_lowest_fuel_price_on_route_coor"
+    }
+  }
+}

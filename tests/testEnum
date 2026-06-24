@@ -1,0 +1,18 @@
+
+from enum import Enum
+
+class FueltType(Enum):
+    SUPER95 = ("E10", "E95")
+    SUPER98 = ("SP98", "SP98")
+    DIESEL = ("GO", "D")
+    OILSTD = ("7", "7")
+    OILEXTRA = ("2", "2")
+    
+    def __init__(self, code, prediction_code):
+        self.code = code
+        self.prediction_code = prediction_code
+    
+    def name_lowercase(self):
+        return self.name.lower()
+    
+print(FueltType.SUPER95.name_lowercase())
