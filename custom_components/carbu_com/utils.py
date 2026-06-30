@@ -176,7 +176,8 @@ def _fuel_prediction_from_echarts_option(option, script_text):
     return [trend, prediction_date.strftime(_DATE_FORMAT)]
 
 
-
+def _fuel_prediction_from_echarts(response_text):
+    soup = BeautifulSoup(response_text, 'html.parser')
     for script in soup.find_all('script'):
         script_text = script.string or script.get_text()
         if "echarts" not in script_text:
